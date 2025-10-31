@@ -118,7 +118,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'POST',
                         'url' => $baseUrl . '/auth/register',
                         'name' => 'Register',
-                        'description' => 'Register a new user account. Automatically creates device record and returns authentication token.',
+                        'description' => 'Register a new user account. Automatically creates device record and returns authentication token. If role_id is not provided, user will be assigned the default "user" role.',
                         'auth' => 'None',
                         'parameters' => [
                             'required' => [
@@ -126,9 +126,9 @@ class ApiDocumentationController extends Controller
                                 'email' => 'string - Email address (must be unique)',
                                 'password' => 'string - Password (min 8 characters)',
                                 'password_confirmation' => 'string - Password confirmation (must match password)',
-                                'role_id' => 'integer - Role ID (must exist in roles table)',
                             ],
                             'optional' => [
+                                'role_id' => 'integer - Role ID (must exist in roles table). If not provided, defaults to "user" role.',
                                 'device_id' => 'string - Unique device identifier',
                                 'device_type' => 'string - Device type (mobile, tablet, desktop)',
                                 'device_name' => 'string - Device name/model',
@@ -145,7 +145,6 @@ class ApiDocumentationController extends Controller
                             'email' => 'john.doe@example.com',
                             'password' => 'SecurePass123!',
                             'password_confirmation' => 'SecurePass123!',
-                            'role_id' => 2,
                             'device_id' => 'device-xyz789',
                             'device_type' => 'desktop',
                             'device_name' => 'MacBook Pro',
@@ -188,7 +187,6 @@ class ApiDocumentationController extends Controller
                                 'email' => ['The email has already been taken.'],
                                 'password' => ['The password must be at least 8 characters.'],
                                 'password_confirmation' => ['The password confirmation does not match.'],
-                                'role_id' => ['The selected role id is invalid.'],
                             ],
                         ],
                     ],

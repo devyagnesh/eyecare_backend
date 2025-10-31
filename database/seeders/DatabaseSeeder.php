@@ -22,11 +22,16 @@ class DatabaseSeeder extends Seeder
 
         // Create admin user
         $adminRole = \App\Models\Role::where('slug', 'admin')->first();
+        if (!$adminRole) {
+            $this->command->error('Admin role not found. Please check RolesAndPermissionsSeeder.');
+            return;
+        }
+        
         User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@gmail.com',
             'password' => 'password', // Will be automatically hashed by the model
-            'role_id' => $adminRole?->id,
+            'role_id' => $adminRole->id,
         ]);
     }
 }

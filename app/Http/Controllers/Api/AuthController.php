@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserDevice;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -79,14 +80,27 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
+
+        // Get default "user" role if role_id not provided
+        $roleId = $request->role_id;
+        if (!$roleId) {
+            $userRole = Role::where('slug', 'user')->first();
+            if (!$userRole) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Default user role not found. Please run database seeder.',
+                ], 500);
+            }
+            $roleId = $userRole->id;
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
+            'role_id' => $roleId,
         ]);
 
         $user->load('role.permissions');
