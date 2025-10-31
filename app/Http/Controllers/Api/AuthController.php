@@ -54,7 +54,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'email_verified_at' => $user->email_verified_at,
+                    'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,
@@ -108,7 +108,21 @@ class AuthController extends Controller
         $user->load('role.permissions');
 
         // Send email verification notification
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
+            \Log::info('Verification email sent successfully', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        } catch (\Exception $e) {
+            // Log error but don't fail registration
+            \Log::error('Failed to send verification email', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
 
         // Create or update device record
         $device = $this->createOrUpdateDevice($user, $request);
@@ -123,7 +137,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'email_verified_at' => $user->email_verified_at,
+                    'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,
@@ -179,7 +193,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'email_verified_at' => $user->email_verified_at,
+                    'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,
@@ -212,7 +226,7 @@ class AuthController extends Controller
                     'user' => [
                         'id' => $user->id,
                         'email' => $user->email,
-                        'email_verified_at' => $user->email_verified_at,
+                        'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
                     ],
                 ],
             ], 200);
@@ -236,7 +250,7 @@ class AuthController extends Controller
                         'id' => $user->id,
                         'name' => $user->name,
                         'email' => $user->email,
-                        'email_verified_at' => $user->email_verified_at,
+                        'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
                     ],
                 ],
             ], 200);
@@ -262,7 +276,19 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            \Log::error('Failed to resend verification email: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send verification email. Please try again later.',
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,

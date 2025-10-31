@@ -2,15 +2,12 @@
 
 namespace App\Notifications;
 
-use App\Mail\VerifyEmailMail;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 
-class VerifyEmailNotification extends Notification implements ShouldQueue
+class VerifyEmailNotification extends Notification
 {
-    use Queueable;
 
     /**
      * Get the notification's delivery channels.
@@ -29,7 +26,12 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
     {
         $verificationUrl = $this->verificationUrl($notifiable);
 
-        return new VerifyEmailMail($notifiable->name, $verificationUrl);
+        return (new MailMessage)
+            ->subject('Verify Your Email - Eyecare Management System')
+            ->view('emails.verify-email', [
+                'name' => $notifiable->name,
+                'verificationUrl' => $verificationUrl,
+            ]);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ApiDocumentationController;
+use App\Http\Controllers\Admin\TestEmailController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,12 @@ Route::get('/email/verify-already', [EmailVerificationController::class, 'showAl
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Test email routes (for debugging)
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::post('/test-email', [TestEmailController::class, 'sendTestEmail'])->name('test-email');
+        Route::post('/test-verification-email', [TestEmailController::class, 'sendTestVerificationEmail'])->name('test-verification-email');
+    });
     
     // Admin routes - Protected by authentication
     Route::prefix('admin')->name('admin.')->group(function () {

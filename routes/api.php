@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Admin\TestEmailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +21,12 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
     Route::get('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify-api');
+});
+
+// Test email routes (for debugging)
+Route::prefix('test')->group(function () {
+    Route::post('/send-email', [TestEmailController::class, 'sendTestEmail']);
+    Route::post('/send-verification-email', [TestEmailController::class, 'sendTestVerificationEmail']);
 });
 
 // Protected routes (require authentication)
