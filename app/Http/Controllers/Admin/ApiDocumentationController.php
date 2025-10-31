@@ -85,6 +85,7 @@ class ApiDocumentationController extends Controller
                                     'id' => 1,
                                     'name' => 'Admin User',
                                     'email' => 'admin@gmail.com',
+                                    'email_verified_at' => '2024-01-15T10:30:00.000000Z',
                                     'role' => [
                                         'id' => 1,
                                         'name' => 'Administrator',
@@ -160,6 +161,7 @@ class ApiDocumentationController extends Controller
                                     'id' => 2,
                                     'name' => 'John Doe',
                                     'email' => 'john.doe@example.com',
+                                    'email_verified_at' => null,
                                     'role' => [
                                         'id' => 2,
                                         'name' => 'User',
@@ -178,7 +180,7 @@ class ApiDocumentationController extends Controller
                                     'device_type' => 'desktop',
                                 ],
                             ],
-                            'message' => 'Registration successful',
+                            'message' => 'Registration successful. Please check your email to verify your account.',
                         ],
                         'error_response' => [
                             'status' => 422,
@@ -228,6 +230,7 @@ class ApiDocumentationController extends Controller
                                     'id' => 1,
                                     'name' => 'Admin User',
                                     'email' => 'admin@gmail.com',
+                                    'email_verified_at' => '2024-01-15T10:30:00.000000Z',
                                     'role' => [
                                         'id' => 1,
                                         'name' => 'Administrator',
@@ -253,6 +256,58 @@ class ApiDocumentationController extends Controller
                         'error_response' => [
                             'status' => 401,
                             'message' => 'Unauthenticated.',
+                        ],
+                    ],
+                    [
+                        'method' => 'GET',
+                        'url' => $baseUrl . '/auth/verify-email',
+                        'name' => 'Verify Email',
+                        'description' => 'Verify user email address via API. Requires id and hash parameters from the verification email link.',
+                        'auth' => 'None',
+                        'parameters' => [
+                            'required' => [
+                                'id' => 'integer - User ID',
+                                'hash' => 'string - Email hash from verification link',
+                            ],
+                        ],
+                        'request_payload' => [
+                            'id' => 1,
+                            'hash' => 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6',
+                        ],
+                        'response' => [
+                            'success' => true,
+                            'message' => 'Email verified successfully.',
+                            'data' => [
+                                'user' => [
+                                    'id' => 1,
+                                    'name' => 'John Doe',
+                                    'email' => 'user@example.com',
+                                    'email_verified_at' => '2024-01-15T10:30:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 403,
+                            'success' => false,
+                            'message' => 'Invalid verification link.',
+                        ],
+                    ],
+                    [
+                        'method' => 'POST',
+                        'url' => $baseUrl . '/auth/resend-verification-email',
+                        'name' => 'Resend Verification Email',
+                        'description' => 'Resend email verification notification to the authenticated user. Only works if email is not already verified.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'message' => 'Verification email has been sent. Please check your inbox.',
+                        ],
+                        'error_response' => [
+                            'status' => 400,
+                            'success' => false,
+                            'message' => 'Email already verified.',
                         ],
                     ],
                     [
@@ -452,6 +507,62 @@ class ApiDocumentationController extends Controller
                                     'raw' => '{{base_url}}/auth/me',
                                     'host' => ['{{base_url}}'],
                                     'path' => ['auth', 'me'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Verify Email',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/auth/verify-email?id=1&hash=your-email-hash',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['auth', 'verify-email'],
+                                    'query' => [
+                                        [
+                                            'key' => 'id',
+                                            'value' => '1',
+                                        ],
+                                        [
+                                            'key' => 'hash',
+                                            'value' => 'your-email-hash',
+                                            'description' => 'Hash from verification email link',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Resend Verification Email',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Content-Type',
+                                        'value' => 'application/json',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/auth/resend-verification-email',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['auth', 'resend-verification-email'],
                                 ],
                             ],
                             'response' => [],

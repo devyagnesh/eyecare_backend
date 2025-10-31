@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ApiDocumentationController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,6 +18,20 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 });
+
+// Email verification routes (public)
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
+
+Route::get('/email/verify-success', [EmailVerificationController::class, 'showSuccess'])
+    ->name('verification.success');
+
+Route::get('/email/verify-failed', [EmailVerificationController::class, 'showFailed'])
+    ->name('verification.failed');
+
+Route::get('/email/verify-already', [EmailVerificationController::class, 'showAlreadyVerified'])
+    ->name('verification.already-verified');
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

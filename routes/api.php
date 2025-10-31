@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\AuthController;
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify-api');
 });
 
 // Protected routes (require authentication)
@@ -27,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/update-notification-token', [AuthController::class, 'updateNotificationToken']);
+        Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('verification.resend-api');
     });
     
     // Example: Get authenticated user

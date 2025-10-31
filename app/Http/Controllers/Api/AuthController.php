@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\URL;
 
 class AuthController extends Controller
 {
@@ -53,6 +54,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,
@@ -105,6 +107,9 @@ class AuthController extends Controller
 
         $user->load('role.permissions');
 
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+
         // Create or update device record
         $device = $this->createOrUpdateDevice($user, $request);
 
@@ -118,6 +123,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,
@@ -132,7 +138,7 @@ class AuthController extends Controller
                     'device_type' => $device->device_type,
                 ],
             ],
-            'message' => 'Registration successful',
+            'message' => 'Registration successful. Please check your email to verify your account.',
         ], 201);
     }
 
@@ -173,6 +179,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,
@@ -181,6 +188,85 @@ class AuthController extends Controller
                     'permissions' => $user->permissions()->pluck('slug')->toArray(),
                 ],
             ],
+        ], 200);
+    }
+
+    /**
+     * Verify user's email address via API.
+     */
+    public function verifyEmail(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:users,id',
+            'hash' => 'required|string',
+        ]);
+
+        $user = User::findOrFail($request->id);
+
+        // Check if already verified
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email already verified.',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'email' => $user->email,
+                        'email_verified_at' => $user->email_verified_at,
+                    ],
+                ],
+            ], 200);
+        }
+
+        // Verify the hash matches the user's email
+        if (!hash_equals((string) $request->hash, sha1($user->getEmailForVerification()))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid verification link.',
+            ], 403);
+        }
+
+        // Mark email as verified
+        if ($user->markEmailAsVerified()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email verified successfully.',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'email_verified_at' => $user->email_verified_at,
+                    ],
+                ],
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to verify email.',
+        ], 500);
+    }
+
+    /**
+     * Resend email verification notification.
+     */
+    public function resendVerificationEmail(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email already verified.',
+            ], 400);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification email has been sent. Please check your inbox.',
         ], 200);
     }
 
