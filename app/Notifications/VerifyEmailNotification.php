@@ -39,7 +39,7 @@ class VerifyEmailNotification extends Notification
      */
     protected function verificationUrl($notifiable): string
     {
-        return URL::temporarySignedRoute(
+        $relativeUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
             [
@@ -48,5 +48,22 @@ class VerifyEmailNotification extends Notification
             ],
             false // Don't append existing query parameters
         );
+        
+        // Ensure absolute URL with proper base URL
+        if (strpos($relativeUrl, 'http') !== 0) {
+            // Extract query string if present
+            $queryString = '';
+            if (strpos($relativeUrl, '?') !== false) {
+                list($path, $queryString) = explode('?', $relativeUrl, 2);
+                $relativeUrl = $path;
+                $queryString = '?' . $queryString;
+            }
+            
+            // Build absolute URL
+            $baseUrl = rtrim(config('app.url'), '/');
+            return $baseUrl . $relativeUrl . $queryString;
+        }
+        
+        return $relativeUrl;
     }
 }
