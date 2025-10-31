@@ -1,0 +1,117 @@
+---
+alwaysApply: true
+---
+# Project Rules and Guidelines: Eyecare API & Admin Panel
+
+[TYPE: MDC]
+
+---
+
+## 1. Project Theme and Structure
+
+- Visual and structural foundation must be based on the provided local theme files.
+- Theme Source Path: `C:\Users\yjvc1\Desktop\Projects\eyecare\theme\HTML\dist`
+- Structure Adherence: Admin panel views must utilize and respect the file structure and asset paths established by this theme.
+
+## 2. Dependency Management (No CDNs)
+
+- All external libraries must be hosted locally. DO NOT rely on CDNs for external dependencies (jQuery, DataTables, Font Awesome, etc.).
+- Action: Download required JS/CSS library files and integrate into the local project asset folder.
+- Exception: Development tools and build scripts may use external sources.
+
+## 3. API Backend Standards
+
+- All endpoints must be RESTful using standard HTTP methods (GET, POST, PUT/PATCH, DELETE).
+- All API responses must be JSON with a consistent structure (e.g., `success: true|false`, `data`, `errors`).
+- Date/Time format: ISO 8601 (e.g., `YYYY-MM-DDTHH:mm:ssZ`).
+
+## 4. Frontend Technology Stack
+
+A. JavaScript Framework
+- Mandate: Use jQuery for all DOM manipulation, AJAX calls, and event handling.
+- Avoid: Do not use vanilla DOM APIs (e.g., `document.querySelector`, `fetch`) where jQuery alternatives exist.
+
+B. Form Validation
+- Mandate: Use the jQuery Validation Plugin for all client-side form validation.
+
+C. Data Display
+- Mandate: Use DataTables for all tabular data (pagination, sorting, search).
+
+## 5. Styling and Aesthetics (Minimal Custom CSS)
+
+- Leverage existing CSS and utility classes from the base theme.
+- Rule: Do NOT write custom CSS unless strictly necessary. Use theme's utility classes for spacing, flex, colors.
+- Custom CSS allowed only for complex overrides or layouts that cannot be achieved with theme classes.
+
+## 6. Security and Compliance
+
+- Input Sanitization: Validate and sanitize all user inputs server-side to prevent SQL injection, XSS, etc.
+- Authentication: All endpoints must verify authentication and authorization. Never rely on client-side checks.
+- Sensitive Data: Do NOT hardcode password hashes, API keys, or sensitive config in files checked into VCS.
+
+## 7. Code Quality and Naming Conventions
+
+- Consistency: Adhere to a consistent code style (indentation, brace placement).
+- JS Naming: Use `camelCase` for JavaScript variables and functions (e.g., `getPatientData`).
+- Classes/IDs: Use `kebab-case` or follow the theme's existing convention for CSS classes/IDs.
+- Modularity: Break complex logic into smaller, reusable functions/modules.
+
+## 8. Documentation and Maintenance
+
+- API Documentation: Maintain API docs inside a dedicated Admin Panel section. Keep docs updated as API evolves.
+- Code Comments: Comment complex functions explaining *why* not just *what*.
+- Error Logging: Implement centralized logging; do NOT expose internal server errors to frontend users.
+
+## 9. Admin Panel Requirements
+
+- Admin Layout: Use `x-layout` blade layout syntax for all admin views (header, sidebar, footer, content slots).
+- Theme Usage: Integrate assets from local theme path and keep asset references relative to project structure.
+- Use downloaded local JS/CSS assets only — include them via asset pipeline or local paths.
+
+## 10. Frontend Behavior & Tools
+
+- Always prefer jQuery over vanilla JS for event handling and AJAX.
+- Use jQuery Validation for client-side validation, and validate again server-side.
+- Use jQuery DataTables for listing, server-side processing enabled where large datasets exist.
+
+## 11. Admin API Documentation (In-panel)
+
+- Provide an interactive API documentation page inside Admin Panel that lists endpoints, required parameters, sample requests and responses, authentication requirements, and error codes.
+- Keep documentation versioned and indicate the last updated date.
+
+## 12. Local Library Path Example
+
+- Place downloaded libraries under: `public/assets/vendor/` (example)
+  - `public/assets/vendor/jquery/` — jquery.min.js
+  - `public/assets/vendor/datatables/` — datatables.min.js, datatables.min.css
+  - `public/assets/vendor/jquery-validate/` — jquery.validate.min.js
+
+## 13. Build and Deployment Notes
+
+- Ensure build scripts bundle local assets and do not reference external CDNs for production builds.
+- During CI/CD, include a step to verify required vendor assets exist and fail the build if missing.
+
+## 14. Testing
+
+- Unit Tests: Backend logic should have unit tests covering controllers, services, and models.
+- Integration Tests: API endpoints must have integration tests validating authentication, authorization, and error handling.
+- Frontend: Key UI flows (login, CRUD pages) should have automated UI tests where feasible.
+
+## 15. Error Handling and Responses
+
+- Standardize error responses with status codes, error messages, and internal codes for mapping.
+- Log full stack traces server-side but return generic messages to frontend.
+
+## 16. Access Control
+
+- Role-based access control must be implemented. Use dynamic roles and permissions mapping to features and endpoints.
+- Store role-permission mappings in the database and provide admin UI to manage them.
+
+## 17. Misc
+
+- Maintain an `SECURITY.md` in the repo describing secrets handling, rotation, and incident response.
+- Include a `README.md` with setup steps that explain how to download and place the local theme assets and vendor libraries.
+
+---
+
+[END OF MDC]
