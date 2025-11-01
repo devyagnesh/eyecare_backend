@@ -52,251 +52,6 @@
         color: #6c757d;
     }
     
-    .endpoint-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        margin-bottom: 1.5rem;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        border: 1px solid #e9ecef;
-    }
-    
-    .endpoint-card:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-        transform: translateY(-2px);
-    }
-    
-    .endpoint-header {
-        padding: 1.5rem;
-        border-left: 5px solid;
-        background: #ffffff;
-        cursor: pointer;
-    }
-    
-    .endpoint-header.collapsed {
-        border-bottom: 1px solid #e9ecef;
-    }
-    
-    .endpoint-header.method-get {
-        border-left-color: #61affe;
-    }
-    
-    .endpoint-header.method-post {
-        border-left-color: #49cc90;
-    }
-    
-    .endpoint-header.method-put {
-        border-left-color: #fca130;
-    }
-    
-    .endpoint-header.method-delete {
-        border-left-color: #f93e3e;
-    }
-    
-    .method-badge {
-        padding: 8px 18px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        color: white;
-        display: inline-block;
-        text-transform: uppercase;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .method-get { 
-        background: linear-gradient(135deg, #61affe 0%, #4fa8e8 100%);
-    }
-    
-    .method-post { 
-        background: linear-gradient(135deg, #49cc90 0%, #3db877 100%);
-    }
-    
-    .method-put { 
-        background: linear-gradient(135deg, #fca130 0%, #f99e1a 100%);
-    }
-    
-    .method-delete { 
-        background: linear-gradient(135deg, #f93e3e 0%, #e82c2c 100%);
-    }
-    
-    .endpoint-url {
-        background: #f8f9fa;
-        padding: 0.875rem 1.25rem;
-        border-radius: 10px;
-        font-family: 'Courier New', 'Fira Code', Consolas, monospace;
-        font-size: 14px;
-        border: 1px solid #e9ecef;
-        margin-top: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-    }
-    
-    .endpoint-url code {
-        background: transparent;
-        color: #495057;
-        padding: 0;
-        font-family: inherit;
-    }
-    
-    .copy-url-btn {
-        padding: 4px 12px;
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .copy-url-btn:hover {
-        background: #f8f9fa;
-        border-color: #adb5bd;
-    }
-    
-    .code-block-wrapper {
-        position: relative;
-        background: #1e1e1e;
-        border-radius: 12px;
-        overflow: hidden;
-        margin: 1rem 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    .code-block-header {
-        background: #252526;
-        padding: 0.75rem 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid #3e3e42;
-        font-size: 12px;
-        color: #cccccc;
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-    
-    .code-block-header .badge {
-        font-size: 10px;
-        padding: 4px 8px;
-    }
-    
-    .copy-btn {
-        background: #3e3e42;
-        border: none;
-        color: #cccccc;
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 11px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    
-    .copy-btn:hover {
-        background: #4e4e52;
-        color: white;
-    }
-    
-    .copy-btn.copied {
-        background: #4caf50;
-        color: white;
-    }
-    
-    .code-block {
-        padding: 1.5rem;
-        margin: 0;
-        overflow-x: auto;
-        font-family: 'Courier New', 'Fira Code', Consolas, monospace;
-    }
-    
-    .code-block pre {
-        margin: 0;
-        color: #d4d4d4;
-        font-size: 13px;
-        line-height: 1.6;
-        white-space: pre;
-    }
-    
-    .status-badge {
-        padding: 6px 14px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
-        display: inline-block;
-    }
-    
-    .status-200 { background: #d4edda; color: #155724; }
-    .status-201 { background: #d1ecf1; color: #0c5460; }
-    .status-400 { background: #f8d7da; color: #721c24; }
-    .status-401 { background: #fff3cd; color: #856404; }
-    .status-403 { background: #fef0cd; color: #856404; }
-    .status-404 { background: #f8d7da; color: #721c24; }
-    .status-409 { background: #f5c6cb; color: #721c24; }
-    .status-422 { background: #f8d7da; color: #721c24; }
-    
-    .param-table {
-        font-size: 14px;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .param-table th {
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        font-weight: 600;
-        border-bottom: 2px solid #dee2e6;
-        padding: 1rem;
-    }
-    
-    .param-table td {
-        padding: 0.875rem 1rem;
-        vertical-align: middle;
-    }
-    
-    .param-table code {
-        background: #f1f3f5;
-        padding: 4px 8px;
-        border-radius: 6px;
-        color: #c92a2a;
-        font-size: 13px;
-        font-weight: 500;
-        font-family: 'Courier New', 'Fira Code', Consolas, monospace;
-    }
-    
-    .nav-tabs {
-        border-bottom: 2px solid #e9ecef;
-        margin-bottom: 1.5rem;
-    }
-    
-    .nav-tabs .nav-link {
-        border: none;
-        color: #6c757d;
-        font-weight: 500;
-        padding: 0.75rem 1.25rem;
-        border-radius: 8px 8px 0 0;
-        margin-right: 0.5rem;
-        transition: all 0.2s;
-    }
-    
-    .nav-tabs .nav-link:hover {
-        color: #495057;
-        background: #f8f9fa;
-    }
-    
-    .nav-tabs .nav-link.active {
-        color: #667eea;
-        border-bottom: 3px solid #667eea;
-        background: transparent;
-        font-weight: 600;
-    }
-    
     .info-box {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -315,16 +70,25 @@
         font-weight: 500;
     }
     
-    .group-header {
+    .module-section {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+    
+    .module-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid #e9ecef;
         display: flex;
         align-items: center;
         gap: 1rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #e9ecef;
     }
     
-    .group-icon {
+    .module-icon {
         width: 48px;
         height: 48px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -336,48 +100,231 @@
         font-size: 24px;
     }
     
-    .collapse-icon {
-        transition: transform 0.3s;
-        margin-left: auto;
-        cursor: pointer;
+    .api-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
     }
     
-    .collapse-icon.collapsed {
-        transform: rotate(-90deg);
+    .api-table thead {
+        background: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .api-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .api-table td {
+        padding: 1rem;
+        vertical-align: top;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .api-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .api-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .method-badge {
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: white;
+        display: inline-block;
+        text-transform: uppercase;
+    }
+    
+    .method-get { 
+        background: linear-gradient(135deg, #61affe 0%, #4fa8e8 100%);
+    }
+    
+    .method-post { 
+        background: linear-gradient(135deg, #49cc90 0%, #3db877 100%);
+    }
+    
+    .method-put { 
+        background: linear-gradient(135deg, #fca130 0%, #f99e1a 100%);
+    }
+    
+    .method-delete { 
+        background: linear-gradient(135deg, #f93e3e 0%, #e82c2c 100%);
+    }
+    
+    .endpoint-name {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.25rem;
+    }
+    
+    .endpoint-url {
+        font-family: 'Courier New', 'Fira Code', Consolas, monospace;
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 0.5rem;
     }
     
     .endpoint-description {
+        font-size: 12px;
         color: #6c757d;
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
+        margin-top: 0.5rem;
     }
     
     .auth-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 8px 14px;
+        gap: 0.25rem;
+        padding: 4px 8px;
         background: #e7f3ff;
         border: 1px solid #b3d9ff;
-        border-radius: 8px;
-        font-size: 13px;
+        border-radius: 4px;
+        font-size: 11px;
         font-weight: 500;
+        margin-top: 0.5rem;
     }
     
-    .auth-badge i {
-        color: #0066cc;
+    .code-example {
+        position: relative;
+        background: #1e1e1e;
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+        max-height: 300px;
+        overflow-y: auto;
     }
+    
+    .code-example-header {
+        background: #252526;
+        padding: 0.5rem 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 10px;
+        color: #cccccc;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+    
+    .copy-btn-small {
+        background: #3e3e42;
+        border: none;
+        color: #cccccc;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+    
+    .copy-btn-small:hover {
+        background: #4e4e52;
+        color: white;
+    }
+    
+    .copy-btn-small.copied {
+        background: #4caf50;
+        color: white;
+    }
+    
+    .code-example pre {
+        padding: 1rem;
+        margin: 0;
+        color: #d4d4d4;
+        font-family: 'Courier New', 'Fira Code', Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        white-space: pre;
+        overflow-x: auto;
+    }
+    
+    .status-badge-small {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .status-200 { background: #d4edda; color: #155724; }
+    .status-201 { background: #d1ecf1; color: #0c5460; }
+    .status-400 { background: #f8d7da; color: #721c24; }
+    .status-401 { background: #fff3cd; color: #856404; }
+    .status-403 { background: #fef0cd; color: #856404; }
+    .status-404 { background: #f8d7da; color: #721c24; }
+    .status-409 { background: #f5c6cb; color: #721c24; }
+    .status-422 { background: #f8d7da; color: #721c24; }
+    
+    .no-example {
+        color: #adb5bd;
+        font-size: 12px;
+        font-style: italic;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .col-method { width: 100px; }
+    .col-endpoint { width: 250px; min-width: 200px; }
+    .col-request { width: 300px; min-width: 250px; }
+    .col-response { width: 300px; min-width: 250px; }
+    .col-error { width: 300px; min-width: 250px; }
     
     .no-results {
         text-align: center;
         padding: 4rem 2rem;
         color: #6c757d;
+        background: white;
+        border-radius: 16px;
     }
     
     .no-results i {
         font-size: 4rem;
         margin-bottom: 1rem;
         opacity: 0.5;
+    }
+    
+    /* Scrollbar styling for code examples */
+    .code-example::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .code-example::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+    
+    .code-example::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 4px;
+    }
+    
+    .code-example::-webkit-scrollbar-thumb:hover {
+        background: #777;
     }
 </style>
 @endpush
@@ -389,7 +336,7 @@
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
                 <h1 class="mb-2">📚 API Documentation</h1>
-                <p class="mb-0 opacity-90">Complete API reference with interactive examples</p>
+                <p class="mb-0 opacity-90">Complete API reference in tabular format</p>
             </div>
             <div>
                 <a href="{{ route('admin.api-documentation.download') }}" class="btn btn-light btn-lg" target="_blank">
@@ -420,202 +367,111 @@
         </p>
     </div>
 
-    <!-- API Groups -->
-    <div id="apiGroups">
-        @foreach($endpoints as $groupIndex => $group)
-        <div class="api-group mb-5" data-group="{{ strtolower($group['group']) }}">
-            <div class="group-header">
-                <div class="group-icon">
+    <!-- API Tables by Module -->
+    <div id="apiTables">
+        @foreach($endpoints as $group)
+        <div class="module-section" data-module="{{ strtolower($group['group']) }}">
+            <div class="module-header">
+                <div class="module-icon">
                     <i class="ri-code-s-slash-line"></i>
                 </div>
                 <div class="flex-grow-1">
                     <h3 class="fw-bold mb-1">{{ $group['group'] }}</h3>
-                    <p class="text-muted mb-0 small">{{ count($group['endpoints']) }} endpoints available</p>
+                    <p class="text-muted mb-0 small">{{ count($group['endpoints']) }} endpoints</p>
                 </div>
-                <i class="ri-arrow-down-s-line collapse-icon fs-20 text-muted" onclick="toggleGroup({{ $groupIndex }})"></i>
             </div>
             
-            <div class="group-content" id="group-{{ $groupIndex }}">
-                @foreach($group['endpoints'] as $endpointIndex => $endpoint)
-                <div class="endpoint-card" data-endpoint="{{ strtolower($endpoint['name'] . ' ' . $endpoint['method'] . ' ' . $endpoint['url']) }}">
-                    <div class="endpoint-header method-{{ strtolower($endpoint['method']) }}" onclick="toggleEndpoint('{{ md5($endpoint['url']) }}')">
-                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
-                            <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <div class="table-responsive">
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th class="col-method">Method</th>
+                            <th class="col-endpoint">Endpoint</th>
+                            <th class="col-request">Request Example</th>
+                            <th class="col-response">Success Response Example</th>
+                            <th class="col-error">Error Response Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($group['endpoints'] as $endpoint)
+                        <tr data-endpoint="{{ strtolower($endpoint['name'] . ' ' . $endpoint['method'] . ' ' . $endpoint['url']) }}">
+                            <!-- Method Column -->
+                            <td>
                                 <span class="method-badge method-{{ strtolower($endpoint['method']) }}">
                                     {{ $endpoint['method'] }}
                                 </span>
-                                <h4 class="mb-0 fw-bold">{{ $endpoint['name'] }}</h4>
-                            </div>
-                            <i class="ri-arrow-down-s-line collapse-icon-endpoint fs-20 text-muted" id="icon-{{ md5($endpoint['url']) }}"></i>
-                        </div>
-                        <div class="endpoint-url">
-                            <code>{{ $endpoint['url'] }}</code>
-                            <button class="copy-url-btn" onclick="copyToClipboard('{{ $endpoint['url'] }}', this, event)">
-                                <i class="ri-file-copy-line me-1"></i> Copy URL
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="card-body p-4 endpoint-content" id="content-{{ md5($endpoint['url']) }}" style="display: none;">
-                        <p class="endpoint-description">{{ $endpoint['description'] }}</p>
-                        
-                        <!-- Authentication Info -->
-                        <div class="mb-4 p-3 bg-light rounded-3">
-                            <div class="auth-badge">
-                                <i class="ri-shield-keyhole-line"></i>
-                                <span>
-                                    @if($endpoint['auth'] === 'None')
-                                        No Authentication Required
-                                    @else
-                                        {{ $endpoint['auth'] }}
-                                    @endif
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Tabs -->
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#params-{{ md5($endpoint['url']) }}" type="button">
-                                    <i class="ri-list-check me-1"></i> Parameters
-                                </button>
-                            </li>
-                            @if(isset($endpoint['request_payload']) && $endpoint['request_payload'])
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#request-{{ md5($endpoint['url']) }}" type="button">
-                                    <i class="ri-send-plane-line me-1"></i> Request
-                                </button>
-                            </li>
-                            @endif
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#response-{{ md5($endpoint['url']) }}" type="button">
-                                    <i class="ri-checkbox-circle-line me-1"></i> Response
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#error-{{ md5($endpoint['url']) }}" type="button">
-                                    <i class="ri-error-warning-line me-1"></i> Errors
-                                </button>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content mt-4">
-                            <!-- Parameters Tab -->
-                            <div class="tab-pane fade show active" id="params-{{ md5($endpoint['url']) }}">
-                                @if(!empty($endpoint['parameters']['required']) || !empty($endpoint['parameters']['optional']))
-                                    @if(!empty($endpoint['parameters']['required']))
-                                    <div class="mb-4">
-                                        <h6 class="fw-bold text-danger mb-3">
-                                            <i class="ri-asterisk me-1"></i> Required Parameters
-                                        </h6>
-                                        <div class="table-responsive">
-                                            <table class="table param-table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="20%">Parameter</th>
-                                                        <th width="15%">Type</th>
-                                                        <th>Description</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($endpoint['parameters']['required'] as $param => $desc)
-                                                    <tr>
-                                                        <td><code>{{ $param }}</code></td>
-                                                        <td><span class="badge bg-info">{{ explode(' - ', $desc)[0] }}</span></td>
-                                                        <td>{{ isset(explode(' - ', $desc)[1]) ? explode(' - ', $desc)[1] : '' }}</td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+                            </td>
+                            
+                            <!-- Endpoint Column -->
+                            <td>
+                                <div class="endpoint-name">{{ $endpoint['name'] }}</div>
+                                <div class="endpoint-url">{{ $endpoint['url'] }}</div>
+                                <div class="endpoint-description">{{ $endpoint['description'] }}</div>
+                                <div class="auth-badge">
+                                    <i class="ri-shield-keyhole-line"></i>
+                                    <span>
+                                        @if($endpoint['auth'] === 'None')
+                                            No Auth
+                                        @else
+                                            {{ str_replace('Bearer Token (Required)', 'Auth Required', $endpoint['auth']) }}
+                                        @endif
+                                    </span>
+                                </div>
+                            </td>
+                            
+                            <!-- Request Example Column -->
+                            <td>
+                                @if(isset($endpoint['request_payload']) && $endpoint['request_payload'])
+                                    @php
+                                        $requestPayload = json_encode($endpoint['request_payload'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                    @endphp
+                                    <div class="code-example">
+                                        <div class="code-example-header">
+                                            <span><i class="ri-send-plane-line me-1"></i> Request</span>
+                                            <button class="copy-btn-small" data-code="{{ htmlspecialchars($requestPayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
+                                                <i class="ri-file-copy-line"></i> Copy
+                                            </button>
                                         </div>
-                                    </div>
-                                    @endif
-
-                                    @if(!empty($endpoint['parameters']['optional']))
-                                    <div>
-                                        <h6 class="fw-bold text-muted mb-3">
-                                            <i class="ri-subtract-line me-1"></i> Optional Parameters
-                                        </h6>
-                                        <div class="table-responsive">
-                                            <table class="table param-table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="20%">Parameter</th>
-                                                        <th width="15%">Type</th>
-                                                        <th>Description</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($endpoint['parameters']['optional'] as $param => $desc)
-                                                    <tr>
-                                                        <td><code>{{ $param }}</code></td>
-                                                        <td><span class="badge bg-secondary">{{ explode(' - ', $desc)[0] }}</span></td>
-                                                        <td>{{ isset(explode(' - ', $desc)[1]) ? explode(' - ', $desc)[1] : '' }}</td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    @endif
-                                @else
-                                <p class="text-muted">No parameters required for this endpoint.</p>
-                                @endif
-                            </div>
-
-                            <!-- Request Example Tab -->
-                            @if(isset($endpoint['request_payload']) && $endpoint['request_payload'])
-                            <div class="tab-pane fade" id="request-{{ md5($endpoint['url']) }}">
-                                @php
-                                    $requestPayload = json_encode($endpoint['request_payload'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                @endphp
-                                <div class="code-block-wrapper">
-                                    <div class="code-block-header">
-                                        <span><i class="ri-code-s-slash-line me-1"></i> Request Payload</span>
-                                        <button class="copy-btn" data-code="{{ htmlspecialchars($requestPayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                            <i class="ri-file-copy-line"></i> Copy
-                                        </button>
-                                    </div>
-                                    <div class="code-block">
                                         <pre>{{ $requestPayload }}</pre>
                                     </div>
-                                </div>
-                            </div>
-                            @endif
-
-                            <!-- Success Response Tab -->
-                            <div class="tab-pane fade" id="response-{{ md5($endpoint['url']) }}">
-                                @if(isset($endpoint['response']))
-                                @php
-                                    $statusCode = 200;
-                                    if($endpoint['method'] === 'POST') {
-                                        $statusCode = 201;
-                                    } elseif($endpoint['method'] === 'PUT' || $endpoint['method'] === 'PATCH') {
-                                        $statusCode = 200;
-                                    }
-                                    $responsePayload = json_encode($endpoint['response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                @endphp
-                                <div class="mb-3">
-                                    <span class="status-badge status-{{ $statusCode }}">HTTP {{ $statusCode }} {{ $statusCode === 201 ? 'Created' : 'OK' }}</span>
-                                </div>
-                                <div class="code-block-wrapper">
-                                    <div class="code-block-header">
-                                        <span><i class="ri-checkbox-circle-line me-1"></i> Success Response</span>
-                                        <button class="copy-btn" data-code="{{ htmlspecialchars($responsePayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                            <i class="ri-file-copy-line"></i> Copy
-                                        </button>
+                                @else
+                                    <div class="no-example">
+                                        <i class="ri-subtract-line"></i> No request body
                                     </div>
-                                    <div class="code-block">
+                                @endif
+                            </td>
+                            
+                            <!-- Success Response Example Column -->
+                            <td>
+                                @if(isset($endpoint['response']))
+                                    @php
+                                        $statusCode = 200;
+                                        if($endpoint['method'] === 'POST') {
+                                            $statusCode = 201;
+                                        } elseif($endpoint['method'] === 'PUT' || $endpoint['method'] === 'PATCH') {
+                                            $statusCode = 200;
+                                        }
+                                        $responsePayload = json_encode($endpoint['response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                    @endphp
+                                    <div class="status-badge-small status-{{ $statusCode }}">HTTP {{ $statusCode }}</div>
+                                    <div class="code-example">
+                                        <div class="code-example-header">
+                                            <span><i class="ri-checkbox-circle-line me-1"></i> Success</span>
+                                            <button class="copy-btn-small" data-code="{{ htmlspecialchars($responsePayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
+                                                <i class="ri-file-copy-line"></i> Copy
+                                            </button>
+                                        </div>
                                         <pre>{{ $responsePayload }}</pre>
                                     </div>
-                                </div>
                                 @else
-                                <p class="text-muted">No response example available for this endpoint.</p>
+                                    <div class="no-example">
+                                        <i class="ri-subtract-line"></i> No example
+                                    </div>
                                 @endif
-                            </div>
-
-                            <!-- Error Response Tab -->
-                            <div class="tab-pane fade" id="error-{{ md5($endpoint['url']) }}">
+                            </td>
+                            
+                            <!-- Error Response Example Column -->
+                            <td>
                                 @php
                                     $errorResponses = [];
                                     if(isset($endpoint['error_response'])) {
@@ -630,39 +486,40 @@
                                 
                                 @if(!empty($errorResponses))
                                     @foreach($errorResponses as $index => $errorResponse)
-                                    @php
-                                        $errorPayload = json_encode($errorResponse, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                    @endphp
-                                    <div class="mb-4 {{ $index > 0 ? 'mt-4' : '' }}">
-                                        <div class="mb-3">
-                                            <span class="status-badge status-{{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}">
-                                                HTTP {{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}
-                                            </span>
+                                        @php
+                                            $errorPayload = json_encode($errorResponse, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                        @endphp
+                                        <div class="mb-2 {{ $index > 0 ? 'mt-3' : '' }}">
                                             @if(count($errorResponses) > 1)
-                                            <span class="ms-2 text-muted small">Error Response {{ $index + 1 }}</span>
+                                                <div class="status-badge-small status-{{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}">
+                                                    HTTP {{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }} ({{ $index + 1 }})
+                                                </div>
+                                            @else
+                                                <div class="status-badge-small status-{{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}">
+                                                    HTTP {{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}
+                                                </div>
                                             @endif
-                                        </div>
-                                        <div class="code-block-wrapper">
-                                            <div class="code-block-header">
-                                                <span><i class="ri-error-warning-line me-1"></i> Error Response</span>
-                                                <button class="copy-btn" data-code="{{ htmlspecialchars($errorPayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                                    <i class="ri-file-copy-line"></i> Copy
-                                                </button>
-                                            </div>
-                                            <div class="code-block">
+                                            <div class="code-example">
+                                                <div class="code-example-header">
+                                                    <span><i class="ri-error-warning-line me-1"></i> Error</span>
+                                                    <button class="copy-btn-small" data-code="{{ htmlspecialchars($errorPayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
+                                                        <i class="ri-file-copy-line"></i> Copy
+                                                    </button>
+                                                </div>
                                                 <pre>{{ $errorPayload }}</pre>
                                             </div>
                                         </div>
-                                    </div>
                                     @endforeach
                                 @else
-                                <p class="text-muted">No error examples available for this endpoint.</p>
+                                    <div class="no-example">
+                                        <i class="ri-subtract-line"></i> No examples
+                                    </div>
                                 @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @endforeach
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
         @endforeach
@@ -685,7 +542,7 @@
             const searchTerm = $(this).val().toLowerCase();
             let hasResults = false;
             
-            $('.endpoint-card').each(function() {
+            $('.api-table tbody tr').each(function() {
                 const endpointText = $(this).data('endpoint') || '';
                 if (endpointText.includes(searchTerm) || searchTerm === '') {
                     $(this).show();
@@ -695,10 +552,10 @@
                 }
             });
             
-            // Hide/show groups with no visible endpoints
-            $('.api-group').each(function() {
-                const visibleEndpoints = $(this).find('.endpoint-card:visible').length;
-                if (visibleEndpoints === 0 && searchTerm !== '') {
+            // Hide/show modules with no visible endpoints
+            $('.module-section').each(function() {
+                const visibleRows = $(this).find('tbody tr:visible').length;
+                if (visibleRows === 0 && searchTerm !== '') {
                     $(this).hide();
                 } else {
                     $(this).show();
@@ -708,40 +565,16 @@
             // Show/hide no results message
             if (!hasResults && searchTerm !== '') {
                 $('#noResults').show();
+                $('#apiTables').hide();
             } else {
                 $('#noResults').hide();
+                $('#apiTables').show();
             }
         });
     });
 
-    function toggleGroup(groupIndex) {
-        const $content = $('#group-' + groupIndex);
-        const $icon = $(`.group-header:has(#group-${groupIndex})`).find('.collapse-icon');
-        
-        if ($content.is(':visible')) {
-            $content.slideUp(300);
-            $icon.addClass('collapsed');
-        } else {
-            $content.slideDown(300);
-            $icon.removeClass('collapsed');
-        }
-    }
-
-    function toggleEndpoint(endpointId) {
-        const $content = $('#content-' + endpointId);
-        const $icon = $('#icon-' + endpointId);
-        
-        if ($content.is(':visible')) {
-            $content.slideUp(300);
-            $icon.addClass('collapsed');
-        } else {
-            $content.slideDown(300);
-            $icon.removeClass('collapsed');
-        }
-    }
-
     function copyCode(button) {
-        const textToCopy = $(button).data('code') || $(button).closest('.code-block-wrapper').find('pre').text();
+        const textToCopy = $(button).data('code') || $(button).closest('.code-example').find('pre').text();
         
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(textToCopy).then(function() {
@@ -788,33 +621,5 @@
         
         document.body.removeChild(textarea);
     }
-
-    function copyToClipboard(text, button, event) {
-        event.stopPropagation();
-        
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(function() {
-                const $btn = $(button);
-                const originalHtml = $btn.html();
-                $btn.html('<i class="ri-check-line me-1"></i> Copied!');
-                $btn.css('background', '#4caf50').css('color', 'white');
-                
-                setTimeout(function() {
-                    $btn.html(originalHtml);
-                    $btn.css('background', '').css('color', '');
-                }, 2000);
-            }).catch(function(err) {
-                console.error('Failed to copy:', err);
-            });
-        } else {
-            fallbackCopy(text, button);
-        }
-    }
-
-    // Initialize all endpoints as collapsed
-    $(document).ready(function() {
-        $('.endpoint-content').hide();
-        $('.collapse-icon-endpoint').addClass('collapsed');
-    });
 </script>
 @endpush
