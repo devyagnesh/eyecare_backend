@@ -10,6 +10,24 @@ use Illuminate\Support\Facades\Storage;
 class StoreController extends Controller
 {
     /**
+     * Check if the authenticated user has a store.
+     */
+    public function check(Request $request)
+    {
+        $user = $request->user();
+        
+        $store = Store::where('user_id', $user->id)->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'store_exists' => $store !== null,
+                'store_id' => $store ? $store->id : null,
+            ],
+        ], 200);
+    }
+
+    /**
      * Get the authenticated user's store.
      */
     public function show(Request $request)

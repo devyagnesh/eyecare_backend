@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Store routes (require email verification)
     Route::prefix('stores')->group(function () {
+        Route::get('/check', [StoreController::class, 'check'])->name('stores.check');
         Route::get('/', [StoreController::class, 'show'])->name('stores.show');
         Route::post('/', [StoreController::class, 'store'])->name('stores.create');
         Route::put('/', [StoreController::class, 'update'])->name('stores.update');

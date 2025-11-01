@@ -135,7 +135,9 @@
     .status-201 { background: #d1ecf1; color: #0c5460; }
     .status-400 { background: #f8d7da; color: #721c24; }
     .status-401 { background: #fff3cd; color: #856404; }
+    .status-403 { background: #f8d7da; color: #721c24; }
     .status-404 { background: #f8d7da; color: #721c24; }
+    .status-409 { background: #f8d7da; color: #721c24; }
     .status-422 { background: #f8d7da; color: #721c24; }
     
     .param-table {
@@ -372,8 +374,17 @@
 
                     <!-- Success Response Tab -->
                     <div class="tab-pane fade" id="response-{{ md5($endpoint['url']) }}">
+                        @if(isset($endpoint['response']))
+                        @php
+                            $statusCode = 200;
+                            if($endpoint['method'] === 'POST') {
+                                $statusCode = 201;
+                            } elseif($endpoint['method'] === 'PUT' || $endpoint['method'] === 'PATCH') {
+                                $statusCode = 200;
+                            }
+                        @endphp
                         <div class="mb-3">
-                            <span class="status-badge status-200">HTTP 200 OK</span>
+                            <span class="status-badge status-{{ $statusCode }}">HTTP {{ $statusCode }} {{ $statusCode === 201 ? 'Created' : 'OK' }}</span>
                             <span class="ms-2 text-muted small">Success Response</span>
                         </div>
                         <div class="code-block">
@@ -383,24 +394,49 @@
                             </div>
                             <code>{{ json_encode($endpoint['response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code>
                         </div>
+                        @else
+                        <p class="text-muted">No response example available for this endpoint.</p>
+                        @endif
                     </div>
 
                     <!-- Error Response Tab -->
                     <div class="tab-pane fade" id="error-{{ md5($endpoint['url']) }}">
-                        @if(isset($endpoint['error_response']))
-                        <div class="mb-3">
-                            <span class="status-badge status-{{ isset($endpoint['error_response']['status']) ? $endpoint['error_response']['status'] : '400' }}">
-                                HTTP {{ isset($endpoint['error_response']['status']) ? $endpoint['error_response']['status'] : '400/401/422' }}
-                            </span>
-                            <span class="ms-2 text-muted small">Error Response</span>
-                        </div>
-                        <div class="code-block">
-                            <div class="code-block-header">
-                                <i class="ri-error-warning-line me-1"></i>
-                                JSON Error Response
+                        @php
+                            $errorResponses = [];
+                            if(isset($endpoint['error_response'])) {
+                                $errorResponses[] = $endpoint['error_response'];
+                            }
+                            $i = 2;
+                            while(isset($endpoint['error_response_' . $i])) {
+                                $errorResponses[] = $endpoint['error_response_' . $i];
+                                $i++;
+                            }
+                        @endphp
+                        
+                        @if(!empty($errorResponses))
+                            @foreach($errorResponses as $index => $errorResponse)
+                            <div class="mb-4 {{ $index > 0 ? 'mt-4' : '' }}">
+                                <div class="mb-3">
+                                    <span class="status-badge status-{{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}">
+                                        HTTP {{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}
+                                    </span>
+                                    <span class="ms-2 text-muted small">
+                                        @if(count($errorResponses) > 1)
+                                            Error Response {{ $index + 1 }}
+                                        @else
+                                            Error Response
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="code-block">
+                                    <div class="code-block-header">
+                                        <i class="ri-error-warning-line me-1"></i>
+                                        JSON Error Response
+                                    </div>
+                                    <code>{{ json_encode($errorResponse, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code>
+                                </div>
                             </div>
-                            <code>{{ json_encode($endpoint['error_response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code>
-                        </div>
+                            @endforeach
                         @else
                         <p class="text-muted">No error examples available for this endpoint.</p>
                         @endif

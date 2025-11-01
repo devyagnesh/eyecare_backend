@@ -373,6 +373,27 @@ class ApiDocumentationController extends Controller
                 'endpoints' => [
                     [
                         'method' => 'GET',
+                        'url' => $baseUrl . '/stores/check',
+                        'name' => 'Check Store Exists',
+                        'description' => 'Check if the authenticated user has a store. Returns a boolean indicating if a store exists and the store ID if it exists.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'data' => [
+                                'store_exists' => true,
+                                'store_id' => 1,
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                    ],
+                    [
+                        'method' => 'GET',
                         'url' => $baseUrl . '/stores',
                         'name' => 'Get Store',
                         'description' => 'Get the authenticated user\'s store information. Returns store details including logo, email, phone number, and address. Each user can have only one store.',
@@ -393,7 +414,6 @@ class ApiDocumentationController extends Controller
                                 ],
                             ],
                         ],
-                        'response_notes' => 'Note: If no logo is uploaded, the logo field will be null in the response.',
                         'error_response' => [
                             'status' => 401,
                             'success' => false,
@@ -811,6 +831,29 @@ class ApiDocumentationController extends Controller
                 [
                     'name' => 'Stores',
                     'item' => [
+                        [
+                            'name' => 'Check Store Exists',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/stores/check',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['stores', 'check'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
                         [
                             'name' => 'Get Store',
                             'request' => [
