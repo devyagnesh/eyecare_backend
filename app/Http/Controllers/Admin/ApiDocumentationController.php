@@ -393,7 +393,13 @@ class ApiDocumentationController extends Controller
                                 ],
                             ],
                         ],
+                        'response_notes' => 'Note: If no logo is uploaded, the logo field will be null in the response.',
                         'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
                             'status' => 404,
                             'success' => false,
                             'message' => 'Store not found. Please create a store first.',
@@ -437,14 +443,30 @@ class ApiDocumentationController extends Controller
                             ],
                         ],
                         'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
                             'status' => 403,
                             'success' => false,
                             'message' => 'Please verify your email address before creating a store.',
                         ],
-                        'error_response_2' => [
+                        'error_response_3' => [
                             'status' => 409,
                             'success' => false,
                             'message' => 'Store already exists. Use the update endpoint to modify your store.',
+                        ],
+                        'error_response_4' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The given data was invalid.',
+                            'errors' => [
+                                'email' => ['The email field is required.', 'The email must be a valid email address.'],
+                                'phone_number' => ['The phone number field is required.'],
+                                'address' => ['The address field is required.'],
+                                'logo' => ['The logo must be an image.', 'The logo must not be greater than 2048 kilobytes.', 'The logo must be a file of type: jpeg, png, jpg, gif, svg.'],
+                            ],
                         ],
                     ],
                     [
@@ -483,9 +505,24 @@ class ApiDocumentationController extends Controller
                             ],
                         ],
                         'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
                             'status' => 404,
                             'success' => false,
                             'message' => 'Store not found. Please create a store first.',
+                        ],
+                        'error_response_3' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The given data was invalid.',
+                            'errors' => [
+                                'email' => ['The email must be a valid email address.'],
+                                'phone_number' => ['The phone number field is required when email is present.'],
+                                'logo' => ['The logo must be an image.', 'The logo must not be greater than 2048 kilobytes.', 'The logo must be a file of type: jpeg, png, jpg, gif, svg.'],
+                            ],
                         ],
                     ],
                 ],
