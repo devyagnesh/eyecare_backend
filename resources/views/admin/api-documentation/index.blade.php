@@ -2,643 +2,494 @@
 
 @section('title', 'API Documentation')
 
-@push('styles')
+@section('content')
 <style>
-    .api-doc-container {
-        background: #f8f9fa;
-        border-radius: 16px;
-        padding: 2.5rem;
-        min-height: 100vh;
-    }
-    
-    .api-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
-    }
-    
-    .api-header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    
-    .search-box {
+    /* Custom styles for professional tabs */
+    .module-tab {
         position: relative;
-        margin-bottom: 2rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    .search-box input {
-        padding-left: 3rem;
-        border-radius: 12px;
-        border: 2px solid #e9ecef;
-        font-size: 1rem;
-        transition: all 0.3s;
+    .module-tab.active {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
-    .search-box input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    .endpoint-tab {
+        position: relative;
+        transition: all 0.2s ease;
     }
     
-    .search-box i {
+    .endpoint-tab.active::after {
+        content: '';
         position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: currentColor;
+        animation: slideIn 0.3s ease;
     }
     
-    .info-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+    @keyframes slideIn {
+        from {
+            transform: scaleX(0);
+        }
+        to {
+            transform: scaleX(1);
+        }
     }
     
-    .info-box code {
-        background: rgba(255,255,255,0.25);
-        padding: 6px 12px;
-        border-radius: 6px;
-        color: white;
-        font-size: 14px;
-        font-weight: 500;
-    }
-    
-    .module-section {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        margin-bottom: 2rem;
-        overflow: hidden;
-        border: 1px solid #e9ecef;
-    }
-    
-    .module-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        padding: 1.5rem 2rem;
-        border-bottom: 2px solid #e9ecef;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-    
-    .module-icon {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 24px;
-    }
-    
-    .api-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-    }
-    
-    .api-table thead {
-        background: #f8f9fa;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-    
-    .api-table th {
-        padding: 1rem;
-        text-align: left;
-        font-weight: 600;
-        color: #495057;
-        border-bottom: 2px solid #dee2e6;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .api-table td {
-        padding: 1rem;
-        vertical-align: top;
-        border-bottom: 1px solid #e9ecef;
-    }
-    
-    .api-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-    
-    .api-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-    
-    .method-badge {
-        padding: 6px 14px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        color: white;
-        display: inline-block;
-        text-transform: uppercase;
-    }
-    
-    .method-get { 
-        background: linear-gradient(135deg, #61affe 0%, #4fa8e8 100%);
-    }
-    
-    .method-post { 
-        background: linear-gradient(135deg, #49cc90 0%, #3db877 100%);
-    }
-    
-    .method-put { 
-        background: linear-gradient(135deg, #fca130 0%, #f99e1a 100%);
-    }
-    
-    .method-delete { 
-        background: linear-gradient(135deg, #f93e3e 0%, #e82c2c 100%);
-    }
-    
-    .endpoint-name {
-        font-weight: 600;
-        color: #212529;
-        margin-bottom: 0.25rem;
-    }
-    
-    .endpoint-url {
-        font-family: 'Courier New', 'Fira Code', Consolas, monospace;
-        font-size: 12px;
-        color: #6c757d;
-        margin-top: 0.5rem;
-    }
-    
-    .endpoint-description {
-        font-size: 12px;
-        color: #6c757d;
-        margin-top: 0.5rem;
-    }
-    
-    .auth-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 4px 8px;
-        background: #e7f3ff;
-        border: 1px solid #b3d9ff;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 500;
-        margin-top: 0.5rem;
-    }
-    
-    .code-example {
-        position: relative;
-        background: #1e1e1e;
-        border-radius: 8px;
-        overflow: hidden;
-        margin: 0.5rem 0;
-        max-height: 300px;
+    .code-block {
+        max-height: 500px;
         overflow-y: auto;
     }
     
-    .code-example-header {
-        background: #252526;
-        padding: 0.5rem 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 10px;
-        color: #cccccc;
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-    }
-    
-    .copy-btn-small {
-        background: #3e3e42;
-        border: none;
-        color: #cccccc;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 10px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 3px;
-    }
-    
-    .copy-btn-small:hover {
-        background: #4e4e52;
-        color: white;
-    }
-    
-    .copy-btn-small.copied {
-        background: #4caf50;
-        color: white;
-    }
-    
-    .code-example pre {
-        padding: 1rem;
-        margin: 0;
-        color: #d4d4d4;
-        font-family: 'Courier New', 'Fira Code', Consolas, monospace;
-        font-size: 12px;
-        line-height: 1.5;
-        white-space: pre;
-        overflow-x: auto;
-    }
-    
-    .status-badge-small {
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 10px;
-        font-weight: 600;
-        display: inline-block;
-        margin-bottom: 0.5rem;
-    }
-    
-    .status-200 { background: #d4edda; color: #155724; }
-    .status-201 { background: #d1ecf1; color: #0c5460; }
-    .status-400 { background: #f8d7da; color: #721c24; }
-    .status-401 { background: #fff3cd; color: #856404; }
-    .status-403 { background: #fef0cd; color: #856404; }
-    .status-404 { background: #f8d7da; color: #721c24; }
-    .status-409 { background: #f5c6cb; color: #721c24; }
-    .status-422 { background: #f8d7da; color: #721c24; }
-    
-    .no-example {
-        color: #adb5bd;
-        font-size: 12px;
-        font-style: italic;
-        padding: 1rem;
-        text-align: center;
-    }
-    
-    .table-responsive {
-        overflow-x: auto;
-    }
-    
-    .col-method { width: 100px; }
-    .col-endpoint { width: 250px; min-width: 200px; }
-    .col-request { width: 300px; min-width: 250px; }
-    .col-response { width: 300px; min-width: 250px; }
-    .col-error { width: 300px; min-width: 250px; }
-    
-    .no-results {
-        text-align: center;
-        padding: 4rem 2rem;
-        color: #6c757d;
-        background: white;
-        border-radius: 16px;
-    }
-    
-    .no-results i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-    
-    /* Scrollbar styling for code examples */
-    .code-example::-webkit-scrollbar {
+    .code-block::-webkit-scrollbar {
         width: 8px;
         height: 8px;
     }
     
-    .code-example::-webkit-scrollbar-track {
-        background: #1e1e1e;
-    }
-    
-    .code-example::-webkit-scrollbar-thumb {
-        background: #555;
+    .code-block::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 4px;
     }
     
-    .code-example::-webkit-scrollbar-thumb:hover {
-        background: #777;
+    .code-block::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+    
+    .code-block::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .fade-enter-active, .fade-leave-active {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    .fade-enter-from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    
+    .fade-leave-to {
+        opacity: 0;
+        transform: translateY(10px);
     }
 </style>
-@endpush
 
-@section('content')
-<div class="api-doc-container">
-    <!-- Header -->
-    <div class="api-header">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+<div class="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
+    <!-- Header Card -->
+    <div class="card bg-gradient-to-r from-primary to-accent text-white">
+        <div class="flex flex-col items-start justify-between p-6 sm:flex-row sm:items-center">
             <div>
-                <h1 class="mb-2">📚 API Documentation</h1>
-                <p class="mb-0 opacity-90">Complete API reference in tabular format</p>
+                <h2 class="text-2xl font-bold">📚 API Documentation</h2>
+                <p class="mt-1 text-sm opacity-90">Complete API reference for Eyecare Management System</p>
             </div>
-            <div>
-                <a href="{{ route('admin.api-documentation.download') }}" class="btn btn-light btn-lg" target="_blank">
-                    <i class="ri-download-line me-2"></i> Download Postman Collection
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('admin.api-documentation.download') }}" class="btn bg-white/20 font-medium text-white hover:bg-white/30 focus:bg-white/30 active:bg-white/40 border-white/30 shadow-lg shadow-white/10" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Postman Collection
                 </a>
             </div>
         </div>
     </div>
 
+    <!-- API Base URL Info -->
+    <div class="card shadow-sm">
+        <div class="p-4 sm:p-5">
+            <div class="flex items-start space-x-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-slate-700 dark:text-navy-100">API Base URL</h3>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-navy-300">
+                        <code class="rounded bg-slate-100 px-2 py-1 text-sm text-primary dark:bg-navy-700 dark:text-accent font-mono">{{ config('app.url') }}/api</code>
+                    </p>
+                    <p class="mt-2 text-xs text-slate-500 dark:text-navy-400">
+                        Authenticated requests require: <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-navy-700 font-mono">Authorization: Bearer {token}</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Search Box -->
-    <div class="search-box">
-        <i class="ri-search-line"></i>
-        <input type="text" id="apiSearch" class="form-control form-control-lg" placeholder="Search APIs by name, method, or URL...">
-    </div>
-
-    <!-- Info Box -->
-    <div class="info-box">
-        <div class="d-flex align-items-center mb-3">
-            <i class="ri-information-line fs-20 me-2"></i>
-            <h5 class="mb-0">API Base URL</h5>
+    <div class="card shadow-sm">
+        <div class="p-4 sm:p-5">
+            <label class="block">
+                <span class="relative flex">
+                    <input type="text" 
+                           id="apiSearch" 
+                           class="form-input peer w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 pl-10 placeholder:text-slate-400/70 hover:border-slate-400 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent transition-colors" 
+                           placeholder="Search APIs by name, method, or URL..." />
+                    <span class="pointer-events-none absolute flex h-full w-10 items-center justify-center text-slate-400 peer-focus:text-primary dark:text-navy-300 dark:peer-focus:text-accent">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                </span>
+            </label>
         </div>
-        <p class="mb-2 fs-16">
-            <code>{{ config('app.url') }}/api</code>
-        </p>
-        <p class="mb-0 small opacity-90">
-            All authenticated requests require a <code>Bearer</code> token in the Authorization header.
-            Include the token like: <code>Authorization: Bearer {your_token}</code>
-        </p>
     </div>
 
-    <!-- API Tables by Module -->
-    <div id="apiTables">
-        @foreach($endpoints as $group)
-        <div class="module-section" data-module="{{ strtolower($group['group']) }}">
-            <div class="module-header">
-                <div class="module-icon">
-                    <i class="ri-code-s-slash-line"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <h3 class="fw-bold mb-1">{{ $group['group'] }}</h3>
-                    <p class="text-muted mb-0 small">{{ count($group['endpoints']) }} endpoints</p>
-                </div>
+    <!-- Module Tabs and Content -->
+    <div x-data="{ 
+        activeModule: '{{ strtolower(str_replace([' ', '_'], ['-', '-'], $endpoints[0]['group'] ?? '')) }}',
+        init() {
+            // Scroll to top when module changes
+            this.$watch('activeModule', () => {
+                this.$nextTick(() => {
+                    const cardElement = this.$el;
+                    if (cardElement) {
+                        cardElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+        }
+    }" class="card shadow-sm">
+        <!-- Module Tabs Navigation -->
+        <div class="border-b border-slate-200 dark:border-navy-500 bg-slate-50/50 dark:bg-navy-800/30">
+            <div class="flex flex-wrap gap-2 p-4 sm:p-5 sm:gap-3 overflow-x-auto">
+                @foreach($endpoints as $index => $group)
+                    @php
+                        $moduleId = strtolower(str_replace([' ', '_'], ['-', '-'], $group['group']));
+                        $iconKey = strtolower($group['group']);
+                    @endphp
+                    <button @click="activeModule = '{{ $moduleId }}'" 
+                            :class="activeModule === '{{ $moduleId }}' 
+                                ? 'module-tab active bg-primary text-white border-primary shadow-md' 
+                                : 'module-tab bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300 dark:bg-navy-700 dark:text-navy-100 dark:border-navy-500 dark:hover:bg-navy-600'"
+                            class="px-4 py-2.5 rounded-lg border text-sm font-medium transition-all duration-300 flex items-center space-x-2 min-w-max">
+                        @if($iconKey === 'authentication')
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        @elseif($iconKey === 'users')
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        @elseif($iconKey === 'roles')
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        @elseif($iconKey === 'permissions')
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                        @else
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        @endif
+                        <span>{{ $group['group'] }}</span>
+                        <span class="badge px-2 py-0.5 text-xs font-semibold rounded-full" 
+                              :class="activeModule === '{{ $moduleId }}' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 dark:bg-navy-600 dark:text-navy-100'">
+                            {{ count($group['endpoints']) }}
+                        </span>
+                    </button>
+                @endforeach
             </div>
-            
-            <div class="table-responsive">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th class="col-method">Method</th>
-                            <th class="col-endpoint">Endpoint</th>
-                            <th class="col-request">Request Example</th>
-                            <th class="col-response">Success Response Example</th>
-                            <th class="col-error">Error Response Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        </div>
+
+        <!-- Module Content -->
+        <div class="p-4 sm:p-5">
+            @foreach($endpoints as $group)
+                @php
+                    $moduleId = strtolower(str_replace([' ', '_'], ['-', '-'], $group['group']));
+                @endphp
+                <div x-show="activeModule === '{{ $moduleId }}'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-y-4"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 transform translate-y-0"
+                     x-transition:leave-end="opacity-0 transform translate-y-4"
+                     class="space-y-6">
+                    <!-- Module Header -->
+                    <div class="flex items-center space-x-3 pb-4 border-b border-slate-200 dark:border-navy-500">
+                        <div class="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-700 dark:text-navy-100">{{ $group['group'] }}</h3>
+                            <p class="text-xs text-slate-400 dark:text-navy-300">{{ count($group['endpoints']) }} endpoints available</p>
+                        </div>
+                    </div>
+
+                    <!-- Endpoints List -->
+                    <div class="space-y-6">
                         @foreach($group['endpoints'] as $endpoint)
-                        <tr data-endpoint="{{ strtolower($endpoint['name'] . ' ' . $endpoint['method'] . ' ' . $endpoint['url']) }}">
-                            <!-- Method Column -->
-                            <td>
-                                <span class="method-badge method-{{ strtolower($endpoint['method']) }}">
-                                    {{ $endpoint['method'] }}
-                                </span>
-                            </td>
-                            
-                            <!-- Endpoint Column -->
-                            <td>
-                                <div class="endpoint-name">{{ $endpoint['name'] }}</div>
-                                <div class="endpoint-url">{{ $endpoint['url'] }}</div>
-                                <div class="endpoint-description">{{ $endpoint['description'] }}</div>
-                                <div class="auth-badge">
-                                    <i class="ri-shield-keyhole-line"></i>
-                                    <span>
-                                        @if($endpoint['auth'] === 'None')
-                                            No Auth
-                                        @else
-                                            {{ str_replace('Bearer Token (Required)', 'Auth Required', $endpoint['auth']) }}
-                                        @endif
-                                    </span>
-                                </div>
-                            </td>
-                            
-                            <!-- Request Example Column -->
-                            <td>
-                                @php
-                                    $requestExamples = [];
-                                    if(isset($endpoint['request_example_1'])) {
-                                        $requestExamples[] = $endpoint['request_example_1'];
-                                    }
-                                    if(isset($endpoint['request_example_2'])) {
-                                        $requestExamples[] = $endpoint['request_example_2'];
-                                    }
-                                    if(isset($endpoint['request_example_3'])) {
-                                        $requestExamples[] = $endpoint['request_example_3'];
-                                    }
-                                @endphp
-                                
-                                @if(isset($endpoint['request_payload']) && $endpoint['request_payload'])
-                                    @php
-                                        $requestPayload = json_encode($endpoint['request_payload'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                    @endphp
-                                    <div class="code-example">
-                                        <div class="code-example-header">
-                                            <span><i class="ri-send-plane-line me-1"></i> Request Body</span>
-                                            <button class="copy-btn-small" data-code="{{ htmlspecialchars($requestPayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                                <i class="ri-file-copy-line"></i> Copy
-                                            </button>
-                                        </div>
-                                        <pre>{{ $requestPayload }}</pre>
-                                    </div>
-                                @elseif(!empty($requestExamples))
-                                    @foreach($requestExamples as $index => $example)
-                                        <div class="mb-2 {{ $index > 0 ? 'mt-3' : '' }}">
-                                            <div class="code-example">
-                                                <div class="code-example-header">
-                                                    <span><i class="ri-link me-1"></i> Example {{ $index + 1 }}</span>
-                                                    <button class="copy-btn-small" data-code="{{ htmlspecialchars($example, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                                        <i class="ri-file-copy-line"></i> Copy
-                                                    </button>
-                                                </div>
-                                                <pre>{{ $example }}</pre>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @else
-                                    <div class="no-example">
-                                        <i class="ri-subtract-line"></i> No request body
-                                    </div>
-                                @endif
-                            </td>
-                            
-                            <!-- Success Response Example Column -->
-                            <td>
-                                @php
-                                    $successResponses = [];
-                                    if(isset($endpoint['response'])) {
-                                        $successResponses[] = $endpoint['response'];
-                                    }
-                                    if(isset($endpoint['response_2'])) {
-                                        $successResponses[] = $endpoint['response_2'];
-                                    }
-                                    if(isset($endpoint['response_3'])) {
-                                        $successResponses[] = $endpoint['response_3'];
-                                    }
-                                @endphp
-                                
-                                @if(!empty($successResponses))
-                                    @foreach($successResponses as $index => $response)
-                                        @php
-                                            $statusCode = isset($response['status']) ? $response['status'] : 200;
-                                            if(!isset($response['status'])) {
-                                                if($endpoint['method'] === 'POST') {
-                                                    $statusCode = 201;
-                                                } elseif($endpoint['method'] === 'PUT' || $endpoint['method'] === 'PATCH') {
-                                                    $statusCode = 200;
-                                                }
-                                            }
-                                            $responsePayload = json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                        @endphp
-                                        <div class="mb-2 {{ $index > 0 ? 'mt-3' : '' }}">
-                                            <div class="status-badge-small status-{{ $statusCode }}">
-                                                HTTP {{ $statusCode }}
-                                                @if(count($successResponses) > 1 && isset($response['description']))
-                                                    <span style="font-size: 10px; opacity: 0.8;"> - {{ $response['description'] }}</span>
-                                                @elseif(count($successResponses) > 1)
-                                                    <span style="font-size: 10px; opacity: 0.8;"> ({{ $index + 1 }})</span>
-                                                @endif
-                                            </div>
-                                            <div class="code-example">
-                                                <div class="code-example-header">
-                                                    <span><i class="ri-checkbox-circle-line me-1"></i> Success</span>
-                                                    <button class="copy-btn-small" data-code="{{ htmlspecialchars($responsePayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                                        <i class="ri-file-copy-line"></i> Copy
-                                                    </button>
-                                                </div>
-                                                <pre>{{ $responsePayload }}</pre>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @else
-                                    <div class="no-example">
-                                        <i class="ri-subtract-line"></i> No example
-                                    </div>
-                                @endif
-                            </td>
-                            
-                            <!-- Error Response Example Column -->
-                            <td>
-                                @php
-                                    $errorResponses = [];
-                                    if(isset($endpoint['error_response'])) {
-                                        $errorResponses[] = $endpoint['error_response'];
-                                    }
-                                    $i = 2;
-                                    while(isset($endpoint['error_response_' . $i])) {
-                                        $errorResponses[] = $endpoint['error_response_' . $i];
-                                        $i++;
-                                    }
-                                @endphp
-                                
-                                @if(!empty($errorResponses))
-                                    @foreach($errorResponses as $index => $errorResponse)
-                                        @php
-                                            $errorPayload = json_encode($errorResponse, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                        @endphp
-                                        <div class="mb-2 {{ $index > 0 ? 'mt-3' : '' }}">
-                                            @if(count($errorResponses) > 1)
-                                                <div class="status-badge-small status-{{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}">
-                                                    HTTP {{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }} ({{ $index + 1 }})
-                                                </div>
+                        <div class="endpoint-item rounded-lg border border-slate-200 dark:border-navy-500 p-5 shadow-sm hover:shadow-md transition-shadow duration-200" 
+                             data-endpoint="{{ strtolower($endpoint['name'] . ' ' . $endpoint['method'] . ' ' . $endpoint['url']) }}">
+                            <!-- Endpoint Header -->
+                            <div class="mb-4">
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                            @php
+                                                $methodColors = [
+                                                    'GET' => 'bg-primary',
+                                                    'POST' => 'bg-success',
+                                                    'PUT' => 'bg-warning',
+                                                    'PATCH' => 'bg-warning',
+                                                    'DELETE' => 'bg-error'
+                                                ];
+                                                $color = $methodColors[$endpoint['method']] ?? 'bg-slate-500';
+                                            @endphp
+                                            <span class="badge {{ $color }} text-white font-semibold px-3 py-1 text-xs shadow-sm">{{ $endpoint['method'] }}</span>
+                                            <h4 class="text-base font-semibold text-slate-700 dark:text-navy-100">{{ $endpoint['name'] }}</h4>
+                                            @if($endpoint['auth'] !== 'None')
+                                            <span class="badge bg-info/10 text-info border border-info/20 text-xs">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                </svg>
+                                                Auth Required
+                                            </span>
                                             @else
-                                                <div class="status-badge-small status-{{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}">
-                                                    HTTP {{ isset($errorResponse['status']) ? $errorResponse['status'] : '400' }}
-                                                </div>
+                                            <span class="badge bg-slate-150 text-slate-600 dark:bg-navy-500 dark:text-navy-100 text-xs">No Auth</span>
                                             @endif
-                                            <div class="code-example">
-                                                <div class="code-example-header">
-                                                    <span><i class="ri-error-warning-line me-1"></i> Error</span>
-                                                    <button class="copy-btn-small" data-code="{{ htmlspecialchars($errorPayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                                        <i class="ri-file-copy-line"></i> Copy
-                                                    </button>
-                                                </div>
-                                                <pre>{{ $errorPayload }}</pre>
+                                        </div>
+                                        <code class="block text-sm text-slate-600 dark:text-navy-300 font-mono mt-2 p-2 rounded bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-navy-500">{{ $endpoint['url'] }}</code>
+                                        @if($endpoint['description'])
+                                        <p class="mt-2 text-sm text-slate-600 dark:text-navy-300 leading-relaxed">{{ $endpoint['description'] }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Request/Response Tabs -->
+                            <div x-data="{ activeTab: 'request' }" class="mt-4">
+                                <!-- Tab Buttons -->
+                                <div class="flex space-x-1 border-b border-slate-200 dark:border-navy-500">
+                                    @if(isset($endpoint['request_payload']) && $endpoint['request_payload'])
+                                    <button @click="activeTab = 'request'" 
+                                            :class="activeTab === 'request' ? 'endpoint-tab active border-b-2 border-primary text-primary dark:text-accent font-semibold' : 'endpoint-tab text-slate-600 dark:text-navy-300 hover:text-primary dark:hover:text-accent'"
+                                            class="px-4 py-2.5 text-sm font-medium transition-all duration-200 relative">
+                                        Request
+                                    </button>
+                                    @endif
+                                    @if(isset($endpoint['response']) && $endpoint['response'])
+                                    <button @click="activeTab = 'success'" 
+                                            :class="activeTab === 'success' ? 'endpoint-tab active border-b-2 border-success text-success font-semibold' : 'endpoint-tab text-slate-600 dark:text-navy-300 hover:text-success'"
+                                            class="px-4 py-2.5 text-sm font-medium transition-all duration-200 relative">
+                                        Success Response
+                                    </button>
+                                    @endif
+                                    @if(isset($endpoint['error_response']) && $endpoint['error_response'])
+                                    <button @click="activeTab = 'error'" 
+                                            :class="activeTab === 'error' ? 'endpoint-tab active border-b-2 border-error text-error font-semibold' : 'endpoint-tab text-slate-600 dark:text-navy-300 hover:text-error'"
+                                            class="px-4 py-2.5 text-sm font-medium transition-all duration-200 relative">
+                                        Error Response
+                                    </button>
+                                    @endif
+                                </div>
+
+                                <!-- Tab Content -->
+                                <div class="mt-4">
+                                    <!-- Request Tab -->
+                                    @if(isset($endpoint['request_payload']) && $endpoint['request_payload'])
+                                    <div x-show="activeTab === 'request'" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100"
+                                         x-transition:leave-end="opacity-0"
+                                         class="space-y-4">
+                                        <div class="rounded-lg border border-slate-200 dark:border-navy-500 overflow-hidden shadow-sm">
+                                            <div class="flex items-center justify-between bg-slate-50 dark:bg-navy-700 px-4 py-3 border-b border-slate-200 dark:border-navy-500">
+                                                <span class="text-sm font-semibold text-slate-700 dark:text-navy-100">Request Payload</span>
+                                                <button onclick="copyToClipboard(this)" 
+                                                        data-code="{{ htmlspecialchars(json_encode($endpoint['request_payload'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), ENT_QUOTES) }}"
+                                                        class="btn size-7 rounded-lg p-0 hover:bg-slate-200 dark:hover:bg-navy-600 text-slate-600 dark:text-navy-300 transition-colors"
+                                                        title="Copy to clipboard">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div class="bg-slate-900 dark:bg-navy-900 p-4 overflow-x-auto code-block">
+                                                <pre class="text-xs text-slate-300 font-mono leading-relaxed"><code>{{ json_encode($endpoint['request_payload'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
                                             </div>
                                         </div>
-                                    @endforeach
-                                @else
-                                    <div class="no-example">
-                                        <i class="ri-subtract-line"></i> No examples
+
+                                        <!-- Parameters -->
+                                        @if(isset($endpoint['parameters']) && (isset($endpoint['parameters']['required']) || isset($endpoint['parameters']['optional'])))
+                                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                            @if(isset($endpoint['parameters']['required']) && !empty($endpoint['parameters']['required']))
+                                            <div class="rounded-lg border border-error/20 dark:border-error/30 p-4 bg-error/5 dark:bg-error/10">
+                                                <h5 class="mb-3 text-sm font-semibold text-error flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Required Parameters
+                                                </h5>
+                                                <ul class="space-y-2">
+                                                    @foreach($endpoint['parameters']['required'] as $param => $desc)
+                                                    <li class="text-sm">
+                                                        <code class="text-primary dark:text-accent font-semibold">{{ $param }}</code>
+                                                        <span class="text-slate-600 dark:text-navy-300"> - {{ $desc }}</span>
+                                                    </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                            @endif
+
+                                            @if(isset($endpoint['parameters']['optional']) && !empty($endpoint['parameters']['optional']))
+                                            <div class="rounded-lg border border-slate-200 dark:border-navy-500 p-4 bg-slate-50 dark:bg-navy-800/50">
+                                                <h5 class="mb-3 text-sm font-semibold text-slate-600 dark:text-navy-300 flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Optional Parameters
+                                                </h5>
+                                                <ul class="space-y-2">
+                                                    @foreach($endpoint['parameters']['optional'] as $param => $desc)
+                                                    <li class="text-sm">
+                                                        <code class="text-primary dark:text-accent font-semibold">{{ $param }}</code>
+                                                        <span class="text-slate-600 dark:text-navy-300"> - {{ $desc }}</span>
+                                                    </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                            @endif
+                                        </div>
+                                        @endif
                                     </div>
-                                @endif
-                            </td>
-                        </tr>
+                                    @endif
+
+                                    <!-- Success Response Tab -->
+                                    @if(isset($endpoint['response']) && $endpoint['response'])
+                                    <div x-show="activeTab === 'success'" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100"
+                                         x-transition:leave-end="opacity-0"
+                                         class="space-y-4">
+                                        @php
+                                            $statusCode = $endpoint['response']['status'] ?? ($endpoint['method'] === 'POST' ? 201 : ($endpoint['method'] === 'PUT' || $endpoint['method'] === 'PATCH' ? 200 : 200));
+                                            $responseData = $endpoint['response'];
+                                            unset($responseData['status']);
+                                            $responseJson = json_encode($responseData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                        @endphp
+                                        <div class="rounded-lg border border-success/20 dark:border-success/30 overflow-hidden shadow-sm">
+                                            <div class="flex items-center justify-between bg-success/10 dark:bg-success/20 px-4 py-3 border-b border-success/20 dark:border-success/30">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="badge bg-success text-white text-xs font-semibold shadow-sm">HTTP {{ $statusCode }}</span>
+                                                    <span class="text-sm font-semibold text-slate-700 dark:text-navy-100">Success Response</span>
+                                                </div>
+                                                <button onclick="copyToClipboard(this)" 
+                                                        data-code="{{ htmlspecialchars($responseJson, ENT_QUOTES) }}"
+                                                        class="btn size-7 rounded-lg p-0 hover:bg-success/20 text-success transition-colors"
+                                                        title="Copy to clipboard">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div class="bg-slate-900 dark:bg-navy-900 p-4 overflow-x-auto code-block">
+                                                <pre class="text-xs text-slate-300 font-mono leading-relaxed"><code>{{ $responseJson }}</code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <!-- Error Response Tab -->
+                                    @if(isset($endpoint['error_response']) && $endpoint['error_response'])
+                                    <div x-show="activeTab === 'error'" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100"
+                                         x-transition:leave-end="opacity-0"
+                                         class="space-y-4">
+                                        @php
+                                            $errorStatus = $endpoint['error_response']['status'] ?? 400;
+                                            $errorJson = json_encode($endpoint['error_response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                        @endphp
+                                        <div class="rounded-lg border border-error/20 dark:border-error/30 overflow-hidden shadow-sm">
+                                            <div class="flex items-center justify-between bg-error/10 dark:bg-error/20 px-4 py-3 border-b border-error/20 dark:border-error/30">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="badge bg-error text-white text-xs font-semibold shadow-sm">HTTP {{ $errorStatus }}</span>
+                                                    <span class="text-sm font-semibold text-slate-700 dark:text-navy-100">Error Response</span>
+                                                </div>
+                                                <button onclick="copyToClipboard(this)" 
+                                                        data-code="{{ htmlspecialchars($errorJson, ENT_QUOTES) }}"
+                                                        class="btn size-7 rounded-lg p-0 hover:bg-error/20 text-error transition-colors"
+                                                        title="Copy to clipboard">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div class="bg-slate-900 dark:bg-navy-900 p-4 overflow-x-auto code-block">
+                                                <pre class="text-xs text-slate-300 font-mono leading-relaxed"><code>{{ $errorJson }}</code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                         @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+                </div>
+            @endforeach
         </div>
-        @endforeach
     </div>
 
-    <!-- No Results -->
-    <div id="noResults" class="no-results" style="display: none;">
-        <i class="ri-search-line"></i>
-        <h4>No APIs found</h4>
-        <p>Try searching with different keywords</p>
+    <!-- No Results Message -->
+    <div id="noResults" class="card text-center shadow-sm" style="display: none;">
+        <div class="p-8">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto size-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h4 class="mt-4 text-lg font-semibold text-slate-700 dark:text-navy-100">No APIs found</h4>
+            <p class="mt-2 text-sm text-slate-400 dark:text-navy-300">Try searching with different keywords</p>
+        </div>
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        // Search functionality
-        $('#apiSearch').on('keyup', function() {
-            const searchTerm = $(this).val().toLowerCase();
-            let hasResults = false;
-            
-            $('.api-table tbody tr').each(function() {
-                const endpointText = $(this).data('endpoint') || '';
-                if (endpointText.includes(searchTerm) || searchTerm === '') {
-                    $(this).show();
-                    hasResults = true;
-                } else {
-                    $(this).hide();
-                }
-            });
-            
-            // Hide/show modules with no visible endpoints
-            $('.module-section').each(function() {
-                const visibleRows = $(this).find('tbody tr:visible').length;
-                if (visibleRows === 0 && searchTerm !== '') {
-                    $(this).hide();
-                } else {
-                    $(this).show();
-                }
-            });
-            
-            // Show/hide no results message
-            if (!hasResults && searchTerm !== '') {
-                $('#noResults').show();
-                $('#apiTables').hide();
-            } else {
-                $('#noResults').hide();
-                $('#apiTables').show();
-            }
-        });
-    });
-
-    function copyCode(button) {
-        const textToCopy = $(button).data('code') || $(button).closest('.code-example').find('pre').text();
+    // Copy to clipboard function with enhanced error handling
+    function copyToClipboard(button) {
+        let textToCopy = '';
         
+        // Try to get from data-code attribute first
+        if (button.getAttribute('data-code')) {
+            textToCopy = button.getAttribute('data-code');
+        } else {
+            // Fallback: get from code element
+            const codeElement = button.closest('.rounded-lg').querySelector('pre code');
+            if (codeElement) {
+                textToCopy = codeElement.textContent || codeElement.innerText;
+            } else {
+                return;
+            }
+        }
+
+        // Decode HTML entities if needed
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = textToCopy;
+        textToCopy = tempDiv.textContent || tempDiv.innerText || textToCopy;
+
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(textToCopy).then(function() {
-                const $btn = $(button);
-                $btn.addClass('copied');
-                $btn.html('<i class="ri-check-line"></i> Copied!');
-                
-                setTimeout(function() {
-                    $btn.removeClass('copied');
-                    $btn.html('<i class="ri-file-copy-line"></i> Copy');
-                }, 2000);
+                showCopySuccess(button);
             }).catch(function(err) {
                 console.error('Failed to copy:', err);
                 fallbackCopy(textToCopy, button);
@@ -648,31 +499,92 @@
         }
     }
 
+    function showCopySuccess(button) {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+        button.classList.add('text-success');
+        button.setAttribute('title', 'Copied!');
+        button.style.pointerEvents = 'none';
+        
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('text-success');
+            button.setAttribute('title', 'Copy to clipboard');
+            button.style.pointerEvents = '';
+        }, 2000);
+    }
+
     function fallbackCopy(text, button) {
         const textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'fixed';
         textarea.style.opacity = '0';
         textarea.style.left = '-9999px';
+        textarea.style.top = '0';
         document.body.appendChild(textarea);
-        textarea.select();
         
         try {
-            document.execCommand('copy');
-            const $btn = $(button);
-            $btn.addClass('copied');
-            $btn.html('<i class="ri-check-line"></i> Copied!');
+            textarea.focus();
+            textarea.select();
+            const successful = document.execCommand('copy');
             
-            setTimeout(function() {
-                $btn.removeClass('copied');
-                $btn.html('<i class="ri-file-copy-line"></i> Copy');
-            }, 2000);
+            if (successful) {
+                showCopySuccess(button);
+            } else {
+                throw new Error('Copy command failed');
+            }
         } catch (err) {
             console.error('Fallback copy failed:', err);
             alert('Failed to copy. Please select and copy manually.');
+        } finally {
+            document.body.removeChild(textarea);
         }
-        
-        document.body.removeChild(textarea);
+    }
+
+    // Search functionality with debounce
+    let searchTimeout;
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('apiSearch');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                performSearch(this.value);
+            }, 300);
+        });
+
+        searchInput.addEventListener('keyup', function() {
+            clearTimeout(searchTimeout);
+            performSearch(this.value);
+        });
+    });
+
+    function performSearch(searchTerm) {
+        const term = searchTerm.toLowerCase().trim();
+        let hasResults = false;
+
+        // Hide/show endpoint items
+        document.querySelectorAll('.endpoint-item').forEach(function(item) {
+            const endpointText = item.getAttribute('data-endpoint') || '';
+            if (endpointText.includes(term) || term === '') {
+                item.style.display = 'block';
+                hasResults = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Show/hide no results message
+        const noResults = document.getElementById('noResults');
+        const apiTables = document.querySelector('.card[x-data]');
+        if (!hasResults && term !== '') {
+            if (noResults) noResults.style.display = 'block';
+            if (apiTables) apiTables.style.display = 'none';
+        } else {
+            if (noResults) noResults.style.display = 'none';
+            if (apiTables) apiTables.style.display = 'block';
+        }
     }
 </script>
 @endpush

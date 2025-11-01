@@ -10,7 +10,7 @@ alwaysApply: true
 ## 1. Project Theme and Structure
 
 - Visual and structural foundation must be based on the provided local theme files.
-- Theme Source Path: `C:\Users\yjvc1\Desktop\Projects\eyecare\theme\HTML\dist`
+- Theme Source Path: `C:\Users\yjvc1\Desktop\Projects\eyecare\lineone.piniastudio.com`
 - Structure Adherence: Admin panel views must utilize and respect the file structure and asset paths established by this theme.
 
 ## 2. Dependency Management (No CDNs)

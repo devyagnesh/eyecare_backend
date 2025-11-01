@@ -1,223 +1,193 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr" data-nav-layout="vertical" data-vertical-style="overlay" data-theme-mode="light" data-header-styles="light" data-menu-styles="light" data-toggled="close">
+<html lang="en">
 <head>
-    <!-- Meta Data -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Meta tags -->
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+
     <title>Login - Admin Panel</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}" />
 
-    <!-- Favicon -->
-    @if(file_exists(public_path('assets/images/brand-logos/favicon.ico')))
-        <link rel="icon" href="{{ asset('assets/images/brand-logos/favicon.ico') }}" type="image/x-icon">
-    @endif
+    <!-- CSS Assets -->
+    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}" />
 
-    <!-- Main Theme Js -->
-    <script src="{{ asset('assets/js/authentication-main.js') }}"></script>
-
-    <!-- Bootstrap Css -->
-    <link id="style" href="{{ asset('assets/libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-
-    <!-- Style Css -->
-    <link href="{{ asset('assets/css/styles.min.css') }}" rel="stylesheet">
-
-    <!-- Icons Css -->
-    <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com/" />
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    
+    <style>
+        /* Hide x-cloak elements by default (Alpine.js does this, but we need fallback) */
+        [x-cloak] { 
+            display: none !important; 
+        }
+        
+        /* Ensure preloader can be hidden */
+        .app-preloader {
+            transition: opacity 0.3s ease-out;
+        }
+        
+        /* Show root when x-cloak is removed */
+        #root:not([x-cloak]) {
+            display: flex !important;
+        }
+    </style>
+    
+    <script>
+        localStorage.getItem("_x_darkMode_on") === "true" &&
+            document.documentElement.classList.add("dark");
+    </script>
 </head>
-
-<body>
-    <div class="container">
-        <div class="row justify-content-center align-items-center authentication authentication-basic h-100">
-            <div class="col-xxl-4 col-xl-5 col-lg-5 col-md-6 col-sm-8 col-12">
-                <div class="my-5 d-flex justify-content-center">
-                    @if(file_exists(public_path('assets/images/brand-logos/desktop-logo.png')))
-                        <a href="{{ route('login') }}">
-                            <img src="{{ asset('assets/images/brand-logos/desktop-logo.png') }}" alt="logo" class="desktop-logo">
-                            <img src="{{ asset('assets/images/brand-logos/desktop-dark.png') }}" alt="logo" class="desktop-dark">
-                        </a>
-                    @else
-                        <h2 class="fw-bold">Admin Panel</h2>
-                    @endif
-                </div>
-                <div class="card custom-card">
-                    <div class="card-body p-5">
-                        <p class="h5 fw-semibold mb-2 text-center">Sign In</p>
-                        <p class="mb-4 text-muted op-7 fw-normal text-center">Welcome back!</p>
-
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <form id="login-form" method="POST" action="{{ route('login') }}">
-                            @csrf
-                            <div class="row gy-3">
-                                <div class="col-xl-12">
-                                    <label for="email" class="form-label text-default">Email Address</label>
-                                    <input type="email" 
-                                           class="form-control form-control-lg @error('email') is-invalid @enderror" 
-                                           id="email" 
-                                           name="email" 
-                                           value="{{ old('email') }}"
-                                           placeholder="Enter your email" 
-                                           required 
-                                           autofocus>
-                                    @error('email')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                    <div class="error-message text-danger" id="email-error"></div>
-                                </div>
-                                <div class="col-xl-12 mb-2">
-                                    <label for="password" class="form-label text-default d-block">Password</label>
-                                    <div class="input-group">
-                                        <input type="password" 
-                                               class="form-control form-control-lg @error('password') is-invalid @enderror" 
-                                               id="password" 
-                                               name="password" 
-                                               placeholder="Enter your password" 
-                                               required>
-                                        <button class="btn btn-light" type="button" onclick="createpassword('password',this)" id="button-addon2">
-                                            <i class="ri-eye-off-line align-middle"></i>
-                                        </button>
-                                    </div>
-                                    @error('password')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                    <div class="error-message text-danger" id="password-error"></div>
-                                    <div class="mt-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="remember" id="defaultCheck1" {{ old('remember') ? 'checked' : '' }}>
-                                            <label class="form-check-label text-muted fw-normal" for="defaultCheck1">
-                                                Remember password ?
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-xl-12 d-grid mt-2">
-                                    <button type="submit" class="btn btn-lg btn-primary" id="login-btn">
-                                        Sign In
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body x-data class="is-header-blur" x-bind="$store.global.documentBody">
+    <!-- App preloader-->
+    <div class="app-preloader fixed z-50 grid h-full w-full place-content-center bg-slate-50 dark:bg-navy-900">
+        <div class="app-preloader-inner relative inline-block size-48"></div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <!-- Page Wrapper -->
+    <div id="root" class="min-h-100vh flex grow bg-slate-50 dark:bg-navy-900" x-cloak>
+        <main class="grid w-full grow grid-cols-1 place-items-center">
+            <div class="w-full max-w-[26rem] p-4 sm:px-5">
+                <div class="text-center">
+                    <img class="mx-auto size-16" src="{{ asset('assets/images/app-logo.svg') }}" alt="logo" />
+                    <div class="mt-4">
+                        <h2 class="text-2xl font-semibold text-slate-600 dark:text-navy-100">Welcome Back</h2>
+                        <p class="text-slate-400 dark:text-navy-300">Please sign in to continue</p>
+                    </div>
+                </div>
+                <div class="card mt-5 rounded-lg p-5 lg:p-7">
+                    @if ($errors->any())
+                        <div class="alert flex rounded-lg bg-error/10 text-error px-4 py-3 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
-    <!-- Show Password JS -->
-    <script src="{{ asset('assets/js/show-password.js') }}"></script>
+                    <form id="login-form" method="POST" action="{{ route('login') }}">
+                        @csrf
+                        <label class="block">
+                            <span>Email:</span>
+                            <span class="relative mt-1.5 flex">
+                                <input class="form-input peer w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 pl-9 placeholder:text-slate-400/70 hover:z-10 hover:border-slate-400 focus:z-10 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent {{ $errors->has('email') ? 'border-error' : '' }}" placeholder="Enter Email" type="email" name="email" value="{{ old('email') }}" required autofocus />
+                                <span class="pointer-events-none absolute flex h-full w-10 items-center justify-center text-slate-400 peer-focus:text-primary dark:text-navy-300 dark:peer-focus:text-accent">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </span>
+                            </span>
+                            @error('email')
+                                <span class="mt-1.5 text-xs+ text-error">{{ $message }}</span>
+                            @enderror
+                        </label>
+                        <label class="mt-4 block">
+                            <span>Password:</span>
+                            <span class="relative mt-1.5 flex">
+                                <input class="form-input peer w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 pl-9 pr-9 placeholder:text-slate-400/70 hover:z-10 hover:border-slate-400 focus:z-10 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent {{ $errors->has('password') ? 'border-error' : '' }}" placeholder="Enter Password" type="password" name="password" id="password" required />
+                                <span class="pointer-events-none absolute flex h-full w-10 items-center justify-center text-slate-400 peer-focus:text-primary dark:text-navy-300 dark:peer-focus:text-accent">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                </span>
+                                <button type="button" onclick="togglePassword('password', this)" class="absolute right-0 flex h-full w-10 items-center justify-center text-slate-400 hover:text-slate-600 dark:text-navy-300 dark:hover:text-navy-100">
+                                    <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0L18.71 18.71M6.29 6.29L3 3" />
+                                    </svg>
+                                    <svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" class="size-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </span>
+                            @error('password')
+                                <span class="mt-1.5 text-xs+ text-error">{{ $message }}</span>
+                            @enderror
+                        </label>
+                        <div class="mt-4 flex items-center justify-between space-x-2">
+                            <label class="inline-flex items-center space-x-2">
+                                <input class="form-checkbox is-basic size-5 rounded border-slate-400/70 checked:border-primary checked:bg-primary hover:border-primary focus:border-primary dark:border-navy-400 dark:checked:border-accent dark:checked:bg-accent dark:hover:border-accent dark:focus:border-accent" type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }} />
+                                <span class="line-clamp-1">Remember me</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn mt-5 w-full bg-primary font-medium text-white hover:bg-primary-focus focus:bg-primary-focus active:bg-primary-focus/90 dark:bg-accent dark:hover:bg-accent-focus dark:focus:bg-accent-focus dark:active:bg-accent/90">
+                            Sign In
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
 
-    <!-- jQuery (if available) -->
-    @if(file_exists(public_path('assets/libs/jquery/jquery.min.js')))
-        <script src="{{ asset('assets/libs/jquery/jquery.min.js') }}"></script>
-    @endif
+    <!-- Javascript Assets -->
+    <script src="{{ asset('assets/js/app.js') }}" defer></script>
 
-    <!-- jQuery Validation (if available) -->
-    @if(file_exists(public_path('assets/libs/jquery-validation/jquery.validate.min.js')))
-        <script src="{{ asset('assets/libs/jquery-validation/jquery.validate.min.js') }}"></script>
-    @endif
-
-    <!-- Login Form Validation -->
     <script>
-        (function() {
-            'use strict';
-            
-            // Wait for jQuery if it's loaded asynchronously
-            function initValidation() {
-                if (typeof $ !== 'undefined' && typeof $.fn.validate !== 'undefined') {
-                    $('#login-form').validate({
-                        rules: {
-                            email: {
-                                required: true,
-                                email: true
-                            },
-                            password: {
-                                required: true,
-                                minlength: 6
-                            }
-                        },
-                        messages: {
-                            email: {
-                                required: 'Please enter your email address',
-                                email: 'Please enter a valid email address'
-                            },
-                            password: {
-                                required: 'Please enter your password',
-                                minlength: 'Password must be at least 6 characters'
-                            }
-                        },
-                        errorPlacement: function(error, element) {
-                            const errorId = element.attr('id') + '-error';
-                            error.appendTo('#' + errorId);
-                        },
-                        submitHandler: function(form) {
-                            $('#login-btn').prop('disabled', true).text('Signing in...');
-                            form.submit();
-                        }
-                    });
-                } else {
-                    // Fallback vanilla JS validation
-                    const form = document.getElementById('login-form');
-                    if (form) {
-                        form.addEventListener('submit', function(e) {
-                            let isValid = true;
-                            
-                            // Clear previous errors
-                            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
-                            
-                            // Validate email
-                            const email = document.getElementById('email').value.trim();
-                            if (!email) {
-                                document.getElementById('email-error').textContent = 'Please enter your email address';
-                                isValid = false;
-                            } else if (!/\S+@\S+\.\S+/.test(email)) {
-                                document.getElementById('email-error').textContent = 'Please enter a valid email address';
-                                isValid = false;
-                            }
-                            
-                            // Validate password
-                            const password = document.getElementById('password').value;
-                            if (!password) {
-                                document.getElementById('password-error').textContent = 'Please enter your password';
-                                isValid = false;
-                            } else if (password.length < 6) {
-                                document.getElementById('password-error').textContent = 'Password must be at least 6 characters';
-                                isValid = false;
-                            }
-                            
-                            if (!isValid) {
-                                e.preventDefault();
-                                return false;
-                            }
-                            
-                            document.getElementById('login-btn').disabled = true;
-                            document.getElementById('login-btn').textContent = 'Signing in...';
-                        });
-                    }
-                }
+        // Function to hide preloader
+        function hidePreloader() {
+            const preloader = document.querySelector('.app-preloader');
+            if (preloader && preloader.style.display !== 'none') {
+                preloader.style.opacity = '0';
+                preloader.style.transition = 'opacity 0.3s ease-out';
+                setTimeout(function() {
+                    preloader.style.display = 'none';
+                }, 300);
             }
+        }
+
+        // Function to show content
+        function showContent() {
+            const root = document.getElementById('root');
+            if (root) {
+                root.removeAttribute('x-cloak');
+                root.style.display = 'flex';
+            }
+        }
+
+        // Show content and hide preloader when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                showContent();
+                setTimeout(hidePreloader, 200);
+            });
+        } else {
+            // DOM already loaded
+            showContent();
+            setTimeout(hidePreloader, 200);
+        }
+
+        // Also hide preloader when page is fully loaded
+        window.addEventListener('load', function() {
+            setTimeout(hidePreloader, 100);
+        });
+        
+        // Fallback: Force show content after 1 second if still hidden
+        setTimeout(function() {
+            showContent();
+            hidePreloader();
+        }, 1000);
+
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const eyeIcon = document.getElementById('eye-icon');
+            const eyeOffIcon = document.getElementById('eye-off-icon');
             
-            // Try to initialize immediately, or wait for DOM
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initValidation);
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
             } else {
-                initValidation();
+                input.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeOffIcon.classList.add('hidden');
             }
-            
-            // Also try after a short delay in case jQuery loads asynchronously
-            setTimeout(initValidation, 100);
-        })();
+        }
     </script>
 </body>
 </html>
