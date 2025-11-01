@@ -39,31 +39,14 @@ class VerifyEmailNotification extends Notification
      */
     protected function verificationUrl($notifiable): string
     {
-        $relativeUrl = URL::temporarySignedRoute(
+        // Generate absolute signed URL - Laravel handles this properly
+        return URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $notifiable->getKey(),
                 'hash' => sha1($notifiable->getEmailForVerification()),
-            ],
-            false // Don't append existing query parameters
+            ]
         );
-        
-        // Ensure absolute URL with proper base URL
-        if (strpos($relativeUrl, 'http') !== 0) {
-            // Extract query string if present
-            $queryString = '';
-            if (strpos($relativeUrl, '?') !== false) {
-                list($path, $queryString) = explode('?', $relativeUrl, 2);
-                $relativeUrl = $path;
-                $queryString = '?' . $queryString;
-            }
-            
-            // Build absolute URL
-            $baseUrl = rtrim(config('app.url'), '/');
-            return $baseUrl . $relativeUrl . $queryString;
-        }
-        
-        return $relativeUrl;
     }
 }
