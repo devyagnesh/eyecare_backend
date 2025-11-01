@@ -193,6 +193,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'email_verified' => $user->hasVerifiedEmail(),
                     'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
                     'role' => $user->role ? [
                         'id' => $user->role->id,
@@ -201,6 +202,23 @@ class AuthController extends Controller
                     ] : null,
                     'permissions' => $user->permissions()->pluck('slug')->toArray(),
                 ],
+            ],
+        ], 200);
+    }
+
+    /**
+     * Check if the authenticated user's email is verified.
+     */
+    public function checkEmailVerification(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'email_verified' => $user->hasVerifiedEmail(),
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
             ],
         ], 200);
     }

@@ -219,7 +219,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'GET',
                         'url' => $baseUrl . '/auth/me',
                         'name' => 'Get Authenticated User',
-                        'description' => 'Get current authenticated user information including role and permissions.',
+                        'description' => 'Get current authenticated user information including role, permissions, and email verification status.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [],
                         'request_payload' => null,
@@ -230,6 +230,7 @@ class ApiDocumentationController extends Controller
                                     'id' => 1,
                                     'name' => 'Admin User',
                                     'email' => 'admin@gmail.com',
+                                    'email_verified' => true,
                                     'email_verified_at' => '2024-01-15T10:30:00.000000Z',
                                     'role' => [
                                         'id' => 1,
@@ -251,6 +252,27 @@ class ApiDocumentationController extends Controller
                                         'delete-permissions',
                                     ],
                                 ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'message' => 'Unauthenticated.',
+                        ],
+                    ],
+                    [
+                        'method' => 'GET',
+                        'url' => $baseUrl . '/auth/check-email-verification',
+                        'name' => 'Check Email Verification',
+                        'description' => 'Check if the authenticated user\'s email address is verified. Returns a boolean indicating verification status.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'data' => [
+                                'email_verified' => true,
+                                'email' => 'user@example.com',
+                                'email_verified_at' => '2024-01-15T10:30:00.000000Z',
                             ],
                         ],
                         'error_response' => [
@@ -629,6 +651,29 @@ class ApiDocumentationController extends Controller
                                     'raw' => '{{base_url}}/auth/me',
                                     'host' => ['{{base_url}}'],
                                     'path' => ['auth', 'me'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Check Email Verification',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/auth/check-email-verification',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['auth', 'check-email-verification'],
                                 ],
                             ],
                             'response' => [],
