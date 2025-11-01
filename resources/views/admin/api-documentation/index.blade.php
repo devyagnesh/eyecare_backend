@@ -421,19 +421,46 @@
                             
                             <!-- Request Example Column -->
                             <td>
+                                @php
+                                    $requestExamples = [];
+                                    if(isset($endpoint['request_example_1'])) {
+                                        $requestExamples[] = $endpoint['request_example_1'];
+                                    }
+                                    if(isset($endpoint['request_example_2'])) {
+                                        $requestExamples[] = $endpoint['request_example_2'];
+                                    }
+                                    if(isset($endpoint['request_example_3'])) {
+                                        $requestExamples[] = $endpoint['request_example_3'];
+                                    }
+                                @endphp
+                                
                                 @if(isset($endpoint['request_payload']) && $endpoint['request_payload'])
                                     @php
                                         $requestPayload = json_encode($endpoint['request_payload'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
                                     @endphp
                                     <div class="code-example">
                                         <div class="code-example-header">
-                                            <span><i class="ri-send-plane-line me-1"></i> Request</span>
+                                            <span><i class="ri-send-plane-line me-1"></i> Request Body</span>
                                             <button class="copy-btn-small" data-code="{{ htmlspecialchars($requestPayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
                                                 <i class="ri-file-copy-line"></i> Copy
                                             </button>
                                         </div>
                                         <pre>{{ $requestPayload }}</pre>
                                     </div>
+                                @elseif(!empty($requestExamples))
+                                    @foreach($requestExamples as $index => $example)
+                                        <div class="mb-2 {{ $index > 0 ? 'mt-3' : '' }}">
+                                            <div class="code-example">
+                                                <div class="code-example-header">
+                                                    <span><i class="ri-link me-1"></i> Example {{ $index + 1 }}</span>
+                                                    <button class="copy-btn-small" data-code="{{ htmlspecialchars($example, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
+                                                        <i class="ri-file-copy-line"></i> Copy
+                                                    </button>
+                                                </div>
+                                                <pre>{{ $example }}</pre>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 @else
                                     <div class="no-example">
                                         <i class="ri-subtract-line"></i> No request body
@@ -443,26 +470,52 @@
                             
                             <!-- Success Response Example Column -->
                             <td>
-                                @if(isset($endpoint['response']))
-                                    @php
-                                        $statusCode = 200;
-                                        if($endpoint['method'] === 'POST') {
-                                            $statusCode = 201;
-                                        } elseif($endpoint['method'] === 'PUT' || $endpoint['method'] === 'PATCH') {
-                                            $statusCode = 200;
-                                        }
-                                        $responsePayload = json_encode($endpoint['response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                    @endphp
-                                    <div class="status-badge-small status-{{ $statusCode }}">HTTP {{ $statusCode }}</div>
-                                    <div class="code-example">
-                                        <div class="code-example-header">
-                                            <span><i class="ri-checkbox-circle-line me-1"></i> Success</span>
-                                            <button class="copy-btn-small" data-code="{{ htmlspecialchars($responsePayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
-                                                <i class="ri-file-copy-line"></i> Copy
-                                            </button>
+                                @php
+                                    $successResponses = [];
+                                    if(isset($endpoint['response'])) {
+                                        $successResponses[] = $endpoint['response'];
+                                    }
+                                    if(isset($endpoint['response_2'])) {
+                                        $successResponses[] = $endpoint['response_2'];
+                                    }
+                                    if(isset($endpoint['response_3'])) {
+                                        $successResponses[] = $endpoint['response_3'];
+                                    }
+                                @endphp
+                                
+                                @if(!empty($successResponses))
+                                    @foreach($successResponses as $index => $response)
+                                        @php
+                                            $statusCode = isset($response['status']) ? $response['status'] : 200;
+                                            if(!isset($response['status'])) {
+                                                if($endpoint['method'] === 'POST') {
+                                                    $statusCode = 201;
+                                                } elseif($endpoint['method'] === 'PUT' || $endpoint['method'] === 'PATCH') {
+                                                    $statusCode = 200;
+                                                }
+                                            }
+                                            $responsePayload = json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                        @endphp
+                                        <div class="mb-2 {{ $index > 0 ? 'mt-3' : '' }}">
+                                            <div class="status-badge-small status-{{ $statusCode }}">
+                                                HTTP {{ $statusCode }}
+                                                @if(count($successResponses) > 1 && isset($response['description']))
+                                                    <span style="font-size: 10px; opacity: 0.8;"> - {{ $response['description'] }}</span>
+                                                @elseif(count($successResponses) > 1)
+                                                    <span style="font-size: 10px; opacity: 0.8;"> ({{ $index + 1 }})</span>
+                                                @endif
+                                            </div>
+                                            <div class="code-example">
+                                                <div class="code-example-header">
+                                                    <span><i class="ri-checkbox-circle-line me-1"></i> Success</span>
+                                                    <button class="copy-btn-small" data-code="{{ htmlspecialchars($responsePayload, ENT_QUOTES, 'UTF-8') }}" onclick="copyCode(this)">
+                                                        <i class="ri-file-copy-line"></i> Copy
+                                                    </button>
+                                                </div>
+                                                <pre>{{ $responsePayload }}</pre>
+                                            </div>
                                         </div>
-                                        <pre>{{ $responsePayload }}</pre>
-                                    </div>
+                                    @endforeach
                                 @else
                                     <div class="no-example">
                                         <i class="ri-subtract-line"></i> No example
