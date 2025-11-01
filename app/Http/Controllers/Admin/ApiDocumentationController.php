@@ -346,6 +346,128 @@ class ApiDocumentationController extends Controller
                     ],
                 ],
             ],
+            [
+                'group' => 'Stores',
+                'endpoints' => [
+                    [
+                        'method' => 'GET',
+                        'url' => $baseUrl . '/stores',
+                        'name' => 'Get Store',
+                        'description' => 'Get the authenticated user\'s store information. Returns store details including logo, email, phone number, and address. Each user can have only one store.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'data' => [
+                                'store' => [
+                                    'id' => 1,
+                                    'logo' => 'http://example.com/storage/stores/logos/logo.jpg',
+                                    'email' => 'store@example.com',
+                                    'phone_number' => '+1234567890',
+                                    'address' => '123 Main Street, City, State 12345',
+                                    'created_at' => '2024-01-15T10:30:00.000000Z',
+                                    'updated_at' => '2024-01-15T10:30:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                    ],
+                    [
+                        'method' => 'POST',
+                        'url' => $baseUrl . '/stores',
+                        'name' => 'Create Store',
+                        'description' => 'Create a new store for the authenticated user. Requires email verification. Each user can create only one store. If a store already exists, use the update endpoint instead.',
+                        'auth' => 'Bearer Token (Required) + Email Verification',
+                        'parameters' => [
+                            'required' => [
+                                'email' => 'string - Store email address',
+                                'phone_number' => 'string - Store phone number',
+                                'address' => 'string - Store physical address',
+                            ],
+                            'optional' => [
+                                'logo' => 'file - Store logo image (max 2MB, formats: jpeg, png, jpg, gif, svg)',
+                            ],
+                        ],
+                        'request_payload' => [
+                            'logo' => '(multipart/form-data) - Image file',
+                            'email' => 'store@example.com',
+                            'phone_number' => '+1234567890',
+                            'address' => '123 Main Street, City, State 12345',
+                        ],
+                        'response' => [
+                            'success' => true,
+                            'message' => 'Store created successfully.',
+                            'data' => [
+                                'store' => [
+                                    'id' => 1,
+                                    'logo' => 'http://example.com/storage/stores/logos/logo.jpg',
+                                    'email' => 'store@example.com',
+                                    'phone_number' => '+1234567890',
+                                    'address' => '123 Main Street, City, State 12345',
+                                    'created_at' => '2024-01-15T10:30:00.000000Z',
+                                    'updated_at' => '2024-01-15T10:30:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 403,
+                            'success' => false,
+                            'message' => 'Please verify your email address before creating a store.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 409,
+                            'success' => false,
+                            'message' => 'Store already exists. Use the update endpoint to modify your store.',
+                        ],
+                    ],
+                    [
+                        'method' => 'PUT',
+                        'url' => $baseUrl . '/stores',
+                        'name' => 'Update Store',
+                        'description' => 'Update the authenticated user\'s existing store. Can update any or all fields including logo. Old logo is automatically deleted when a new one is uploaded.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'optional' => [
+                                'logo' => 'file - Store logo image (max 2MB, formats: jpeg, png, jpg, gif, svg)',
+                                'email' => 'string - Store email address',
+                                'phone_number' => 'string - Store phone number',
+                                'address' => 'string - Store physical address',
+                            ],
+                        ],
+                        'request_payload' => [
+                            'logo' => '(multipart/form-data) - Image file',
+                            'email' => 'newstore@example.com',
+                            'phone_number' => '+9876543210',
+                            'address' => '456 Oak Avenue, City, State 67890',
+                        ],
+                        'response' => [
+                            'success' => true,
+                            'message' => 'Store updated successfully.',
+                            'data' => [
+                                'store' => [
+                                    'id' => 1,
+                                    'logo' => 'http://example.com/storage/stores/logos/new-logo.jpg',
+                                    'email' => 'newstore@example.com',
+                                    'phone_number' => '+9876543210',
+                                    'address' => '456 Oak Avenue, City, State 67890',
+                                    'created_at' => '2024-01-15T10:30:00.000000Z',
+                                    'updated_at' => '2024-01-15T11:45:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -598,6 +720,138 @@ class ApiDocumentationController extends Controller
                                     'raw' => '{{base_url}}/auth/update-notification-token',
                                     'host' => ['{{base_url}}'],
                                     'path' => ['auth', 'update-notification-token'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'Stores',
+                    'item' => [
+                        [
+                            'name' => 'Get Store',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/stores',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['stores'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Create Store',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'body' => [
+                                    'mode' => 'formdata',
+                                    'formdata' => [
+                                        [
+                                            'key' => 'logo',
+                                            'type' => 'file',
+                                            'src' => [],
+                                            'description' => 'Store logo image (max 2MB)',
+                                        ],
+                                        [
+                                            'key' => 'email',
+                                            'value' => 'store@example.com',
+                                            'type' => 'text',
+                                            'description' => 'Store email address',
+                                        ],
+                                        [
+                                            'key' => 'phone_number',
+                                            'value' => '+1234567890',
+                                            'type' => 'text',
+                                            'description' => 'Store phone number',
+                                        ],
+                                        [
+                                            'key' => 'address',
+                                            'value' => '123 Main Street, City, State 12345',
+                                            'type' => 'text',
+                                            'description' => 'Store physical address',
+                                        ],
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/stores',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['stores'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Update Store',
+                            'request' => [
+                                'method' => 'PUT',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'body' => [
+                                    'mode' => 'formdata',
+                                    'formdata' => [
+                                        [
+                                            'key' => 'logo',
+                                            'type' => 'file',
+                                            'src' => [],
+                                            'description' => 'Store logo image (max 2MB) - Optional',
+                                        ],
+                                        [
+                                            'key' => 'email',
+                                            'value' => 'newstore@example.com',
+                                            'type' => 'text',
+                                            'description' => 'Store email address - Optional',
+                                        ],
+                                        [
+                                            'key' => 'phone_number',
+                                            'value' => '+9876543210',
+                                            'type' => 'text',
+                                            'description' => 'Store phone number - Optional',
+                                        ],
+                                        [
+                                            'key' => 'address',
+                                            'value' => '456 Oak Avenue, City, State 67890',
+                                            'type' => 'text',
+                                            'description' => 'Store physical address - Optional',
+                                        ],
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/stores',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['stores'],
                                 ],
                             ],
                             'response' => [],

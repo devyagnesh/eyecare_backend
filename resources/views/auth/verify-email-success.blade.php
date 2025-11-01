@@ -47,15 +47,14 @@
                             </div>
                             <p class="h4 fw-semibold mb-2 text-success">Email Verified Successfully!</p>
                             <p class="mb-3 text-muted op-7 fw-normal">Your email address has been verified successfully.</p>
-                            <p class="mb-4 text-muted op-7 fw-normal">You can now access all features of your optical store management system.</p>
+                            <p class="mb-4 text-muted op-7 fw-normal">You can now create your store and access all features of the system.</p>
                             
                             <div class="alert alert-info border-info mb-4 text-start" role="alert">
                                 <h6 class="alert-heading mb-2"><i class="ri-information-line me-2"></i>What's Next?</h6>
                                 <ul class="mb-0 ps-3" style="font-size: 14px;">
-                                    <li>Manage your optical inventory</li>
-                                    <li>Track customer appointments</li>
-                                    <li>Process prescriptions and orders</li>
-                                    <li>Generate business reports</li>
+                                    <li>Create your store profile</li>
+                                    <li>Set up your store logo and contact information</li>
+                                    <li>Start managing your business</li>
                                 </ul>
                             </div>
                         </div>

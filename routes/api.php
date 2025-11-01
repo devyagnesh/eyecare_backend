@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Admin\TestEmailController;
 
 /*
@@ -36,6 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/update-notification-token', [AuthController::class, 'updateNotificationToken']);
         Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('verification.resend-api');
+    });
+    
+    // Store routes (require email verification)
+    Route::prefix('stores')->group(function () {
+        Route::get('/', [StoreController::class, 'show'])->name('stores.show');
+        Route::post('/', [StoreController::class, 'store'])->name('stores.create');
+        Route::put('/', [StoreController::class, 'update'])->name('stores.update');
     });
     
     // Example: Get authenticated user

@@ -47,7 +47,7 @@
                             </div>
                             <p class="h4 fw-semibold mb-2 text-info">Email Already Verified</p>
                             <p class="mb-3 text-muted op-7 fw-normal">Your email address has already been verified.</p>
-                            <p class="mb-4 text-muted op-7 fw-normal">You're all set! You can now log in and start managing your optical store.</p>
+                            <p class="mb-4 text-muted op-7 fw-normal">You're all set! You can now log in and start using the system.</p>
                             
                             <div class="alert alert-success border-success mb-4 text-start" role="alert">
                                 <h6 class="alert-heading mb-2"><i class="ri-checkbox-circle-line me-2"></i>Account Ready</h6>

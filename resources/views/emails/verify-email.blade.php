@@ -120,16 +120,16 @@
     <div class="email-container">
         <div class="email-header">
             <h1>👓 Eyecare Management</h1>
-            <div class="subtitle">Professional Optical Store Management System</div>
+            <div class="subtitle">Professional Eyecare Management System</div>
         </div>
         
         <div class="email-body">
             <div class="greeting">Hello {{ $name }}!</div>
             
             <div class="content">
-                <p>Welcome to Eyecare Management System! We're excited to have you join our platform designed specifically for optical store owners.</p>
+                <p>Welcome to Eyecare Management System! We're excited to have you join our platform.</p>
                 
-                <p>To get started and access all features of your store management system, please verify your email address by clicking the button below:</p>
+                <p>To get started, please verify your email address by clicking the button below. Once verified, you'll be able to create your store profile.</p>
             </div>
             
             <div class="button-container">
@@ -154,17 +154,17 @@
             <div class="content" style="font-size: 14px; color: #666;">
                 <p><strong>What's Next?</strong></p>
                 <ul style="margin: 10px 0; padding-left: 20px;">
-                    <li>Manage your inventory of frames and lenses</li>
-                    <li>Track customer appointments and orders</li>
-                    <li>Process prescriptions and eyewear fittings</li>
-                    <li>Generate reports and analytics</li>
+                    <li>Create your store profile</li>
+                    <li>Upload your store logo</li>
+                    <li>Set up your contact information</li>
+                    <li>Start managing your business</li>
                 </ul>
             </div>
         </div>
         
         <div class="footer">
             <p class="company-name">Eyecare Management System</p>
-            <p>Professional Solution for Optical Store Owners</p>
+            <p>Professional Eyecare Management Solution</p>
             <p style="margin-top: 15px; font-size: 12px;">© {{ date('Y') }} Eyecare Management. All rights reserved.</p>
         </div>
     </div>
