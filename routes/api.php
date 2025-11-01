@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\EyeExaminationController;
 use App\Http\Controllers\Admin\TestEmailController;
 
 /*
@@ -56,6 +57,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [CustomerController::class, 'show'])->name('customers.show');
         Route::put('/{id}', [CustomerController::class, 'update'])->name('customers.update');
         Route::delete('/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+    });
+    
+    // Eye Examination routes (require store)
+    Route::prefix('eye-examinations')->group(function () {
+        Route::get('/', [EyeExaminationController::class, 'index'])->name('eye_examinations.index');
+        Route::post('/', [EyeExaminationController::class, 'store'])->name('eye_examinations.create');
+        Route::get('/{id}', [EyeExaminationController::class, 'show'])->name('eye_examinations.show');
+        Route::put('/{id}', [EyeExaminationController::class, 'update'])->name('eye_examinations.update');
+        Route::delete('/{id}', [EyeExaminationController::class, 'destroy'])->name('eye_examinations.destroy');
     });
     
     // Example: Get authenticated user
