@@ -530,6 +530,246 @@ class ApiDocumentationController extends Controller
                     ],
                 ],
             ],
+            [
+                'group' => 'Customers',
+                'endpoints' => [
+                    [
+                        'method' => 'GET',
+                        'url' => $baseUrl . '/customers',
+                        'name' => 'Get All Customers',
+                        'description' => 'Get all customers for the authenticated user\'s store. Returns paginated list of customers.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'optional' => [
+                                'page' => 'integer - Page number for pagination (default: 1)',
+                            ],
+                        ],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'data' => [
+                                'customers' => [
+                                    [
+                                        'id' => 1,
+                                        'store_id' => 1,
+                                        'name' => 'John Doe',
+                                        'email' => 'john@example.com',
+                                        'phone_number' => '+1234567890',
+                                        'address' => '123 Main Street, City, State',
+                                        'created_at' => '2024-01-15T10:30:00.000000Z',
+                                        'updated_at' => '2024-01-15T10:30:00.000000Z',
+                                    ],
+                                ],
+                                'pagination' => [
+                                    'current_page' => 1,
+                                    'last_page' => 5,
+                                    'per_page' => 15,
+                                    'total' => 67,
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                    ],
+                    [
+                        'method' => 'POST',
+                        'url' => $baseUrl . '/customers',
+                        'name' => 'Create Customer',
+                        'description' => 'Create a new customer for the authenticated user\'s store. Store ID is automatically set from the authenticated user\'s store.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'required' => [
+                                'name' => 'string - Customer name',
+                                'phone_number' => 'string - Customer phone number',
+                            ],
+                            'optional' => [
+                                'email' => 'string - Customer email address',
+                                'address' => 'string - Customer address',
+                            ],
+                        ],
+                        'request_payload' => [
+                            'name' => 'John Doe',
+                            'email' => 'john@example.com',
+                            'phone_number' => '+1234567890',
+                            'address' => '123 Main Street, City, State',
+                        ],
+                        'response' => [
+                            'success' => true,
+                            'message' => 'Customer created successfully.',
+                            'data' => [
+                                'customer' => [
+                                    'id' => 1,
+                                    'store_id' => 1,
+                                    'name' => 'John Doe',
+                                    'email' => 'john@example.com',
+                                    'phone_number' => '+1234567890',
+                                    'address' => '123 Main Street, City, State',
+                                    'created_at' => '2024-01-15T10:30:00.000000Z',
+                                    'updated_at' => '2024-01-15T10:30:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                        'error_response_3' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The name field is required.',
+                        ],
+                    ],
+                    [
+                        'method' => 'GET',
+                        'url' => $baseUrl . '/customers/{id}',
+                        'name' => 'Get Customer',
+                        'description' => 'Get a specific customer by ID. Only returns customers belonging to the authenticated user\'s store.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'required' => [
+                                'id' => 'integer - Customer ID (route parameter)',
+                            ],
+                        ],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'data' => [
+                                'customer' => [
+                                    'id' => 1,
+                                    'store_id' => 1,
+                                    'name' => 'John Doe',
+                                    'email' => 'john@example.com',
+                                    'phone_number' => '+1234567890',
+                                    'address' => '123 Main Street, City, State',
+                                    'created_at' => '2024-01-15T10:30:00.000000Z',
+                                    'updated_at' => '2024-01-15T10:30:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                        'error_response_3' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Customer not found.',
+                        ],
+                    ],
+                    [
+                        'method' => 'PUT',
+                        'url' => $baseUrl . '/customers/{id}',
+                        'name' => 'Update Customer',
+                        'description' => 'Update an existing customer. Only customers belonging to the authenticated user\'s store can be updated.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'required' => [
+                                'id' => 'integer - Customer ID (route parameter)',
+                            ],
+                            'optional' => [
+                                'name' => 'string - Customer name',
+                                'email' => 'string - Customer email address',
+                                'phone_number' => 'string - Customer phone number',
+                                'address' => 'string - Customer address',
+                            ],
+                        ],
+                        'request_payload' => [
+                            'name' => 'Jane Doe',
+                            'email' => 'jane@example.com',
+                            'phone_number' => '+9876543210',
+                            'address' => '456 Oak Avenue, City, State',
+                        ],
+                        'response' => [
+                            'success' => true,
+                            'message' => 'Customer updated successfully.',
+                            'data' => [
+                                'customer' => [
+                                    'id' => 1,
+                                    'store_id' => 1,
+                                    'name' => 'Jane Doe',
+                                    'email' => 'jane@example.com',
+                                    'phone_number' => '+9876543210',
+                                    'address' => '456 Oak Avenue, City, State',
+                                    'created_at' => '2024-01-15T10:30:00.000000Z',
+                                    'updated_at' => '2024-01-15T11:45:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                        'error_response_3' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Customer not found.',
+                        ],
+                        'error_response_4' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The email must be a valid email address.',
+                        ],
+                    ],
+                    [
+                        'method' => 'DELETE',
+                        'url' => $baseUrl . '/customers/{id}',
+                        'name' => 'Delete Customer',
+                        'description' => 'Delete a customer. Only customers belonging to the authenticated user\'s store can be deleted.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'required' => [
+                                'id' => 'integer - Customer ID (route parameter)',
+                            ],
+                        ],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'message' => 'Customer deleted successfully.',
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                        'error_response_3' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Customer not found.',
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -960,6 +1200,152 @@ class ApiDocumentationController extends Controller
                                     'raw' => '{{base_url}}/stores',
                                     'host' => ['{{base_url}}'],
                                     'path' => ['stores'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'Customers',
+                    'item' => [
+                        [
+                            'name' => 'Get All Customers',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/customers',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['customers'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Create Customer',
+                            'request' => [
+                                'method' => 'POST',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Content-Type',
+                                        'value' => 'application/json',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'name' => 'John Doe',
+                                        'email' => 'john@example.com',
+                                        'phone_number' => '+1234567890',
+                                        'address' => '123 Main Street, City, State',
+                                    ], JSON_PRETTY_PRINT),
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/customers',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['customers'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Get Customer',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/customers/1',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['customers', '1'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Update Customer',
+                            'request' => [
+                                'method' => 'PUT',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Content-Type',
+                                        'value' => 'application/json',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'body' => [
+                                    'mode' => 'raw',
+                                    'raw' => json_encode([
+                                        'name' => 'Jane Doe',
+                                        'email' => 'jane@example.com',
+                                        'phone_number' => '+9876543210',
+                                        'address' => '456 Oak Avenue, City, State',
+                                    ], JSON_PRETTY_PRINT),
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/customers/1',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['customers', '1'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Delete Customer',
+                            'request' => [
+                                'method' => 'DELETE',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/customers/1',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['customers', '1'],
                                 ],
                             ],
                             'response' => [],

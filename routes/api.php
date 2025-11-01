@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StoreController;
+use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Admin\TestEmailController;
 
 /*
@@ -46,6 +47,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [StoreController::class, 'show'])->name('stores.show');
         Route::post('/', [StoreController::class, 'store'])->name('stores.create');
         Route::put('/', [StoreController::class, 'update'])->name('stores.update');
+    });
+    
+    // Customer routes (require store)
+    Route::prefix('customers')->group(function () {
+        Route::get('/', [CustomerController::class, 'index'])->name('customers.index');
+        Route::post('/', [CustomerController::class, 'store'])->name('customers.create');
+        Route::get('/{id}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::put('/{id}', [CustomerController::class, 'update'])->name('customers.update');
+        Route::delete('/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
     });
     
     // Example: Get authenticated user
