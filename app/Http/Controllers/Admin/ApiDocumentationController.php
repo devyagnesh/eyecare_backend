@@ -109,10 +109,8 @@ class ApiDocumentationController extends Controller
                         ],
                         'error_response' => [
                             'status' => 422,
+                            'success' => false,
                             'message' => 'The provided credentials are incorrect.',
-                            'errors' => [
-                                'email' => ['The provided credentials are incorrect.'],
-                            ],
                         ],
                     ],
                     [
@@ -184,12 +182,8 @@ class ApiDocumentationController extends Controller
                         ],
                         'error_response' => [
                             'status' => 422,
-                            'message' => 'The given data was invalid.',
-                            'errors' => [
-                                'email' => ['The email has already been taken.'],
-                                'password' => ['The password must be at least 8 characters.'],
-                                'password_confirmation' => ['The password confirmation does not match.'],
-                            ],
+                            'success' => false,
+                            'message' => 'The email has already been taken.',
                         ],
                     ],
                     [
@@ -480,13 +474,7 @@ class ApiDocumentationController extends Controller
                         'error_response_4' => [
                             'status' => 422,
                             'success' => false,
-                            'message' => 'The given data was invalid.',
-                            'errors' => [
-                                'email' => ['The email field is required.', 'The email must be a valid email address.'],
-                                'phone_number' => ['The phone number field is required.'],
-                                'address' => ['The address field is required.'],
-                                'logo' => ['The logo must be an image.', 'The logo must not be greater than 2048 kilobytes.', 'The logo must be a file of type: jpeg, png, jpg, gif, svg.'],
-                            ],
+                            'message' => 'The email field is required.',
                         ],
                     ],
                     [
@@ -537,12 +525,7 @@ class ApiDocumentationController extends Controller
                         'error_response_3' => [
                             'status' => 422,
                             'success' => false,
-                            'message' => 'The given data was invalid.',
-                            'errors' => [
-                                'email' => ['The email must be a valid email address.'],
-                                'phone_number' => ['The phone number field is required when email is present.'],
-                                'logo' => ['The logo must be an image.', 'The logo must not be greater than 2048 kilobytes.', 'The logo must be a file of type: jpeg, png, jpg, gif, svg.'],
-                            ],
+                            'message' => 'The email must be a valid email address.',
                         ],
                     ],
                 ],
