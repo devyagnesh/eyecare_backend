@@ -3,20 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreRoleRequest;
+use App\Http\Requests\Admin\UpdateRoleRequest;
+use App\Http\Traits\HandlesAjaxResponses;
+use App\Http\Traits\HandlesSlugGeneration;
 use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
+    use HandlesAjaxResponses, HandlesSlugGeneration;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $roles = Role::withCount('users')->latest()->paginate(15);
+        $roles = Role::withCount('users')->latest()->get();
         return view('admin.roles.index', compact('roles'));
     }
 
@@ -32,19 +35,11 @@ class RoleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name',
-            'slug' => 'nullable|string|max:255|unique:roles,slug',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id',
-        ]);
-
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
-        $validated['is_active'] = $request->has('is_active');
+        $validated = $request->validated();
+        $validated = $this->generateSlug($validated);
+        $validated = $this->setActiveFlag($validated, $request);
 
         $role = Role::create($validated);
 
@@ -52,8 +47,7 @@ class RoleController extends Controller
             $role->permissions()->sync($request->permissions);
         }
 
-        return redirect()->route('admin.roles.index')
-            ->with('success', 'Role created successfully.');
+        return $this->handleResponse($request, 'Role created successfully.', 'admin.roles.index');
     }
 
     /**
@@ -78,19 +72,11 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Role $role)
+    public function update(UpdateRoleRequest $request, Role $role)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($role->id)],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('roles')->ignore($role->id)],
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id',
-        ]);
-
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
-        $validated['is_active'] = $request->has('is_active');
+        $validated = $request->validated();
+        $validated = $this->generateSlug($validated);
+        $validated = $this->setActiveFlag($validated, $request);
 
         $role->update($validated);
 
@@ -100,24 +86,21 @@ class RoleController extends Controller
             $role->permissions()->detach();
         }
 
-        return redirect()->route('admin.roles.index')
-            ->with('success', 'Role updated successfully.');
+        return $this->handleResponse($request, 'Role updated successfully.', 'admin.roles.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Role $role)
+    public function destroy(Request $request, Role $role)
     {
         if ($role->users()->count() > 0) {
-            return redirect()->route('admin.roles.index')
-                ->with('error', 'Cannot delete role. It is assigned to one or more users.');
+            return $this->handleErrorResponse($request, 'Cannot delete role. It is assigned to one or more users.', 'admin.roles.index', 403);
         }
 
         $role->permissions()->detach();
         $role->delete();
 
-        return redirect()->route('admin.roles.index')
-            ->with('success', 'Role deleted successfully.');
+        return $this->handleResponse($request, 'Role deleted successfully.', 'admin.roles.index');
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class StoreController extends Controller
 {
@@ -48,6 +49,7 @@ class StoreController extends Controller
             'data' => [
                 'store' => [
                     'id' => $store->id,
+                    'name' => $store->name,
                     'logo' => $store->logo ? url(Storage::url($store->logo)) : null,
                     'email' => $store->email,
                     'phone_number' => $store->phone_number,
@@ -83,9 +85,10 @@ class StoreController extends Controller
         }
 
         $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'email' => 'required|email|max:255',
-            'phone_number' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:stores,email',
+            'phone_number' => 'required|string|max:255|unique:stores,phone_number',
             'address' => 'required|string',
         ]);
 
@@ -97,6 +100,7 @@ class StoreController extends Controller
 
         $store = Store::create([
             'user_id' => $user->id,
+            'name' => $validated['name'],
             'logo' => $logoPath,
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
@@ -137,9 +141,10 @@ class StoreController extends Controller
         }
 
         $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'email' => 'sometimes|required|email|max:255',
-            'phone_number' => 'sometimes|required|string|max:255',
+            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('stores', 'email')->ignore($store->id)],
+            'phone_number' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('stores', 'phone_number')->ignore($store->id)],
             'address' => 'sometimes|required|string',
         ]);
 
@@ -160,6 +165,7 @@ class StoreController extends Controller
             'data' => [
                 'store' => [
                     'id' => $store->id,
+                    'name' => $store->name,
                     'logo' => $store->logo ? url(Storage::url($store->logo)) : null,
                     'email' => $store->email,
                     'phone_number' => $store->phone_number,

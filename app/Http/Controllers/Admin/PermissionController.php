@@ -3,19 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StorePermissionRequest;
+use App\Http\Requests\Admin\UpdatePermissionRequest;
+use App\Http\Traits\HandlesAjaxResponses;
+use App\Http\Traits\HandlesSlugGeneration;
 use App\Models\Permission;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class PermissionController extends Controller
 {
+    use HandlesAjaxResponses, HandlesSlugGeneration;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $permissions = Permission::latest()->paginate(15);
+        $permissions = Permission::latest()->get();
         $modules = Permission::distinct()->pluck('module')->filter()->sort()->values();
         return view('admin.permissions.index', compact('permissions', 'modules'));
     }
@@ -31,23 +34,15 @@ class PermissionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePermissionRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:permissions,name',
-            'slug' => 'nullable|string|max:255|unique:permissions,slug',
-            'module' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
-        $validated['is_active'] = $request->has('is_active');
+        $validated = $request->validated();
+        $validated = $this->generateSlug($validated);
+        $validated = $this->setActiveFlag($validated, $request);
 
         Permission::create($validated);
 
-        return redirect()->route('admin.permissions.index')
-            ->with('success', 'Permission created successfully.');
+        return $this->handleResponse($request, 'Permission created successfully.', 'admin.permissions.index');
     }
 
     /**
@@ -70,38 +65,28 @@ class PermissionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Permission $permission)
+    public function update(UpdatePermissionRequest $request, Permission $permission)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('permissions')->ignore($permission->id)],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('permissions')->ignore($permission->id)],
-            'module' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
-        $validated['is_active'] = $request->has('is_active');
+        $validated = $request->validated();
+        $validated = $this->generateSlug($validated);
+        $validated = $this->setActiveFlag($validated, $request);
 
         $permission->update($validated);
 
-        return redirect()->route('admin.permissions.index')
-            ->with('success', 'Permission updated successfully.');
+        return $this->handleResponse($request, 'Permission updated successfully.', 'admin.permissions.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Permission $permission)
+    public function destroy(Request $request, Permission $permission)
     {
         if ($permission->roles()->count() > 0) {
-            return redirect()->route('admin.permissions.index')
-                ->with('error', 'Cannot delete permission. It is assigned to one or more roles.');
+            return $this->handleErrorResponse($request, 'Cannot delete permission. It is assigned to one or more roles.', 'admin.permissions.index', 403);
         }
 
         $permission->delete();
 
-        return redirect()->route('admin.permissions.index')
-            ->with('success', 'Permission deleted successfully.');
+        return $this->handleResponse($request, 'Permission deleted successfully.', 'admin.permissions.index');
     }
 }

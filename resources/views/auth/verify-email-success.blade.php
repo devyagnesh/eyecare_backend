@@ -1,142 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr" data-theme-mode="light">
 <head>
-    <!-- Meta tags -->
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Email Verified - Admin Panel</title>
-    <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}" />
-
-    <!-- CSS Assets -->
-    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}" />
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com/" />
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
     
-    <style>
-        /* Hide x-cloak elements by default (Alpine.js does this, but we need fallback) */
-        [x-cloak] { 
-            display: none !important; 
-        }
-        
-        /* Ensure preloader can be hidden */
-        .app-preloader {
-            transition: opacity 0.3s ease-out;
-        }
-        
-        /* Show root when x-cloak is removed */
-        #root:not([x-cloak]) {
-            display: flex !important;
-        }
-    </style>
+    <!-- Bootstrap Css -->
+    <link href="{{ asset('assets/libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     
-    <script>
-        localStorage.getItem("_x_darkMode_on") === "true" &&
-            document.documentElement.classList.add("dark");
-    </script>
+    <!-- Style Css -->
+    <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
+    
+    <!-- Icons Css -->
+    <link href="{{ asset('assets/css/icons.css') }}" rel="stylesheet">
 </head>
-<body x-data class="is-header-blur" x-bind="$store.global.documentBody">
-    <!-- App preloader-->
-    <div class="app-preloader fixed z-50 grid h-full w-full place-content-center bg-slate-50 dark:bg-navy-900">
-        <div class="app-preloader-inner relative inline-block size-48"></div>
-    </div>
 
-    <!-- Page Wrapper -->
-    <div id="root" class="min-h-100vh flex grow bg-slate-50 dark:bg-navy-900" x-cloak>
-        <main class="grid w-full grow grid-cols-1 place-items-center">
-            <div class="w-full max-w-[26rem] p-4 sm:px-5">
-                <div class="text-center">
-                    <img class="mx-auto size-16" src="{{ asset('assets/images/app-logo.svg') }}" alt="logo" />
-                    <div class="mt-4">
-                        <div class="mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-success/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl font-semibold text-slate-600 dark:text-navy-100">Email Verified Successfully!</h2>
-                        <p class="mt-1 text-sm text-slate-400 dark:text-navy-300">Your email address has been verified successfully.</p>
-                        <p class="mt-2 text-sm text-slate-400 dark:text-navy-300">You can now access all features of the system.</p>
-                    </div>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-xxl-4 col-xl-5 col-lg-5 col-md-6 col-sm-8 col-12">
+                <div class="my-5 d-flex justify-content-center">
+                    <a href="{{ route('login') }}">
+                        <img src="{{ asset('assets/images/brand-logos/desktop-logo.png') }}" alt="logo" class="desktop-logo">
+                        <img src="{{ asset('assets/images/brand-logos/desktop-dark.png') }}" alt="logo" class="desktop-dark">
+                    </a>
                 </div>
-                <div class="card mt-5 rounded-lg p-5 lg:p-7">
-                    <div class="alert flex rounded-lg bg-info/10 px-4 py-3 text-info">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div class="text-left">
-                            <h6 class="font-medium mb-2">What's Next?</h6>
-                            <ul class="list-inside list-disc text-sm">
-                                <li>Create your store profile</li>
-                                <li>Set up your store logo and contact information</li>
-                                <li>Start managing your business</li>
-                            </ul>
+                <div class="card custom-card">
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4">
+                            <div class="avatar avatar-lg avatar-rounded bg-success-transparent mx-auto d-flex align-items-center justify-content-center">
+                                <i class="bx bx-check-circle fs-32 text-success"></i>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mt-6">
-                        <a href="{{ route('login') }}" class="btn w-full bg-primary font-medium text-white hover:bg-primary-focus focus:bg-primary-focus active:bg-primary-focus/90 dark:bg-accent dark:hover:bg-accent-focus dark:focus:bg-accent-focus dark:active:bg-accent/90">
-                            Go to Login
-                        </a>
-                    </div>
-                    <div class="mt-4 text-center text-xs text-slate-400 dark:text-navy-300">
-                        <p><i class="ri-shield-check-line mr-1"></i> Your account is secure and ready to use</p>
+                        <h5 class="fw-semibold mb-2">Email Verified Successfully!</h5>
+                        <p class="text-muted mb-4">Your email address has been verified successfully. You can now access all features of the system.</p>
+                        
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex align-items-start">
+                                <i class="bx bx-info-circle fs-18 me-2 mt-1"></i>
+                                <div class="text-start">
+                                    <h6 class="fw-semibold mb-1">Next Steps</h6>
+                                    <p class="mb-0 fs-12">You can now log in to your account and start using all the features available to you.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{{ route('login') }}" class="btn btn-lg btn-primary">
+                                Go to Login
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 
-    <!-- Javascript Assets -->
-    <script src="{{ asset('assets/js/app.js') }}" defer></script>
-
-    <!-- Global Preloader and x-cloak Handler -->
-    <script>
-        // Function to hide preloader
-        function hidePreloader() {
-            const preloader = document.querySelector('.app-preloader');
-            if (preloader && preloader.style.display !== 'none') {
-                preloader.style.opacity = '0';
-                preloader.style.transition = 'opacity 0.3s ease-out';
-                setTimeout(function() {
-                    preloader.style.display = 'none';
-                }, 300);
-            }
-        }
-
-        // Function to show content
-        function showContent() {
-            const root = document.getElementById('root');
-            if (root) {
-                root.removeAttribute('x-cloak');
-                root.style.display = 'flex';
-            }
-        }
-
-        // Show content and hide preloader when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                showContent();
-                setTimeout(hidePreloader, 200);
-            });
-        } else {
-            // DOM already loaded
-            showContent();
-            setTimeout(hidePreloader, 200);
-        }
-
-        // Also hide preloader when page is fully loaded
-        window.addEventListener('load', function() {
-            setTimeout(hidePreloader, 100);
-        });
-        
-        // Fallback: Force show content after 1 second if still hidden
-        setTimeout(function() {
-            showContent();
-            hidePreloader();
-        }, 1000);
-    </script>
+    <!-- Bootstrap JS -->
+    <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <!-- Main Theme JS -->
+    <script src="{{ asset('assets/js/app.js') }}"></script>
 </body>
 </html>

@@ -1,116 +1,216 @@
 ---
 alwaysApply: true
 ---
-# Project Rules and Guidelines: Eyecare API & Admin Panel
+# Project Rules and Guidelines: Eyecare API & Admin Panel (Laravel)
 
 [TYPE: MDC]
 
 ---
 
-## 1. Project Theme and Structure
+## 1. Project Theme and Integration
 
-- Visual and structural foundation must be based on the provided local theme files.
-- Theme Source Path: `C:\Users\yjvc1\Desktop\Projects\eyecare\lineone.piniastudio.com`
-- Structure Adherence: Admin panel views must utilize and respect the file structure and asset paths established by this theme.
+- The entire Admin Panel and Frontend must use assets strictly from the following local theme path:
+  C:\Users\yjvc1\Desktop\Projects\eyecare\LMS_UI\HTML\dist
+- Cursor must not import or generate any external UI framework (no Tailwind, Bootstrap, or custom CSS).
+- All design, layout, and UI behavior must use the existing theme’s:
+  - CSS: public/assets/css/app.css
+  - JS: public/assets/js/app.js
+  - Images: public/assets/images/
+  - Libraries: public/assets/libs/
+- Cursor must replicate the existing layout and structural logic of the theme — not rebuild or restyle it.
 
-## 2. Dependency Management (No CDNs)
+---
 
-- All external libraries must be hosted locally. DO NOT rely on CDNs for external dependencies (jQuery, DataTables, Font Awesome, etc.).
-- Action: Download required JS/CSS library files and integrate into the local project asset folder.
-- Exception: Development tools and build scripts may use external sources.
+## 2. Asset and Dependency Rules
 
-## 3. API Backend Standards
+- No CDNs allowed. All dependencies must be hosted locally.
+- Download all required JS/CSS libraries manually and place them in:
+  public/assets/vendor/
+  Example:
+  public/assets/vendor/jquery/
+  public/assets/vendor/datatables/
+  public/assets/vendor/jquery-validate/
+- Use Laravel’s asset helper for referencing:
+  <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+  <script src="{{ asset('assets/js/app.js') }}"></script>
+- Never include <script> or <link> tags from a remote source.
 
-- All endpoints must be RESTful using standard HTTP methods (GET, POST, PUT/PATCH, DELETE).
-- All API responses must be JSON with a consistent structure (e.g., `success: true|false`, `data`, `errors`).
-- Date/Time format: ISO 8601 (e.g., `YYYY-MM-DDTHH:mm:ssZ`).
+---
 
-## 4. Frontend Technology Stack
+## 3. Laravel-Specific Architecture
 
-A. JavaScript Framework
-- Mandate: Use jQuery for all DOM manipulation, AJAX calls, and event handling.
-- Avoid: Do not use vanilla DOM APIs (e.g., `document.querySelector`, `fetch`) where jQuery alternatives exist.
+- Use Blade layouts and components consistently.
+  - Base layout file must follow x-layout syntax.
+  - Include reusable partials (header, sidebar, footer, content).
+- All business logic must reside in controllers or service classes — not in Blade templates.
+- Use Laravel’s resource routing:
+  Route::resource('patients', PatientController::class);
+- Each module must follow MVC separation:
+  - Model → Eloquent
+  - Controller → Resource-based logic
+  - View → Blade templates using the existing theme
 
-B. Form Validation
-- Mandate: Use the jQuery Validation Plugin for all client-side form validation.
+---
 
-C. Data Display
-- Mandate: Use DataTables for all tabular data (pagination, sorting, search).
+## 4. JavaScript & Frontend Logic
 
-## 5. Styling and Aesthetics (Minimal Custom CSS)
+- Use jQuery exclusively for DOM manipulation, AJAX requests, and event handling.
+- Avoid vanilla JS or modern JS frameworks (React, Vue, etc.).
+- Form validation: Must use jQuery Validation Plugin.
+- Data handling: Use jQuery DataTables for tabular data.
+- Enable server-side processing for DataTables when dataset size > 1000 records.
+- AJAX must return JSON; handle errors and success responses via standard callbacks.
 
-- Leverage existing CSS and utility classes from the base theme.
-- Rule: Do NOT write custom CSS unless strictly necessary. Use theme's utility classes for spacing, flex, colors.
-- Custom CSS allowed only for complex overrides or layouts that cannot be achieved with theme classes.
+---
 
-## 6. Security and Compliance
+## 5. API Backend Standards
 
-- Input Sanitization: Validate and sanitize all user inputs server-side to prevent SQL injection, XSS, etc.
-- Authentication: All endpoints must verify authentication and authorization. Never rely on client-side checks.
-- Sensitive Data: Do NOT hardcode password hashes, API keys, or sensitive config in files checked into VCS.
+- All Laravel API routes must be RESTful and defined using api.php.
+- Standard JSON response structure:
+  {
+    "success": true,
+    "data": {},
+    "errors": null
+  }
+- Use correct HTTP methods:
+  - GET → Retrieve data
+  - POST → Create
+  - PUT/PATCH → Update
+  - DELETE → Remove
+- Date format: YYYY-MM-DDTHH:mm:ssZ (ISO 8601)
+- Use Laravel’s FormRequest classes for validation and sanitize all inputs.
 
-## 7. Code Quality and Naming Conventions
+---
 
-- Consistency: Adhere to a consistent code style (indentation, brace placement).
-- JS Naming: Use `camelCase` for JavaScript variables and functions (e.g., `getPatientData`).
-- Classes/IDs: Use `kebab-case` or follow the theme's existing convention for CSS classes/IDs.
-- Modularity: Break complex logic into smaller, reusable functions/modules.
+## 6. Security and Authentication
 
-## 8. Documentation and Maintenance
+- Authentication handled via Laravel Sanctum or Passport.
+- Protect all sensitive endpoints using auth:sanctum middleware.
+- Never store plain passwords or tokens in Blade files or client-side scripts.
+- Always validate inputs server-side — never rely solely on frontend validation.
+- Use Laravel’s built-in Hash and Crypt classes for sensitive data handling.
 
-- API Documentation: Maintain API docs inside a dedicated Admin Panel section. Keep docs updated as API evolves.
-- Code Comments: Comment complex functions explaining *why* not just *what*.
-- Error Logging: Implement centralized logging; do NOT expose internal server errors to frontend users.
+---
 
-## 9. Admin Panel Requirements
+## 7. Code Quality, DRY Principle, and Standards
 
-- Admin Layout: Use `x-layout` blade layout syntax for all admin views (header, sidebar, footer, content slots).
-- Theme Usage: Integrate assets from local theme path and keep asset references relative to project structure.
-- Use downloaded local JS/CSS assets only — include them via asset pipeline or local paths.
+- Follow the **DRY (Don’t Repeat Yourself)** principle — reusable components, helper functions, and shared services must be preferred over code duplication.
+- Use **PSR-12** for PHP code formatting and structure.
+- Follow **international coding standards** and **best practices** for API design, authentication, and database schema.
+- PHP Classes: PascalCase
+- Variables and Methods: camelCase
+- Database Columns: snake_case
+- CSS/JS Classes: follow theme naming conventions or use kebab-case.
+- Maintain strict indentation (4 spaces) and clean formatting.
+- Avoid inline JS/CSS — always reference external files.
+- Complex functions must include comments explaining why they exist.
+- Code must be modular, maintainable, and scalable according to enterprise standards.
 
-## 10. Frontend Behavior & Tools
+---
 
-- Always prefer jQuery over vanilla JS for event handling and AJAX.
-- Use jQuery Validation for client-side validation, and validate again server-side.
-- Use jQuery DataTables for listing, server-side processing enabled where large datasets exist.
+## 8. Admin Panel Layout and Views
 
-## 11. Admin API Documentation (In-panel)
+- All Admin views must use the x-layout structure with proper slot usage.
+- Layout should follow the existing theme’s container, sidebar, and content hierarchy.
+- Include theme assets locally:
+  @push('styles')
+      <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+  @endpush
 
-- Provide an interactive API documentation page inside Admin Panel that lists endpoints, required parameters, sample requests and responses, authentication requirements, and error codes.
-- Keep documentation versioned and indicate the last updated date.
+  @push('scripts')
+      <script src="{{ asset('assets/js/app.js') }}"></script>
+  @endpush
+- No inline styles or external frameworks.
+- All interactive UI components (tabs, dropdowns, modals) should reuse the existing theme’s JS.
 
-## 12. Local Library Path Example
+---
 
-- Place downloaded libraries under: `public/assets/vendor/` (example)
-  - `public/assets/vendor/jquery/` — jquery.min.js
-  - `public/assets/vendor/datatables/` — datatables.min.js, datatables.min.css
-  - `public/assets/vendor/jquery-validate/` — jquery.validate.min.js
+## 9. API Documentation (Inside Admin Panel)
 
-## 13. Build and Deployment Notes
+- Admin panel must include a dedicated API Documentation page/module.
+- Documentation must include:
+  - Endpoint list (with URLs and HTTP methods)
+  - Required parameters and example payloads
+  - Example JSON responses
+  - Authentication requirements
+  - Error codes and explanations
+- Must display “Last Updated” and “Version” details.
+- Use collapsible sections or searchable lists for better UX.
+- Documentation data should be stored locally (e.g., JSON or Markdown file).
 
-- Ensure build scripts bundle local assets and do not reference external CDNs for production builds.
-- During CI/CD, include a step to verify required vendor assets exist and fail the build if missing.
+---
 
-## 14. Testing
+## 10. Build, Testing, and Deployment
 
-- Unit Tests: Backend logic should have unit tests covering controllers, services, and models.
-- Integration Tests: API endpoints must have integration tests validating authentication, authorization, and error handling.
-- Frontend: Key UI flows (login, CRUD pages) should have automated UI tests where feasible.
+- Local dependencies must be verified before deployment.
+- CI/CD pipeline must include asset verification:
+  - Fail build if any vendor assets or local theme files are missing.
+- Add a README.md explaining:
+  - How to set up theme assets
+  - Folder structure
+  - Environment configuration
+- Include SECURITY.md detailing:
+  - Credential storage
+  - Token rotation
+  - Incident handling
+- Implement:
+  - Unit tests for core business logic
+  - Feature tests for API routes and authentication
+  - Integration tests for multi-step workflows
 
-## 15. Error Handling and Responses
+---
 
-- Standardize error responses with status codes, error messages, and internal codes for mapping.
-- Log full stack traces server-side but return generic messages to frontend.
+## 11. Access Control & Roles
 
-## 16. Access Control
+- Implement dynamic role-based access control (RBAC) using spatie/laravel-permission.
+- Store roles and permissions in the database.
+- Admin UI must allow:
+  - Creating/deleting roles
+  - Assigning permissions to roles
+  - Assigning roles to users
+- Use middleware like:
+  ->middleware(['role:admin'])
+- Permissions must also control access to frontend actions and routes.
 
-- Role-based access control must be implemented. Use dynamic roles and permissions mapping to features and endpoints.
-- Store role-permission mappings in the database and provide admin UI to manage them.
+---
 
-## 17. Misc
+## 12. Error Handling & Logging
 
-- Maintain an `SECURITY.md` in the repo describing secrets handling, rotation, and incident response.
-- Include a `README.md` with setup steps that explain how to download and place the local theme assets and vendor libraries.
+- All exceptions must be logged in Laravel’s log system.
+- Frontend should receive clean, structured error responses:
+  {
+    "success": false,
+    "error_code": "INVALID_CREDENTIALS",
+    "message": "The provided credentials are incorrect."
+  }
+- Never expose stack traces or DB queries in responses.
+- Use Laravel’s report() and render() methods in Handler.php for global error handling.
+
+---
+
+## 13. Documentation and Maintenance
+
+- Maintain clear and updated inline documentation in both backend and frontend code.
+- Use docblocks for all controller methods describing parameters, validation rules, and return types.
+- Maintain change logs for major updates.
+- Cursor must always generate code following this documentation style.
+- Code reviews must ensure adherence to DRY, PSR-12, and international standards.
+
+---
+
+## 14. Cursor Execution Rules
+
+Cursor must always:
+1. Use the provided theme assets — no Tailwind, Bootstrap, or custom styles.
+2. Follow Laravel Blade syntax (x-layout, partials, and components).
+3. Use jQuery for interactivity, AJAX, and validation.
+4. Integrate local assets only (from /public/assets/).
+5. Keep code modular, maintainable, and consistent with the project’s architecture.
+6. Avoid generating new UI components or rewriting theme visuals.
+7. Follow Laravel best practices, PSR-12, DRY principle, and international standards.
+8. Include only relative asset paths and local references.
+9. Apply validation both client-side (jQuery Validate) and server-side (FormRequest).
+10. Use local DataTables with server-side data handling.
 
 ---
 

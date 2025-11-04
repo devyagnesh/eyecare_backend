@@ -1,59 +1,31 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Panel')</title>
-
-    <!-- Local Theme Assets -->
-    @if(file_exists(public_path('assets/css/main.css')))
-        <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
-    @endif
-    
-    @stack('styles')
+    @include('layouts.partials._head')
 </head>
-<body class="bg-gray-50">
+
+<body data-flash-success="{{ session('success') }}" data-flash-error="{{ session('error') }}" data-flash-warning="{{ session('warning') }}" data-flash-info="{{ session('info') }}" @if($errors->any()) data-validation-errors='@json($errors->all())' @endif>
     @auth
-        <nav class="bg-white shadow-sm border-b">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center">
-                        <h1 class="text-xl font-semibold text-gray-900">Admin Panel</h1>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-sm text-gray-700">{{ Auth::user()->name }}</span>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="text-sm text-gray-600 hover:text-gray-900">
-                                Logout
-                            </button>
-                        </form>
-                    </div>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ route('dashboard') }}">Admin Panel</a>
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3">{{ Auth::user()->name }}</span>
+                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            Logout
+                        </button>
+                    </form>
                 </div>
             </div>
         </nav>
     @endauth
 
-    <main>
+    <main class="container-fluid py-4">
         @yield('content')
     </main>
 
-    <!-- jQuery (Local) -->
-    @if(file_exists(public_path('assets/vendor/jquery/jquery.min.js')))
-        <script src="{{ asset('assets/vendor/jquery/jquery.min.js') }}"></script>
-    @endif
-
-    <!-- jQuery Validation (Local) -->
-    @if(file_exists(public_path('assets/vendor/jquery-validation/jquery.validate.min.js')))
-        <script src="{{ asset('assets/vendor/jquery-validation/jquery.validate.min.js') }}"></script>
-    @endif
-
-    <!-- Local Theme JS -->
-    @if(file_exists(public_path('assets/js/main.js')))
-        <script src="{{ asset('assets/js/main.js') }}"></script>
-    @endif
-
-    @stack('scripts')
+    @include('layouts.partials._scripts')
 </body>
 </html>

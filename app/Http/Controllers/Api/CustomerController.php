@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
@@ -146,7 +147,7 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone_number' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:255|unique:customers,phone_number',
             'address' => 'nullable|string',
         ]);
 
@@ -250,7 +251,7 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone_number' => 'sometimes|required|string|max:255',
+            'phone_number' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('customers', 'phone_number')->ignore($customer->id)],
             'address' => 'nullable|string',
         ]);
 

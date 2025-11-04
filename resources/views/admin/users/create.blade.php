@@ -3,129 +3,78 @@
 @section('title', 'Create User')
 
 @section('content')
-<div class="grid grid-cols-1 gap-4 sm:gap-5 lg:gap-6">
-    <div class="card">
-        <div class="flex flex-col items-center justify-between border-b border-slate-200 p-4 dark:border-navy-500 sm:flex-row">
-            <h2 class="text-lg font-medium tracking-wide text-slate-700 dark:text-navy-100">Create New User</h2>
-            <div class="mt-2 sm:mt-0">
-                <a href="{{ route('admin.users.index') }}" class="btn border border-slate-300 font-medium text-slate-800 hover:bg-slate-150 focus:bg-slate-150 active:bg-slate-150/80 dark:border-navy-450 dark:text-navy-50 dark:hover:bg-navy-500 dark:focus:bg-navy-500 dark:active:bg-navy-500/90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back to Users
+<div class="row">
+    <div class="col-12">
+        <x-card title="Create New User">
+            <x-slot name="headerActions">
+                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bx bx-arrow-back me-1"></i>Back to Users
                 </a>
-            </div>
-        </div>
-
-        <div class="p-4 sm:p-5">
-            <form action="{{ route('admin.users.store') }}" method="POST" id="userForm">
+            </x-slot>
+            <form action="{{ route('admin.users.store') }}" method="POST" id="userForm" data-ajax="true" data-success-message="User created successfully" data-redirect-on-success="true" data-redirect-url="{{ route('admin.users.index') }}">
                 @csrf
 
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <!-- Name Field -->
-                    <label class="block">
-                        <span class="flex items-center space-x-2">
-                            <span>Full Name</span>
-                            <span class="text-error">*</span>
-                        </span>
-                        <input class="form-input mt-1.5 w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 placeholder:text-slate-400/70 hover:border-slate-400 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent @error('name') border-error @enderror" 
-                               type="text" 
-                               id="name" 
-                               name="name" 
-                               value="{{ old('name') }}" 
-                               placeholder="Enter full name" 
-                               required />
-                        @error('name')
-                            <span class="mt-1.5 text-xs+ text-error">{{ $message }}</span>
-                        @enderror
-                    </label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <x-form.input 
+                            name="name"
+                            label="Full Name"
+                            placeholder="Enter full name"
+                            :required="true"
+                        />
+                    </div>
 
-                    <!-- Email Field -->
-                    <label class="block">
-                        <span class="flex items-center space-x-2">
-                            <span>Email Address</span>
-                            <span class="text-error">*</span>
-                        </span>
-                        <input class="form-input mt-1.5 w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 placeholder:text-slate-400/70 hover:border-slate-400 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent @error('email') border-error @enderror" 
-                               type="email" 
-                               id="email" 
-                               name="email" 
-                               value="{{ old('email') }}" 
-                               placeholder="Enter email address" 
-                               required />
-                        @error('email')
-                            <span class="mt-1.5 text-xs+ text-error">{{ $message }}</span>
-                        @enderror
-                    </label>
+                    <div class="col-md-6">
+                        <x-form.input 
+                            name="email"
+                            type="email"
+                            label="Email Address"
+                            placeholder="Enter email address"
+                            :required="true"
+                        />
+                    </div>
 
-                    <!-- Password Field -->
-                    <label class="block">
-                        <span class="flex items-center space-x-2">
-                            <span>Password</span>
-                            <span class="text-error">*</span>
-                        </span>
-                        <input class="form-input mt-1.5 w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 placeholder:text-slate-400/70 hover:border-slate-400 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent @error('password') border-error @enderror" 
-                               type="password" 
-                               id="password" 
-                               name="password" 
-                               placeholder="Enter password" 
-                               required />
-                        @error('password')
-                            <span class="mt-1.5 text-xs+ text-error">{{ $message }}</span>
-                        @enderror
-                    </label>
+                    <div class="col-md-6">
+                        <x-form.input 
+                            name="password"
+                            type="password"
+                            label="Password"
+                            placeholder="Enter password"
+                            :required="true"
+                        />
+                    </div>
 
-                    <!-- Confirm Password Field -->
-                    <label class="block">
-                        <span class="flex items-center space-x-2">
-                            <span>Confirm Password</span>
-                            <span class="text-error">*</span>
-                        </span>
-                        <input class="form-input mt-1.5 w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 placeholder:text-slate-400/70 hover:border-slate-400 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent" 
-                               type="password" 
-                               id="password_confirmation" 
-                               name="password_confirmation" 
-                               placeholder="Confirm password" 
-                               required />
-                    </label>
+                    <div class="col-md-6">
+                        <x-form.input 
+                            name="password_confirmation"
+                            type="password"
+                            label="Confirm Password"
+                            placeholder="Confirm password"
+                            :required="true"
+                        />
+                    </div>
+
+                    <div class="col-md-12">
+                        <x-form.select 
+                            name="role_id"
+                            label="Role"
+                            :options="$roles->pluck('name', 'id')->toArray()"
+                            placeholder="Select a role"
+                            :required="true"
+                        />
+                    </div>
                 </div>
 
-                <!-- Role Field -->
-                <label class="mt-4 block">
-                    <span class="flex items-center space-x-2">
-                        <span>Role</span>
-                        <span class="text-error">*</span>
-                    </span>
-                    <select class="form-select mt-1.5 w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 hover:border-slate-400 focus:border-primary dark:border-navy-450 dark:hover:border-navy-400 dark:focus:border-accent @error('role_id') border-error @enderror" 
-                            id="role_id" 
-                            name="role_id" 
-                            required>
-                        <option value="">Select a role</option>
-                        @foreach($roles as $role)
-                        <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                            {{ $role->name }}
-                        </option>
-                        @endforeach
-                    </select>
-                    @error('role_id')
-                        <span class="mt-1.5 text-xs+ text-error">{{ $message }}</span>
-                    @enderror
-                </label>
-
-                <!-- Form Actions -->
-                <div class="mt-6 flex space-x-2">
-                    <button type="submit" class="btn bg-primary font-medium text-white hover:bg-primary-focus focus:bg-primary-focus active:bg-primary-focus/90 dark:bg-accent dark:hover:bg-accent-focus dark:focus:bg-accent-focus dark:active:bg-accent/90">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Create User
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-check me-1"></i>Create User
                     </button>
-                    <a href="{{ route('admin.users.index') }}" class="btn border border-slate-300 font-medium text-slate-800 hover:bg-slate-150 focus:bg-slate-150 active:bg-slate-150/80 dark:border-navy-450 dark:text-navy-50 dark:hover:bg-navy-500 dark:focus:bg-navy-500 dark:active:bg-navy-500/90">
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
                         Cancel
                     </a>
                 </div>
             </form>
-        </div>
+        </x-card>
     </div>
 </div>
 @endsection

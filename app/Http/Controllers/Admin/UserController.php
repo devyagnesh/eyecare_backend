@@ -3,21 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Http\Traits\HandlesAjaxResponses;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
+    use HandlesAjaxResponses;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $users = User::with('role')->latest()->paginate(15);
+        $users = User::with('role')->latest()->get();
         return view('admin.users.index', compact('users'));
     }
 
@@ -33,21 +35,14 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'role_id' => 'required|exists:roles,id',
-        ]);
-
+        $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
 
         User::create($validated);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully.');
+        return $this->handleResponse($request, 'User created successfully.', 'admin.users.index');
     }
 
     /**
@@ -71,14 +66,9 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => ['nullable', 'confirmed', Password::defaults()],
-            'role_id' => 'required|exists:roles,id',
-        ]);
+        $validated = $request->validated();
 
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
@@ -88,23 +78,20 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully.');
+        return $this->handleResponse($request, 'User updated successfully.', 'admin.users.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
         if ($user->id === auth()->id()) {
-            return redirect()->route('admin.users.index')
-                ->with('error', 'You cannot delete your own account.');
+            return $this->handleErrorResponse($request, 'You cannot delete your own account.', 'admin.users.index', 403);
         }
 
         $user->delete();
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User deleted successfully.');
+        return $this->handleResponse($request, 'User deleted successfully.', 'admin.users.index');
     }
 }

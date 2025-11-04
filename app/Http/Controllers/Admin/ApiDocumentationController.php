@@ -390,7 +390,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'GET',
                         'url' => $baseUrl . '/stores',
                         'name' => 'Get Store',
-                        'description' => 'Get the authenticated user\'s store information. Returns store details including logo, email, phone number, and address. Each user can have only one store.',
+                        'description' => 'Get the authenticated user\'s store information. Returns store details including name, logo, email, phone number, and address. Each user can have only one store.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [],
                         'request_payload' => null,
@@ -399,6 +399,7 @@ class ApiDocumentationController extends Controller
                             'data' => [
                                 'store' => [
                                     'id' => 1,
+                                    'name' => 'My Store',
                                     'logo' => 'http://example.com/storage/stores/logos/logo.jpg',
                                     'email' => 'store@example.com',
                                     'phone_number' => '+1234567890',
@@ -423,12 +424,13 @@ class ApiDocumentationController extends Controller
                         'method' => 'POST',
                         'url' => $baseUrl . '/stores',
                         'name' => 'Create Store',
-                        'description' => 'Create a new store for the authenticated user. Requires email verification. Each user can create only one store. If a store already exists, use the update endpoint instead.',
+                        'description' => 'Create a new store for the authenticated user. Requires email verification. Each user can create only one store. Email and phone number must be unique across all stores. If a store already exists, use the update endpoint instead.',
                         'auth' => 'Bearer Token (Required) + Email Verification',
                         'parameters' => [
                             'required' => [
-                                'email' => 'string - Store email address',
-                                'phone_number' => 'string - Store phone number',
+                                'name' => 'string - Store name (max 255 characters)',
+                                'email' => 'string - Store email address (must be unique)',
+                                'phone_number' => 'string - Store phone number (must be unique)',
                                 'address' => 'string - Store physical address',
                             ],
                             'optional' => [
@@ -436,6 +438,7 @@ class ApiDocumentationController extends Controller
                             ],
                         ],
                         'request_payload' => [
+                            'name' => 'My Store',
                             'logo' => '(multipart/form-data) - Image file',
                             'email' => 'store@example.com',
                             'phone_number' => '+1234567890',
@@ -447,6 +450,7 @@ class ApiDocumentationController extends Controller
                             'data' => [
                                 'store' => [
                                     'id' => 1,
+                                    'name' => 'My Store',
                                     'logo' => 'http://example.com/storage/stores/logos/logo.jpg',
                                     'email' => 'store@example.com',
                                     'phone_number' => '+1234567890',
@@ -474,24 +478,36 @@ class ApiDocumentationController extends Controller
                         'error_response_4' => [
                             'status' => 422,
                             'success' => false,
-                            'message' => 'The email field is required.',
+                            'message' => 'The name field is required.',
+                        ],
+                        'error_response_5' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The email has already been taken.',
+                        ],
+                        'error_response_6' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The phone number has already been taken.',
                         ],
                     ],
                     [
                         'method' => 'PUT',
                         'url' => $baseUrl . '/stores',
                         'name' => 'Update Store',
-                        'description' => 'Update the authenticated user\'s existing store. Can update any or all fields including logo. Old logo is automatically deleted when a new one is uploaded.',
+                        'description' => 'Update the authenticated user\'s existing store. Can update any or all fields including logo. Old logo is automatically deleted when a new one is uploaded. Email and phone number must be unique across all stores (excluding the current store).',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'optional' => [
+                                'name' => 'string - Store name (max 255 characters)',
                                 'logo' => 'file - Store logo image (max 2MB, formats: jpeg, png, jpg, gif, svg)',
-                                'email' => 'string - Store email address',
-                                'phone_number' => 'string - Store phone number',
+                                'email' => 'string - Store email address (must be unique)',
+                                'phone_number' => 'string - Store phone number (must be unique)',
                                 'address' => 'string - Store physical address',
                             ],
                         ],
                         'request_payload' => [
+                            'name' => 'Updated Store Name',
                             'logo' => '(multipart/form-data) - Image file',
                             'email' => 'newstore@example.com',
                             'phone_number' => '+9876543210',
@@ -503,6 +519,7 @@ class ApiDocumentationController extends Controller
                             'data' => [
                                 'store' => [
                                     'id' => 1,
+                                    'name' => 'Updated Store Name',
                                     'logo' => 'http://example.com/storage/stores/logos/new-logo.jpg',
                                     'email' => 'newstore@example.com',
                                     'phone_number' => '+9876543210',
@@ -526,6 +543,16 @@ class ApiDocumentationController extends Controller
                             'status' => 422,
                             'success' => false,
                             'message' => 'The email must be a valid email address.',
+                        ],
+                        'error_response_4' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The email has already been taken.',
+                        ],
+                        'error_response_5' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The phone number has already been taken.',
                         ],
                     ],
                 ],
@@ -640,12 +667,12 @@ class ApiDocumentationController extends Controller
                         'method' => 'POST',
                         'url' => $baseUrl . '/customers',
                         'name' => 'Create Customer',
-                        'description' => 'Create a new customer for the authenticated user\'s store. Store ID is automatically set from the authenticated user\'s store.',
+                        'description' => 'Create a new customer for the authenticated user\'s store. Store ID is automatically set from the authenticated user\'s store. Phone number must be unique across all customers.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
                                 'name' => 'string - Customer name',
-                                'phone_number' => 'string - Customer phone number',
+                                'phone_number' => 'string - Customer phone number (must be unique)',
                             ],
                             'optional' => [
                                 'email' => 'string - Customer email address',
@@ -688,6 +715,11 @@ class ApiDocumentationController extends Controller
                             'status' => 422,
                             'success' => false,
                             'message' => 'The name field is required.',
+                        ],
+                        'error_response_4' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The phone number has already been taken.',
                         ],
                     ],
                     [
@@ -737,7 +769,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'PUT',
                         'url' => $baseUrl . '/customers/{id}',
                         'name' => 'Update Customer',
-                        'description' => 'Update an existing customer. Only customers belonging to the authenticated user\'s store can be updated.',
+                        'description' => 'Update an existing customer. Only customers belonging to the authenticated user\'s store can be updated. Phone number must be unique across all customers (excluding the current customer).',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
@@ -746,7 +778,7 @@ class ApiDocumentationController extends Controller
                             'optional' => [
                                 'name' => 'string - Customer name',
                                 'email' => 'string - Customer email address',
-                                'phone_number' => 'string - Customer phone number',
+                                'phone_number' => 'string - Customer phone number (must be unique)',
                                 'address' => 'string - Customer address',
                             ],
                         ],
@@ -791,6 +823,11 @@ class ApiDocumentationController extends Controller
                             'status' => 422,
                             'success' => false,
                             'message' => 'The email must be a valid email address.',
+                        ],
+                        'error_response_5' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The phone number has already been taken.',
                         ],
                     ],
                     [
@@ -1596,28 +1633,34 @@ class ApiDocumentationController extends Controller
                                     'mode' => 'formdata',
                                     'formdata' => [
                                         [
+                                            'key' => 'name',
+                                            'value' => 'My Store',
+                                            'type' => 'text',
+                                            'description' => 'Store name (required, max 255 characters)',
+                                        ],
+                                        [
                                             'key' => 'logo',
                                             'type' => 'file',
                                             'src' => [],
-                                            'description' => 'Store logo image (max 2MB)',
+                                            'description' => 'Store logo image (max 2MB) - Optional',
                                         ],
                                         [
                                             'key' => 'email',
                                             'value' => 'store@example.com',
                                             'type' => 'text',
-                                            'description' => 'Store email address',
+                                            'description' => 'Store email address (required, must be unique)',
                                         ],
                                         [
                                             'key' => 'phone_number',
                                             'value' => '+1234567890',
                                             'type' => 'text',
-                                            'description' => 'Store phone number',
+                                            'description' => 'Store phone number (required, must be unique)',
                                         ],
                                         [
                                             'key' => 'address',
                                             'value' => '123 Main Street, City, State 12345',
                                             'type' => 'text',
-                                            'description' => 'Store physical address',
+                                            'description' => 'Store physical address (required)',
                                         ],
                                     ],
                                 ],
@@ -1648,6 +1691,12 @@ class ApiDocumentationController extends Controller
                                     'mode' => 'formdata',
                                     'formdata' => [
                                         [
+                                            'key' => 'name',
+                                            'value' => 'Updated Store Name',
+                                            'type' => 'text',
+                                            'description' => 'Store name (optional, max 255 characters)',
+                                        ],
+                                        [
                                             'key' => 'logo',
                                             'type' => 'file',
                                             'src' => [],
@@ -1657,13 +1706,13 @@ class ApiDocumentationController extends Controller
                                             'key' => 'email',
                                             'value' => 'newstore@example.com',
                                             'type' => 'text',
-                                            'description' => 'Store email address - Optional',
+                                            'description' => 'Store email address (optional, must be unique)',
                                         ],
                                         [
                                             'key' => 'phone_number',
                                             'value' => '+9876543210',
                                             'type' => 'text',
-                                            'description' => 'Store phone number - Optional',
+                                            'description' => 'Store phone number (optional, must be unique)',
                                         ],
                                         [
                                             'key' => 'address',
