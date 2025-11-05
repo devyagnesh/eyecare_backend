@@ -9,6 +9,7 @@ use App\Models\Store;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class EyeExaminationController extends Controller
 {
@@ -211,6 +212,7 @@ class EyeExaminationController extends Controller
             'data' => [
                 'eye_examination' => $this->formatExamination($examination->fresh()),
                 'pdf_download_url' => url('api/eye-examinations/' . $examination->id . '/download-pdf'),
+                'pdf_public_download_url' => URL::signedRoute('eye-examination.public-download', ['id' => $examination->id]),
             ],
         ], 201);
     }
@@ -365,7 +367,7 @@ class EyeExaminationController extends Controller
     }
 
     /**
-     * Download PDF for an eye examination.
+     * Download PDF for an eye examination (authenticated).
      */
     public function downloadPdf(Request $request, $id)
     {
@@ -395,6 +397,37 @@ class EyeExaminationController extends Controller
             // Generate PDF if it doesn't exist
             $examination->load(['customer', 'store.user']);
             $pdfPath = $this->generatePdf($examination, $store, $user, $examination->customer);
+            $examination->update(['pdf_path' => $pdfPath]);
+        }
+
+        $filePath = Storage::disk('public')->path($examination->pdf_path);
+        $fileName = 'eye-examination-' . $examination->id . '-' . $examination->exam_date->format('Y-m-d') . '.pdf';
+
+        return response()->download($filePath, $fileName, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    /**
+     * Public download PDF for an eye examination (no authentication required).
+     * Uses signed URL for security.
+     */
+    public function publicDownload(Request $request, $id)
+    {
+        $examination = EyeExamination::find($id);
+
+        if (!$examination) {
+            abort(404, 'Eye examination not found.');
+        }
+
+        if (!$examination->pdf_path || !Storage::disk('public')->exists($examination->pdf_path)) {
+            // Generate PDF if it doesn't exist
+            $examination->load(['customer', 'store.user']);
+            $store = $examination->store;
+            $user = $store->user;
+            $customer = $examination->customer;
+            
+            $pdfPath = $this->generatePdf($examination, $store, $user, $customer);
             $examination->update(['pdf_path' => $pdfPath]);
         }
 
@@ -470,6 +503,8 @@ class EyeExaminationController extends Controller
             'management_plan' => $examination->management_plan,
             'next_recall_date' => $examination->next_recall_date ? $examination->next_recall_date->format('Y-m-d') : null,
             'pdf_download_url' => $examination->pdf_path ? url('api/eye-examinations/' . $examination->id . '/download-pdf') : null,
+            'pdf_public_download_url' => URL::signedRoute('eye-examination.public-download', ['id' => $examination->id]),
+            'has_pdf' => !empty($examination->pdf_path) && Storage::disk('public')->exists($examination->pdf_path),
             'created_at' => $examination->created_at->toIso8601String(),
             'updated_at' => $examination->updated_at->toIso8601String(),
         ];

@@ -871,7 +871,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'GET',
                         'url' => $baseUrl . '/eye-examinations',
                         'name' => 'Get All Eye Examinations',
-                        'description' => 'Get all eye examinations for the authenticated user\'s store. Supports pagination, filtering, and sorting. Each examination in the response includes a PDF download URL if a PDF has been generated.',
+                        'description' => 'Get all eye examinations for the authenticated user\'s store. Supports pagination, filtering, and sorting. Each examination in the response includes both authenticated PDF download URL (requires authentication) and public PDF download URL (signed URL, no authentication required). The public download URL is always available, even if the PDF hasn\'t been generated yet (it will be generated on-demand when accessed).',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'optional' => [
@@ -923,6 +923,8 @@ class ApiDocumentationController extends Controller
                                         'management_plan' => 'New glasses prescribed',
                                         'next_recall_date' => '2024-07-15',
                                         'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
+                                        'pdf_public_download_url' => 'http://localhost/download/eye-examination/1?signature=abc123xyz...',
+                                        'has_pdf' => true,
                                         'created_at' => '2024-01-15T10:30:00.000000Z',
                                         'updated_at' => '2024-01-15T10:30:00.000000Z',
                                     ],
@@ -952,7 +954,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'POST',
                         'url' => $baseUrl . '/eye-examinations',
                         'name' => 'Create Eye Examination',
-                        'description' => 'Create a new eye examination record for a customer. Store ID is automatically set from the authenticated user\'s store. A PDF report is automatically generated and includes store details, doctor information, patient information, and all examination data. The PDF download URL is returned in the response.',
+                        'description' => 'Create a new eye examination record for a customer. Store ID is automatically set from the authenticated user\'s store. A PDF report is automatically generated and includes store details, doctor information, patient information, and all examination data. Both authenticated PDF download URL and public PDF download URL (signed URL, no authentication required) are returned in the response.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
@@ -1045,10 +1047,13 @@ class ApiDocumentationController extends Controller
                                     'management_plan' => 'New glasses prescribed',
                                     'next_recall_date' => '2024-07-15',
                                     'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
+                                    'pdf_public_download_url' => 'http://localhost/download/eye-examination/1?signature=abc123xyz...',
+                                    'has_pdf' => true,
                                     'created_at' => '2024-01-15T10:30:00.000000Z',
                                     'updated_at' => '2024-01-15T10:30:00.000000Z',
                                 ],
                                 'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
+                                'pdf_public_download_url' => 'http://localhost/download/eye-examination/1?signature=abc123xyz...',
                             ],
                         ],
                         'error_response' => [
@@ -1081,7 +1086,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'GET',
                         'url' => $baseUrl . '/eye-examinations/{id}',
                         'name' => 'Get Eye Examination',
-                        'description' => 'Get a specific eye examination by ID. Only returns examinations belonging to the authenticated user\'s store.',
+                        'description' => 'Get a specific eye examination by ID. Only returns examinations belonging to the authenticated user\'s store. The response includes both authenticated PDF download URL and public PDF download URL (signed URL, no authentication required).',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
@@ -1125,6 +1130,8 @@ class ApiDocumentationController extends Controller
                                     'management_plan' => 'New glasses prescribed',
                                     'next_recall_date' => '2024-07-15',
                                     'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
+                                    'pdf_public_download_url' => 'http://localhost/download/eye-examination/1?signature=abc123xyz...',
+                                    'has_pdf' => true,
                                     'created_at' => '2024-01-15T10:30:00.000000Z',
                                     'updated_at' => '2024-01-15T10:30:00.000000Z',
                                 ],
@@ -1150,7 +1157,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'PUT',
                         'url' => $baseUrl . '/eye-examinations/{id}',
                         'name' => 'Update Eye Examination',
-                        'description' => 'Update an existing eye examination. Only examinations belonging to the authenticated user\'s store can be updated.',
+                        'description' => 'Update an existing eye examination. Only examinations belonging to the authenticated user\'s store can be updated. The response includes both authenticated PDF download URL and public PDF download URL.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
@@ -1224,6 +1231,8 @@ class ApiDocumentationController extends Controller
                                     'management_plan' => 'Updated prescription glasses',
                                     'next_recall_date' => '2024-08-15',
                                     'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
+                                    'pdf_public_download_url' => 'http://localhost/download/eye-examination/1?signature=abc123xyz...',
+                                    'has_pdf' => true,
                                     'created_at' => '2024-01-15T10:30:00.000000Z',
                                     'updated_at' => '2024-01-15T11:45:00.000000Z',
                                 ],
@@ -1290,8 +1299,8 @@ class ApiDocumentationController extends Controller
                     [
                         'method' => 'GET',
                         'url' => $baseUrl . '/eye-examinations/{id}/download-pdf',
-                        'name' => 'Download Eye Examination PDF',
-                        'description' => 'Download the PDF report for an eye examination. The PDF includes store details, doctor information, patient information, and all examination data. PDF is automatically generated when creating an examination. If PDF doesn\'t exist, it will be generated on the fly.',
+                        'name' => 'Download Eye Examination PDF (Authenticated)',
+                        'description' => 'Download the PDF report for an eye examination (requires authentication). The PDF includes store details, doctor information, patient information, and all examination data. PDF is automatically generated when creating an examination. If PDF doesn\'t exist, it will be generated on the fly.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
@@ -1319,6 +1328,37 @@ class ApiDocumentationController extends Controller
                             'success' => false,
                             'message' => 'Eye examination not found.',
                         ],
+                    ],
+                    [
+                        'method' => 'GET',
+                        'url' => config('app.url') . '/download/eye-examination/{id}',
+                        'name' => 'Download Eye Examination PDF (Public)',
+                        'description' => 'Download the PDF report for an eye examination using a signed URL (no authentication required). This endpoint allows public access to PDF downloads via a secure signed URL. The URL is signed to prevent tampering and can be shared publicly. The PDF is automatically generated if it doesn\'t exist. Note: The URL must include a valid signature parameter generated by the API.',
+                        'auth' => 'None (Signed URL Required)',
+                        'parameters' => [
+                            'required' => [
+                                'id' => 'integer - Eye Examination ID (route parameter)',
+                                'signature' => 'string - URL signature for security (automatically included in signed URLs)',
+                            ],
+                        ],
+                        'request_payload' => null,
+                        'response' => [
+                            'type' => 'file',
+                            'content_type' => 'application/pdf',
+                            'description' => 'Returns a PDF file download. The file name format is: eye-examination-{id}-{exam_date}.pdf',
+                        ],
+                        'error_response' => [
+                            'status' => 403,
+                            'success' => false,
+                            'message' => 'Invalid signature.',
+                            'description' => 'This error occurs when the URL signature is invalid or has been tampered with.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Eye examination not found.',
+                        ],
+                        'note' => 'To generate a public download URL, use the pdf_public_download_url field from any eye examination API response. The signed URL ensures security while allowing public access.',
                     ],
                 ],
             ],
@@ -2231,6 +2271,55 @@ class ApiDocumentationController extends Controller
                             ],
                             'response' => [],
                         ],
+                        [
+                            'name' => 'Download Eye Examination PDF (Authenticated)',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/pdf',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/eye-examinations/1/download-pdf',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['eye-examinations', '1', 'download-pdf'],
+                                ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Download Eye Examination PDF (Public - Signed URL)',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/pdf',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url_public}}/download/eye-examination/1?signature=YOUR_SIGNED_URL_SIGNATURE',
+                                    'host' => ['{{base_url_public}}'],
+                                    'path' => ['download', 'eye-examination', '1'],
+                                    'query' => [
+                                        [
+                                            'key' => 'signature',
+                                            'value' => 'YOUR_SIGNED_URL_SIGNATURE',
+                                            'description' => 'URL signature (get from pdf_public_download_url in API response)',
+                                        ],
+                                    ],
+                                ],
+                                'description' => 'Public download endpoint using signed URL. No authentication required. Get the signed URL from the pdf_public_download_url field in any eye examination API response.',
+                            ],
+                            'response' => [],
+                        ],
                     ],
                 ],
             ],
@@ -2238,6 +2327,11 @@ class ApiDocumentationController extends Controller
                 [
                     'key' => 'base_url',
                     'value' => str_replace('/api', '', config('app.url')) . '/api',
+                    'type' => 'string',
+                ],
+                [
+                    'key' => 'base_url_public',
+                    'value' => config('app.url'),
                     'type' => 'string',
                 ],
                 [

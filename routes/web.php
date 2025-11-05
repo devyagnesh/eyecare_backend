@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ApiDocumentationController;
 use App\Http\Controllers\Admin\TestEmailController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Api\EyeExaminationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -33,6 +34,11 @@ Route::get('/email/verify-failed', [EmailVerificationController::class, 'showFai
 
 Route::get('/email/verify-already', [EmailVerificationController::class, 'showAlreadyVerified'])
     ->name('verification.already-verified');
+
+// Public download route (signed URL for security)
+Route::get('/download/eye-examination/{id}', [EyeExaminationController::class, 'publicDownload'])
+    ->middleware(['signed'])
+    ->name('eye-examination.public-download');
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
