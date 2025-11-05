@@ -141,11 +141,11 @@ class StoreController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('stores', 'email')->ignore($store->id)],
-            'phone_number' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('stores', 'phone_number')->ignore($store->id)],
-            'address' => 'sometimes|required|string',
+            'email' => ['required', 'email', 'max:255', Rule::unique('stores', 'email')->ignore($store->id)],
+            'phone_number' => ['required', 'string', 'max:255', Rule::unique('stores', 'phone_number')->ignore($store->id)],
+            'address' => 'required|string',
         ]);
 
         // Handle logo upload - delete old logo if exists
@@ -157,7 +157,12 @@ class StoreController extends Controller
             $validated['logo'] = $request->file('logo')->store('stores/logos', 'public');
         }
 
+        // Update the store with only the validated fields (only includes fields that were provided due to 'sometimes' rules)
         $store->update($validated);
+        
+        // Refresh the model to ensure we have the latest data from the database
+        // This ensures updated_at timestamp and any database-level changes are reflected
+        $store->refresh();
 
         return response()->json([
             'success' => true,
