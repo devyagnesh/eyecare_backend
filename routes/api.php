@@ -63,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('eye-examinations')->group(function () {
         Route::get('/', [EyeExaminationController::class, 'index'])->name('eye_examinations.index');
         Route::post('/', [EyeExaminationController::class, 'store'])->name('eye_examinations.create');
+        Route::get('/{id}/download-pdf', [EyeExaminationController::class, 'downloadPdf'])->name('eye_examinations.download-pdf');
         Route::get('/{id}', [EyeExaminationController::class, 'show'])->name('eye_examinations.show');
         Route::put('/{id}', [EyeExaminationController::class, 'update'])->name('eye_examinations.update');
         Route::delete('/{id}', [EyeExaminationController::class, 'destroy'])->name('eye_examinations.destroy');

@@ -951,7 +951,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'POST',
                         'url' => $baseUrl . '/eye-examinations',
                         'name' => 'Create Eye Examination',
-                        'description' => 'Create a new eye examination record for a customer. Store ID is automatically set from the authenticated user\'s store.',
+                        'description' => 'Create a new eye examination record for a customer. Store ID is automatically set from the authenticated user\'s store. A PDF report is automatically generated and includes store details, doctor information, patient information, and all examination data. The PDF download URL is returned in the response.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
@@ -1043,9 +1043,11 @@ class ApiDocumentationController extends Controller
                                     'diagnosis' => 'Myopia',
                                     'management_plan' => 'New glasses prescribed',
                                     'next_recall_date' => '2024-07-15',
+                                    'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
                                     'created_at' => '2024-01-15T10:30:00.000000Z',
                                     'updated_at' => '2024-01-15T10:30:00.000000Z',
                                 ],
+                                'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
                             ],
                         ],
                         'error_response' => [
@@ -1121,6 +1123,7 @@ class ApiDocumentationController extends Controller
                                     'diagnosis' => 'Myopia',
                                     'management_plan' => 'New glasses prescribed',
                                     'next_recall_date' => '2024-07-15',
+                                    'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
                                     'created_at' => '2024-01-15T10:30:00.000000Z',
                                     'updated_at' => '2024-01-15T10:30:00.000000Z',
                                 ],
@@ -1219,6 +1222,7 @@ class ApiDocumentationController extends Controller
                                     'diagnosis' => 'Myopia with Astigmatism',
                                     'management_plan' => 'Updated prescription glasses',
                                     'next_recall_date' => '2024-08-15',
+                                    'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
                                     'created_at' => '2024-01-15T10:30:00.000000Z',
                                     'updated_at' => '2024-01-15T11:45:00.000000Z',
                                 ],
@@ -1265,6 +1269,39 @@ class ApiDocumentationController extends Controller
                         'response' => [
                             'success' => true,
                             'message' => 'Eye examination deleted successfully.',
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                        'error_response_3' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Eye examination not found.',
+                        ],
+                    ],
+                    [
+                        'method' => 'GET',
+                        'url' => $baseUrl . '/eye-examinations/{id}/download-pdf',
+                        'name' => 'Download Eye Examination PDF',
+                        'description' => 'Download the PDF report for an eye examination. The PDF includes store details, doctor information, patient information, and all examination data. PDF is automatically generated when creating an examination. If PDF doesn\'t exist, it will be generated on the fly.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'required' => [
+                                'id' => 'integer - Eye Examination ID (route parameter)',
+                            ],
+                        ],
+                        'request_payload' => null,
+                        'response' => [
+                            'type' => 'file',
+                            'content_type' => 'application/pdf',
+                            'description' => 'Returns a PDF file download. The file name format is: eye-examination-{id}-{exam_date}.pdf',
                         ],
                         'error_response' => [
                             'status' => 401,

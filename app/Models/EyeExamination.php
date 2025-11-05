@@ -37,6 +37,7 @@ class EyeExamination extends Model
         'diagnosis',
         'management_plan',
         'next_recall_date',
+        'pdf_path',
     ];
 
     /**

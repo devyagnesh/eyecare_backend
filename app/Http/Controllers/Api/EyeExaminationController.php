@@ -7,6 +7,8 @@ use App\Models\Customer;
 use App\Models\EyeExamination;
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
+use Illuminate\Support\Facades\Storage;
 
 class EyeExaminationController extends Controller
 {
@@ -184,11 +186,21 @@ class EyeExaminationController extends Controller
             'next_recall_date' => $validated['next_recall_date'] ?? null,
         ]);
 
+        // Load relationships for PDF generation
+        $examination->load(['customer', 'store.user']);
+
+        // Generate PDF
+        $pdfPath = $this->generatePdf($examination, $store, $user, $customer);
+
+        // Update examination with PDF path
+        $examination->update(['pdf_path' => $pdfPath]);
+
         return response()->json([
             'success' => true,
             'message' => 'Eye examination created successfully.',
             'data' => [
-                'eye_examination' => $this->formatExamination($examination),
+                'eye_examination' => $this->formatExamination($examination->fresh()),
+                'pdf_download_url' => url('api/eye-examinations/' . $examination->id . '/download-pdf'),
             ],
         ], 201);
     }
@@ -343,6 +355,74 @@ class EyeExaminationController extends Controller
     }
 
     /**
+     * Download PDF for an eye examination.
+     */
+    public function downloadPdf(Request $request, $id)
+    {
+        $user = $request->user();
+        
+        $store = Store::where('user_id', $user->id)->first();
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found. Please create a store first.',
+            ], 404);
+        }
+
+        $examination = EyeExamination::where('store_id', $store->id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$examination) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Eye examination not found.',
+            ], 404);
+        }
+
+        if (!$examination->pdf_path || !Storage::disk('public')->exists($examination->pdf_path)) {
+            // Generate PDF if it doesn't exist
+            $examination->load(['customer', 'store.user']);
+            $pdfPath = $this->generatePdf($examination, $store, $user, $examination->customer);
+            $examination->update(['pdf_path' => $pdfPath]);
+        }
+
+        $filePath = Storage::disk('public')->path($examination->pdf_path);
+        $fileName = 'eye-examination-' . $examination->id . '-' . $examination->exam_date->format('Y-m-d') . '.pdf';
+
+        return response()->download($filePath, $fileName, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    /**
+     * Generate PDF for eye examination.
+     */
+    private function generatePdf($examination, $store, $user, $customer)
+    {
+        // Generate PDF using the view
+        $pdf = DomPDF::loadView('pdf.eye-examination', [
+            'examination' => $examination,
+            'store' => $store,
+            'user' => $user,
+            'customer' => $customer,
+        ]);
+
+        // Set PDF options
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->setOption('enable-local-file-access', true);
+
+        // Generate filename
+        $filename = 'eye-examinations/' . $examination->id . '/examination-' . $examination->id . '-' . $examination->exam_date->format('Y-m-d') . '.pdf';
+        
+        // Store PDF in public disk
+        Storage::disk('public')->put($filename, $pdf->output());
+
+        return $filename;
+    }
+
+    /**
      * Format eye examination data for API response.
      */
     private function formatExamination($examination)
@@ -379,6 +459,7 @@ class EyeExaminationController extends Controller
             'diagnosis' => $examination->diagnosis,
             'management_plan' => $examination->management_plan,
             'next_recall_date' => $examination->next_recall_date ? $examination->next_recall_date->format('Y-m-d') : null,
+            'pdf_download_url' => $examination->pdf_path ? url('api/eye-examinations/' . $examination->id . '/download-pdf') : null,
             'created_at' => $examination->created_at->toIso8601String(),
             'updated_at' => $examination->updated_at->toIso8601String(),
         ];
