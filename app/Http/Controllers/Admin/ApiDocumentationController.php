@@ -871,7 +871,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'GET',
                         'url' => $baseUrl . '/eye-examinations',
                         'name' => 'Get All Eye Examinations',
-                        'description' => 'Get all eye examinations for the authenticated user\'s store. Supports pagination, filtering, and sorting.',
+                        'description' => 'Get all eye examinations for the authenticated user\'s store. Supports pagination, filtering, and sorting. Each examination in the response includes a PDF download URL if a PDF has been generated.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'optional' => [
@@ -922,6 +922,7 @@ class ApiDocumentationController extends Controller
                                         'diagnosis' => 'Myopia',
                                         'management_plan' => 'New glasses prescribed',
                                         'next_recall_date' => '2024-07-15',
+                                        'pdf_download_url' => 'http://localhost/api/eye-examinations/1/download-pdf',
                                         'created_at' => '2024-01-15T10:30:00.000000Z',
                                         'updated_at' => '2024-01-15T10:30:00.000000Z',
                                     ],

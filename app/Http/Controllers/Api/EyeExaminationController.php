@@ -78,10 +78,15 @@ class EyeExaminationController extends Controller
             
             $examinations = $query->paginate($perPage);
             
+            // Format examinations to include PDF download URL
+            $formattedExaminations = $examinations->map(function ($examination) {
+                return $this->formatExamination($examination);
+            });
+            
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'eye_examinations' => $examinations->items(),
+                    'eye_examinations' => $formattedExaminations->values()->all(),
                     'pagination' => [
                         'current_page' => $examinations->currentPage(),
                         'last_page' => $examinations->lastPage(),
@@ -95,10 +100,15 @@ class EyeExaminationController extends Controller
         } else {
             $examinations = $query->get();
             
+            // Format examinations to include PDF download URL
+            $formattedExaminations = $examinations->map(function ($examination) {
+                return $this->formatExamination($examination);
+            });
+            
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'eye_examinations' => $examinations,
+                    'eye_examinations' => $formattedExaminations->values()->all(),
                     'total' => $examinations->count(),
                 ],
             ], 200);
