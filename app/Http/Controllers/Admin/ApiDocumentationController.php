@@ -14,7 +14,9 @@ class ApiDocumentationController extends Controller
     public function index()
     {
         $endpoints = $this->getApiEndpoints();
-        return view('admin.api-documentation.index', compact('endpoints'));
+        $lastUpdated = now()->format('F d, Y');
+        $apiVersion = '1.0.0';
+        return view('admin.api-documentation.index', compact('endpoints', 'lastUpdated', 'apiVersion'));
     }
 
     /**
@@ -899,7 +901,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'GET',
                         'url' => $baseUrl . '/eye-examinations',
                         'name' => 'Get All Eye Examinations',
-                        'description' => 'Get all eye examinations for the authenticated user\'s store. Supports pagination, filtering, and sorting. Each examination in the response includes both authenticated PDF download URL (requires authentication) and public PDF download URL (signed URL, no authentication required). The public download URL is always available, even if the PDF hasn\'t been generated yet (it will be generated on-demand when accessed).',
+                        'description' => 'Get all eye examinations for the authenticated user\'s store. Supports pagination, filtering, and sorting. Each examination in the response includes both authenticated PDF download URL (requires authentication) and public PDF download URL (signed URL, no authentication required). The public download URL is always available, even if the PDF hasn\'t been generated yet (it will be generated on-demand when accessed). The has_pdf field indicates whether the PDF has already been generated.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'optional' => [

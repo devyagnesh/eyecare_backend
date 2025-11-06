@@ -27,6 +27,10 @@
                     <div>
                         <h2 class="mb-1">📚 API Documentation</h2>
                         <p class="mb-0 opacity-90">Complete API reference for Eyecare Management System</p>
+                        <p class="mb-0 mt-2 opacity-75 fs-12">
+                            <i class="bx bx-calendar me-1"></i>Last Updated: {{ $lastUpdated ?? 'N/A' }} | 
+                            <i class="bx bx-code-alt me-1"></i>Version: {{ $apiVersion ?? '1.0.0' }}
+                        </p>
                     </div>
                     <div class="mt-3 mt-md-0">
                         <a href="{{ route('admin.api-documentation.download') }}" class="btn btn-light" target="_blank">
