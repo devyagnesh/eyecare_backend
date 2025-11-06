@@ -135,7 +135,7 @@ class EyeExaminationController extends Controller
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'exam_date' => 'required|date',
-            'chief_complaint' => 'nullable|string',
+            'chief_complaint' => 'required|string|max:500',
             'old_rx_date' => 'nullable|date',
             'od_va_unaided' => 'nullable|string|max:255',
             'os_va_unaided' => 'nullable|string|max:255',
@@ -153,10 +153,44 @@ class EyeExaminationController extends Controller
             'iop_od' => 'nullable|integer|min:0',
             'iop_os' => 'nullable|integer|min:0',
             'fundus_notes' => 'nullable|string',
-            'diagnosis' => 'nullable|string',
+            'diagnosis' => 'required|string|max:500',
             'management_plan' => 'nullable|string',
             'next_recall_date' => 'nullable|date',
+        ], [
+            'customer_id.required' => 'Customer ID is required.',
+            'customer_id.exists' => 'The selected customer does not exist.',
+            'exam_date.required' => 'Examination date is required.',
+            'exam_date.date' => 'Examination date must be a valid date.',
+            'chief_complaint.required' => 'Chief complaint is required.',
+            'chief_complaint.string' => 'Chief complaint must be a string.',
+            'chief_complaint.max' => 'Chief complaint must not exceed 500 characters.',
+            'diagnosis.required' => 'Diagnosis is required.',
+            'diagnosis.string' => 'Diagnosis must be a string.',
+            'diagnosis.max' => 'Diagnosis must not exceed 500 characters.',
+            'od_axis.min' => 'OD axis must be between 0 and 180 degrees.',
+            'od_axis.max' => 'OD axis must be between 0 and 180 degrees.',
+            'os_axis.min' => 'OS axis must be between 0 and 180 degrees.',
+            'os_axis.max' => 'OS axis must be between 0 and 180 degrees.',
+            'pd_distance.min' => 'PD distance must be a positive number.',
+            'pd_near.min' => 'PD near must be a positive number.',
+            'iop_od.min' => 'OD IOP must be a positive number.',
+            'iop_os.min' => 'OS IOP must be a positive number.',
         ]);
+
+        // Custom validation: At least one eye's prescription or visual acuity must be provided
+        $hasPrescription = !empty($validated['od_sphere']) || !empty($validated['os_sphere']);
+        $hasVisualAcuity = !empty($validated['od_va_unaided']) || !empty($validated['os_va_unaided']) || 
+                          !empty($validated['od_bcva']) || !empty($validated['os_bcva']);
+        
+        if (!$hasPrescription && !$hasVisualAcuity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'At least one eye\'s prescription (sphere) or visual acuity measurement must be provided.',
+                'errors' => [
+                    'prescription_or_va' => ['Please provide prescription data (sphere) for at least one eye OR visual acuity measurements.']
+                ]
+            ], 422);
+        }
 
         // Verify customer belongs to the store
         $customer = Customer::where('id', $validated['customer_id'])
@@ -283,7 +317,7 @@ class EyeExaminationController extends Controller
         $validated = $request->validate([
             'customer_id' => 'sometimes|required|exists:customers,id',
             'exam_date' => 'sometimes|required|date',
-            'chief_complaint' => 'nullable|string',
+            'chief_complaint' => 'nullable|string|max:500',
             'old_rx_date' => 'nullable|date',
             'od_va_unaided' => 'nullable|string|max:255',
             'os_va_unaided' => 'nullable|string|max:255',
@@ -301,10 +335,48 @@ class EyeExaminationController extends Controller
             'iop_od' => 'nullable|integer|min:0',
             'iop_os' => 'nullable|integer|min:0',
             'fundus_notes' => 'nullable|string',
-            'diagnosis' => 'nullable|string',
+            'diagnosis' => 'nullable|string|max:500',
             'management_plan' => 'nullable|string',
             'next_recall_date' => 'nullable|date',
+        ], [
+            'customer_id.required' => 'Customer ID is required.',
+            'customer_id.exists' => 'The selected customer does not exist.',
+            'exam_date.required' => 'Examination date is required.',
+            'exam_date.date' => 'Examination date must be a valid date.',
+            'chief_complaint.string' => 'Chief complaint must be a string.',
+            'chief_complaint.max' => 'Chief complaint must not exceed 500 characters.',
+            'diagnosis.string' => 'Diagnosis must be a string.',
+            'diagnosis.max' => 'Diagnosis must not exceed 500 characters.',
+            'od_axis.min' => 'OD axis must be between 0 and 180 degrees.',
+            'od_axis.max' => 'OD axis must be between 0 and 180 degrees.',
+            'os_axis.min' => 'OS axis must be between 0 and 180 degrees.',
+            'os_axis.max' => 'OS axis must be between 0 and 180 degrees.',
+            'pd_distance.min' => 'PD distance must be a positive number.',
+            'pd_near.min' => 'PD near must be a positive number.',
+            'iop_od.min' => 'OD IOP must be a positive number.',
+            'iop_os.min' => 'OS IOP must be a positive number.',
         ]);
+
+        // Custom validation: If updating chief_complaint or diagnosis, ensure they are not empty
+        if (isset($validated['chief_complaint']) && empty(trim($validated['chief_complaint']))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Chief complaint cannot be empty.',
+                'errors' => [
+                    'chief_complaint' => ['Chief complaint is required and cannot be empty.']
+                ]
+            ], 422);
+        }
+
+        if (isset($validated['diagnosis']) && empty(trim($validated['diagnosis']))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Diagnosis cannot be empty.',
+                'errors' => [
+                    'diagnosis' => ['Diagnosis is required and cannot be empty.']
+                ]
+            ], 422);
+        }
 
         // If customer_id is being updated, verify it belongs to the store
         if (isset($validated['customer_id']) && $validated['customer_id'] != $examination->customer_id) {
@@ -463,6 +535,71 @@ class EyeExaminationController extends Controller
         Storage::disk('public')->put($filename, $pdf->output());
 
         return $filename;
+    }
+
+    /**
+     * Get previous prescription date for a customer.
+     */
+    public function getPreviousPrescriptionDate(Request $request, $customerId)
+    {
+        $user = $request->user();
+        
+        $store = Store::where('user_id', $user->id)->first();
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found. Please create a store first.',
+            ], 404);
+        }
+
+        // Verify customer belongs to the store
+        $customer = Customer::where('id', $customerId)
+            ->where('store_id', $store->id)
+            ->first();
+
+        if (!$customer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer not found or does not belong to your store.',
+            ], 404);
+        }
+
+        // Get the most recent examination for this customer
+        $latestExamination = EyeExamination::where('store_id', $store->id)
+            ->where('customer_id', $customerId)
+            ->orderBy('exam_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$latestExamination) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'customer_id' => $customerId,
+                    'customer_name' => $customer->name,
+                    'has_previous_examination' => false,
+                    'last_exam_date' => null,
+                    'old_rx_date' => null,
+                    'message' => 'No previous examinations found for this customer.',
+                ],
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'customer_id' => $customerId,
+                'customer_name' => $customer->name,
+                'has_previous_examination' => true,
+                'last_exam_date' => $latestExamination->exam_date->format('Y-m-d'),
+                'last_exam_date_formatted' => $latestExamination->exam_date->format('F d, Y'),
+                'old_rx_date' => $latestExamination->old_rx_date ? $latestExamination->old_rx_date->format('Y-m-d') : null,
+                'old_rx_date_formatted' => $latestExamination->old_rx_date ? $latestExamination->old_rx_date->format('F d, Y') : null,
+                'last_examination_id' => $latestExamination->id,
+                'days_since_last_exam' => now()->diffInDays($latestExamination->exam_date),
+            ],
+        ], 200);
     }
 
     /**

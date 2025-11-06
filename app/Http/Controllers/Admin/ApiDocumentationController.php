@@ -984,15 +984,16 @@ class ApiDocumentationController extends Controller
                         'method' => 'POST',
                         'url' => $baseUrl . '/eye-examinations',
                         'name' => 'Create Eye Examination',
-                        'description' => 'Create a new eye examination record for a customer. Store ID is automatically set from the authenticated user\'s store. A PDF report is automatically generated and includes store details, doctor information, patient information, and all examination data. Both authenticated PDF download URL and public PDF download URL (signed URL, no authentication required) are returned in the response.',
+                        'description' => 'Create a new eye examination record for a customer. Store ID is automatically set from the authenticated user\'s store. A PDF report is automatically generated and includes store details, doctor information, patient information, and all examination data. Both authenticated PDF download URL and public PDF download URL (signed URL, no authentication required) are returned in the response. At least one eye\'s prescription (sphere) or visual acuity measurement must be provided.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
                                 'customer_id' => 'integer - Customer ID (must belong to your store)',
                                 'exam_date' => 'date - Date of examination (YYYY-MM-DD)',
+                                'chief_complaint' => 'string - Primary reason for visit (max 500 characters)',
+                                'diagnosis' => 'string - Clinical findings/diagnosis (max 500 characters)',
                             ],
                             'optional' => [
-                                'chief_complaint' => 'string - Primary reason for visit',
                                 'old_rx_date' => 'date - Date of previous prescription (YYYY-MM-DD)',
                                 'od_va_unaided' => 'string - Right eye unaided visual acuity (max 255 chars)',
                                 'os_va_unaided' => 'string - Left eye unaided visual acuity (max 255 chars)',
@@ -1010,7 +1011,6 @@ class ApiDocumentationController extends Controller
                                 'iop_od' => 'integer - Right eye intraocular pressure in mmHg (min: 0)',
                                 'iop_os' => 'integer - Left eye intraocular pressure in mmHg (min: 0)',
                                 'fundus_notes' => 'string - Notes on retina/optic nerve health',
-                                'diagnosis' => 'string - Clinical findings/diagnosis',
                                 'management_plan' => 'string - What was advised',
                                 'next_recall_date' => 'date - Recommended date for next check-up (YYYY-MM-DD)',
                             ],
@@ -1109,7 +1109,76 @@ class ApiDocumentationController extends Controller
                         'error_response_5' => [
                             'status' => 422,
                             'success' => false,
+                            'message' => 'The chief complaint field is required.',
+                        ],
+                        'error_response_6' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The diagnosis field is required.',
+                        ],
+                        'error_response_7' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'At least one eye\'s prescription (sphere) or visual acuity measurement must be provided.',
+                            'description' => 'You must provide either prescription data (od_sphere or os_sphere) OR visual acuity measurements (od_va_unaided, os_va_unaided, od_bcva, or os_bcva).',
+                        ],
+                        'error_response_8' => [
+                            'status' => 422,
+                            'success' => false,
                             'message' => 'The od_axis must be between 0 and 180.',
+                        ],
+                    ],
+                    [
+                        'method' => 'GET',
+                        'url' => $baseUrl . '/eye-examinations/customer/{customerId}/previous-prescription',
+                        'name' => 'Get Previous Prescription Date',
+                        'description' => 'Get the previous prescription date and last examination date for a specific customer. Returns the most recent examination\'s exam_date and old_rx_date, along with additional information like days since last exam. Useful for pre-filling the old_rx_date field when creating a new examination.',
+                        'auth' => 'Bearer Token (Required)',
+                        'parameters' => [
+                            'required' => [
+                                'customerId' => 'integer - Customer ID (route parameter, must belong to your store)',
+                            ],
+                        ],
+                        'request_payload' => null,
+                        'response' => [
+                            'success' => true,
+                            'data' => [
+                                'customer_id' => 1,
+                                'customer_name' => 'John Doe',
+                                'has_previous_examination' => true,
+                                'last_exam_date' => '2024-01-15',
+                                'last_exam_date_formatted' => 'January 15, 2024',
+                                'old_rx_date' => '2023-06-15',
+                                'old_rx_date_formatted' => 'June 15, 2023',
+                                'last_examination_id' => 5,
+                                'days_since_last_exam' => 45,
+                            ],
+                        ],
+                        'response_no_examination' => [
+                            'success' => true,
+                            'data' => [
+                                'customer_id' => 1,
+                                'customer_name' => 'John Doe',
+                                'has_previous_examination' => false,
+                                'last_exam_date' => null,
+                                'old_rx_date' => null,
+                                'message' => 'No previous examinations found for this customer.',
+                            ],
+                        ],
+                        'error_response' => [
+                            'status' => 401,
+                            'success' => false,
+                            'message' => 'Unauthenticated.',
+                        ],
+                        'error_response_2' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Store not found. Please create a store first.',
+                        ],
+                        'error_response_3' => [
+                            'status' => 404,
+                            'success' => false,
+                            'message' => 'Customer not found or does not belong to your store.',
                         ],
                     ],
                     [
@@ -2218,6 +2287,30 @@ class ApiDocumentationController extends Controller
                                     'host' => ['{{base_url}}'],
                                     'path' => ['eye-examinations'],
                                 ],
+                            ],
+                            'response' => [],
+                        ],
+                        [
+                            'name' => 'Get Previous Prescription Date',
+                            'request' => [
+                                'method' => 'GET',
+                                'header' => [
+                                    [
+                                        'key' => 'Authorization',
+                                        'value' => 'Bearer {{auth_token}}',
+                                        'type' => 'text',
+                                    ],
+                                    [
+                                        'key' => 'Accept',
+                                        'value' => 'application/json',
+                                    ],
+                                ],
+                                'url' => [
+                                    'raw' => '{{base_url}}/eye-examinations/customer/1/previous-prescription',
+                                    'host' => ['{{base_url}}'],
+                                    'path' => ['eye-examinations', 'customer', '1', 'previous-prescription'],
+                                ],
+                                'description' => 'Get the previous prescription date and last examination date for a customer. Returns the most recent examination\'s exam_date and old_rx_date.',
                             ],
                             'response' => [],
                         ],
