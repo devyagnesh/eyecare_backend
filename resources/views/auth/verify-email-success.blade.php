@@ -47,12 +47,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="d-grid">
-                            <a href="{{ route('login') }}" class="btn btn-lg btn-primary">
-                                Go to Login
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>
