@@ -667,23 +667,28 @@ class ApiDocumentationController extends Controller
                         'method' => 'POST',
                         'url' => $baseUrl . '/customers',
                         'name' => 'Create Customer',
-                        'description' => 'Create a new customer for the authenticated user\'s store. Store ID is automatically set from the authenticated user\'s store. Phone number must be unique across all customers.',
+                        'description' => 'Create a new customer for the authenticated user\'s store. Store ID is automatically set from the authenticated user\'s store. Phone number and email must be unique within the store (same customer can exist in different stores with same phone/email). Email is optional.',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
                                 'name' => 'string - Customer name',
-                                'phone_number' => 'string - Customer phone number (must be unique)',
+                                'phone_number' => 'string - Customer phone number (must be unique within the store)',
                             ],
                             'optional' => [
-                                'email' => 'string - Customer email address',
+                                'email' => 'string - Customer email address (must be unique within the store if provided)',
                                 'address' => 'string - Customer address',
                             ],
                         ],
                         'request_payload' => [
                             'name' => 'John Doe',
-                            'email' => 'john@example.com',
                             'phone_number' => '+1234567890',
+                            'email' => 'john@example.com',
                             'address' => '123 Main Street, City, State',
+                        ],
+                        'request_payload_optional_email' => [
+                            'name' => 'Jane Doe',
+                            'phone_number' => '+9876543210',
+                            'address' => '456 Oak Avenue, City, State',
                         ],
                         'response' => [
                             'success' => true,
@@ -696,6 +701,22 @@ class ApiDocumentationController extends Controller
                                     'email' => 'john@example.com',
                                     'phone_number' => '+1234567890',
                                     'address' => '123 Main Street, City, State',
+                                    'created_at' => '2024-01-15T10:30:00.000000Z',
+                                    'updated_at' => '2024-01-15T10:30:00.000000Z',
+                                ],
+                            ],
+                        ],
+                        'response_without_email' => [
+                            'success' => true,
+                            'message' => 'Customer created successfully.',
+                            'data' => [
+                                'customer' => [
+                                    'id' => 2,
+                                    'store_id' => 1,
+                                    'name' => 'Jane Doe',
+                                    'email' => null,
+                                    'phone_number' => '+9876543210',
+                                    'address' => '456 Oak Avenue, City, State',
                                     'created_at' => '2024-01-15T10:30:00.000000Z',
                                     'updated_at' => '2024-01-15T10:30:00.000000Z',
                                 ],
@@ -720,6 +741,13 @@ class ApiDocumentationController extends Controller
                             'status' => 422,
                             'success' => false,
                             'message' => 'The phone number has already been taken.',
+                            'description' => 'This error occurs when a customer with the same phone number already exists in your store.',
+                        ],
+                        'error_response_5' => [
+                            'status' => 422,
+                            'success' => false,
+                            'message' => 'The email has already been taken.',
+                            'description' => 'This error occurs when a customer with the same email already exists in your store.',
                         ],
                     ],
                     [
@@ -769,7 +797,7 @@ class ApiDocumentationController extends Controller
                         'method' => 'PUT',
                         'url' => $baseUrl . '/customers/{id}',
                         'name' => 'Update Customer',
-                        'description' => 'Update an existing customer. Only customers belonging to the authenticated user\'s store can be updated. Phone number must be unique across all customers (excluding the current customer).',
+                        'description' => 'Update an existing customer. Only customers belonging to the authenticated user\'s store can be updated. Phone number and email must be unique within the store (same customer can exist in different stores with same phone/email).',
                         'auth' => 'Bearer Token (Required)',
                         'parameters' => [
                             'required' => [
@@ -777,8 +805,8 @@ class ApiDocumentationController extends Controller
                             ],
                             'optional' => [
                                 'name' => 'string - Customer name',
-                                'email' => 'string - Customer email address',
-                                'phone_number' => 'string - Customer phone number (must be unique)',
+                                'email' => 'string - Customer email address (must be unique within the store if provided)',
+                                'phone_number' => 'string - Customer phone number (must be unique within the store)',
                                 'address' => 'string - Customer address',
                             ],
                         ],
@@ -1967,10 +1995,11 @@ class ApiDocumentationController extends Controller
                                     'mode' => 'raw',
                                     'raw' => json_encode([
                                         'name' => 'John Doe',
-                                        'email' => 'john@example.com',
                                         'phone_number' => '+1234567890',
+                                        'email' => 'john@example.com',
                                         'address' => '123 Main Street, City, State',
                                     ], JSON_PRETTY_PRINT),
+                                    'description' => 'Note: email and address fields are optional. You can create a customer with just name and phone_number.',
                                 ],
                                 'url' => [
                                     'raw' => '{{base_url}}/customers',

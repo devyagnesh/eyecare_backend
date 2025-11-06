@@ -146,8 +146,22 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone_number' => 'required|string|max:255|unique:customers,phone_number',
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('customers')->where(function ($query) use ($store) {
+                    return $query->where('store_id', $store->id);
+                }),
+            ],
+            'phone_number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('customers')->where(function ($query) use ($store) {
+                    return $query->where('store_id', $store->id);
+                }),
+            ],
             'address' => 'nullable|string',
         ]);
 
@@ -250,8 +264,23 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone_number' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('customers', 'phone_number')->ignore($customer->id)],
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('customers')->where(function ($query) use ($store) {
+                    return $query->where('store_id', $store->id);
+                })->ignore($customer->id),
+            ],
+            'phone_number' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('customers')->where(function ($query) use ($store) {
+                    return $query->where('store_id', $store->id);
+                })->ignore($customer->id),
+            ],
             'address' => 'nullable|string',
         ]);
 
