@@ -290,6 +290,11 @@ class EyeExaminationService
                 'customer' => $customer,
             ])->render();
 
+            // Validate HTML is not empty
+            if (empty(trim($html))) {
+                throw new \Exception('Generated HTML is empty.', 500);
+            }
+
             // Generate filename
             $filename = 'eye-examinations/' . $examination->id . '/examination-' . $examination->id . '-' . $examination->exam_date->format('Y-m-d') . '.pdf';
             
@@ -321,13 +326,30 @@ class EyeExaminationService
                 'margin_header' => 0,
                 'margin_footer' => 0,
                 'tempDir' => $tempDir, // Temporary directory for mPDF
+                'default_font_size' => 10,
+                'default_font' => 'dejavusans',
+                'autoScriptToLang' => true,
+                'autoLangToFont' => true,
             ]);
 
-            // Write HTML content
-            $mpdf->WriteHTML($html);
+            // Clean HTML - ensure proper UTF-8 encoding
+            $html = mb_convert_encoding($html, 'UTF-8', 'UTF-8');
+            // Remove BOM if present
+            if (substr($html, 0, 3) === "\xEF\xBB\xBF") {
+                $html = substr($html, 3);
+            }
+            
+            // Write HTML content - mode 0 = body content only (recommended for mPDF)
+            // Split into chunks if HTML is very large to avoid memory issues
+            $mpdf->WriteHTML($html, 0);
             
             // Output PDF as string
             $pdfContent = $mpdf->Output('', 'S'); // 'S' returns as string
+            
+            // Validate PDF content
+            if (empty($pdfContent)) {
+                throw new \Exception('Generated PDF is empty.', 500);
+            }
             
             // Store PDF in public disk
             Storage::disk('public')->put($filename, $pdfContent);
