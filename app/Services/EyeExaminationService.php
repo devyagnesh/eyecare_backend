@@ -6,7 +6,7 @@ use App\Models\Customer;
 use App\Models\EyeExamination;
 use App\Models\Store;
 use App\Models\User;
-use Spatie\Browsershot\Browsershot;
+use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -302,17 +302,32 @@ class EyeExaminationService
                 mkdir($directory, 0755, true);
             }
 
-            // Generate PDF using Browsershot (Chrome headless) with full CSS support including flexbox
-            // Browsershot uses Puppeteer which has excellent CSS support
-            $pdfContent = Browsershot::html($html)
-                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']) // For server environments
-                ->paperSize(210, 297, 'mm') // A4 size in mm (width x height)
-                ->margins(10, 10, 10, 10, 'mm') // top, right, bottom, left
-                ->format('A4')
-                ->showBackground() // Include background colors and images
-                ->waitUntilNetworkIdle() // Wait for network to be idle
-                ->timeout(120) // 2 minutes timeout for PDF generation
-                ->pdf();
+            // Ensure temp directory exists for mPDF
+            $tempDir = storage_path('app/temp');
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Configure mPDF for A4 format with margins
+            // mPDF is pure PHP and works on shared hosting without Node.js
+            $mpdf = new Mpdf([
+                'mode' => 'utf-8',
+                'format' => 'A4',
+                'orientation' => 'P', // Portrait
+                'margin_left' => 10,
+                'margin_right' => 10,
+                'margin_top' => 10,
+                'margin_bottom' => 10,
+                'margin_header' => 0,
+                'margin_footer' => 0,
+                'tempDir' => $tempDir, // Temporary directory for mPDF
+            ]);
+
+            // Write HTML content
+            $mpdf->WriteHTML($html);
+            
+            // Output PDF as string
+            $pdfContent = $mpdf->Output('', 'S'); // 'S' returns as string
             
             // Store PDF in public disk
             Storage::disk('public')->put($filename, $pdfContent);
