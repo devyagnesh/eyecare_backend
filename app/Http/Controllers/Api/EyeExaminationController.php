@@ -3,16 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customer;
+use App\Http\Requests\Api\StoreEyeExaminationRequest;
+use App\Http\Requests\Api\UpdateEyeExaminationRequest;
 use App\Models\EyeExamination;
 use App\Models\Store;
+use App\Services\EyeExaminationService;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 
 class EyeExaminationController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(
+        private EyeExaminationService $eyeExaminationService
+    ) {}
+
     /**
      * Get all eye examinations for the authenticated user's store.
      * 
@@ -38,50 +45,21 @@ class EyeExaminationController extends Controller
             ], 404);
         }
 
-        $query = EyeExamination::where('store_id', $store->id)
-            ->with('customer:id,name,email,phone_number');
+        $filters = [
+            'customer_id' => $request->get('customer_id'),
+            'exam_date_from' => $request->get('exam_date_from'),
+            'exam_date_to' => $request->get('exam_date_to'),
+            'sort_by' => $request->get('sort_by', 'exam_date'),
+            'sort_order' => $request->get('sort_order', 'desc'),
+            'paginated' => filter_var($request->get('paginated', true), FILTER_VALIDATE_BOOLEAN),
+            'per_page' => $request->get('per_page', 15),
+        ];
 
-        // Filter by customer
-        if ($request->has('customer_id') && !empty($request->customer_id)) {
-            $query->where('customer_id', $request->customer_id);
-        }
+        $examinations = $this->eyeExaminationService->getExaminations($store, $filters);
 
-        // Filter by date range
-        if ($request->has('exam_date_from')) {
-            $query->whereDate('exam_date', '>=', $request->exam_date_from);
-        }
-        if ($request->has('exam_date_to')) {
-            $query->whereDate('exam_date', '<=', $request->exam_date_to);
-        }
-
-        // Sorting
-        $sortBy = $request->get('sort_by', 'exam_date');
-        $sortOrder = $request->get('sort_order', 'desc');
-        
-        $allowedSortFields = ['exam_date', 'created_at'];
-        if (!in_array($sortBy, $allowedSortFields)) {
-            $sortBy = 'exam_date';
-        }
-        
-        $sortOrder = strtolower($sortOrder);
-        if (!in_array($sortOrder, ['asc', 'desc'])) {
-            $sortOrder = 'desc';
-        }
-        
-        $query->orderBy($sortBy, $sortOrder);
-
-        // Pagination toggle
-        $paginated = filter_var($request->get('paginated', true), FILTER_VALIDATE_BOOLEAN);
-        
-        if ($paginated) {
-            $perPage = (int) $request->get('per_page', 15);
-            $perPage = min(max($perPage, 1), 100);
-            
-            $examinations = $query->paginate($perPage);
-            
-            // Format examinations to include PDF download URL
+        if ($filters['paginated']) {
             $formattedExaminations = $examinations->map(function ($examination) {
-                return $this->formatExamination($examination);
+                return $this->eyeExaminationService->formatExamination($examination);
             });
             
             return response()->json([
@@ -99,11 +77,8 @@ class EyeExaminationController extends Controller
                 ],
             ], 200);
         } else {
-            $examinations = $query->get();
-            
-            // Format examinations to include PDF download URL
             $formattedExaminations = $examinations->map(function ($examination) {
-                return $this->formatExamination($examination);
+                return $this->eyeExaminationService->formatExamination($examination);
             });
             
             return response()->json([
@@ -119,7 +94,7 @@ class EyeExaminationController extends Controller
     /**
      * Create a new eye examination for the authenticated user's store.
      */
-    public function store(Request $request)
+    public function store(StoreEyeExaminationRequest $request)
     {
         $user = $request->user();
         
@@ -132,123 +107,22 @@ class EyeExaminationController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'exam_date' => 'required|date',
-            'chief_complaint' => 'required|string|max:500',
-            'old_rx_date' => 'nullable|date',
-            'od_va_unaided' => 'nullable|string|max:255',
-            'os_va_unaided' => 'nullable|string|max:255',
-            'od_sphere' => 'nullable|numeric',
-            'od_cylinder' => 'nullable|numeric',
-            'od_axis' => 'nullable|integer|min:0|max:180',
-            'os_sphere' => 'nullable|numeric',
-            'os_cylinder' => 'nullable|numeric',
-            'os_axis' => 'nullable|integer|min:0|max:180',
-            'add_power' => 'nullable|numeric',
-            'pd_distance' => 'nullable|numeric|min:0',
-            'pd_near' => 'nullable|numeric|min:0',
-            'od_bcva' => 'nullable|string|max:255',
-            'os_bcva' => 'nullable|string|max:255',
-            'iop_od' => 'nullable|integer|min:0',
-            'iop_os' => 'nullable|integer|min:0',
-            'fundus_notes' => 'nullable|string',
-            'diagnosis' => 'required|string|max:500',
-            'management_plan' => 'nullable|string',
-            'next_recall_date' => 'nullable|date',
-        ], [
-            'customer_id.required' => 'Customer ID is required.',
-            'customer_id.exists' => 'The selected customer does not exist.',
-            'exam_date.required' => 'Examination date is required.',
-            'exam_date.date' => 'Examination date must be a valid date.',
-            'chief_complaint.required' => 'Chief complaint is required.',
-            'chief_complaint.string' => 'Chief complaint must be a string.',
-            'chief_complaint.max' => 'Chief complaint must not exceed 500 characters.',
-            'diagnosis.required' => 'Diagnosis is required.',
-            'diagnosis.string' => 'Diagnosis must be a string.',
-            'diagnosis.max' => 'Diagnosis must not exceed 500 characters.',
-            'od_axis.min' => 'OD axis must be between 0 and 180 degrees.',
-            'od_axis.max' => 'OD axis must be between 0 and 180 degrees.',
-            'os_axis.min' => 'OS axis must be between 0 and 180 degrees.',
-            'os_axis.max' => 'OS axis must be between 0 and 180 degrees.',
-            'pd_distance.min' => 'PD distance must be a positive number.',
-            'pd_near.min' => 'PD near must be a positive number.',
-            'iop_od.min' => 'OD IOP must be a positive number.',
-            'iop_os.min' => 'OS IOP must be a positive number.',
-        ]);
+        try {
+            $examination = $this->eyeExaminationService->createExamination($store, $request->validated());
 
-        // Custom validation: At least one eye's prescription or visual acuity must be provided
-        $hasPrescription = !empty($validated['od_sphere']) || !empty($validated['os_sphere']);
-        $hasVisualAcuity = !empty($validated['od_va_unaided']) || !empty($validated['os_va_unaided']) || 
-                          !empty($validated['od_bcva']) || !empty($validated['os_bcva']);
-        
-        if (!$hasPrescription && !$hasVisualAcuity) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Eye examination created successfully.',
+                'data' => [
+                    'eye_examination' => $this->eyeExaminationService->formatExamination($examination),
+                ],
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'At least one eye\'s prescription (sphere) or visual acuity measurement must be provided.',
-                'errors' => [
-                    'prescription_or_va' => ['Please provide prescription data (sphere) for at least one eye OR visual acuity measurements.']
-                ]
-            ], 422);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
-
-        // Verify customer belongs to the store
-        $customer = Customer::where('id', $validated['customer_id'])
-            ->where('store_id', $store->id)
-            ->first();
-
-        if (!$customer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Customer not found or does not belong to your store.',
-            ], 404);
-        }
-
-        $examination = EyeExamination::create([
-            'customer_id' => $validated['customer_id'],
-            'store_id' => $store->id,
-            'exam_date' => $validated['exam_date'],
-            'chief_complaint' => $validated['chief_complaint'] ?? null,
-            'old_rx_date' => $validated['old_rx_date'] ?? null,
-            'od_va_unaided' => $validated['od_va_unaided'] ?? null,
-            'os_va_unaided' => $validated['os_va_unaided'] ?? null,
-            'od_sphere' => $validated['od_sphere'] ?? null,
-            'od_cylinder' => $validated['od_cylinder'] ?? null,
-            'od_axis' => $validated['od_axis'] ?? null,
-            'os_sphere' => $validated['os_sphere'] ?? null,
-            'os_cylinder' => $validated['os_cylinder'] ?? null,
-            'os_axis' => $validated['os_axis'] ?? null,
-            'add_power' => $validated['add_power'] ?? null,
-            'pd_distance' => $validated['pd_distance'] ?? null,
-            'pd_near' => $validated['pd_near'] ?? null,
-            'od_bcva' => $validated['od_bcva'] ?? null,
-            'os_bcva' => $validated['os_bcva'] ?? null,
-            'iop_od' => $validated['iop_od'] ?? null,
-            'iop_os' => $validated['iop_os'] ?? null,
-            'fundus_notes' => $validated['fundus_notes'] ?? null,
-            'diagnosis' => $validated['diagnosis'] ?? null,
-            'management_plan' => $validated['management_plan'] ?? null,
-            'next_recall_date' => $validated['next_recall_date'] ?? null,
-        ]);
-
-        // Load relationships for PDF generation
-        $examination->load(['customer', 'store.user']);
-
-        // Generate PDF
-        $pdfPath = $this->generatePdf($examination, $store, $user, $customer);
-
-        // Update examination with PDF path
-        $examination->update(['pdf_path' => $pdfPath]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Eye examination created successfully.',
-            'data' => [
-                'eye_examination' => $this->formatExamination($examination->fresh()),
-                'pdf_download_url' => url('api/eye-examinations/' . $examination->id . '/download-pdf'),
-                'pdf_public_download_url' => URL::signedRoute('eye-examination.public-download', ['id' => $examination->id]),
-            ],
-        ], 201);
     }
 
     /**
@@ -282,7 +156,7 @@ class EyeExaminationController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'eye_examination' => $this->formatExamination($examination),
+                'eye_examination' => $this->eyeExaminationService->formatExamination($examination),
             ],
         ], 200);
     }
@@ -290,7 +164,7 @@ class EyeExaminationController extends Controller
     /**
      * Update an eye examination.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateEyeExaminationRequest $request, $id)
     {
         $user = $request->user();
         
@@ -314,93 +188,22 @@ class EyeExaminationController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'customer_id' => 'sometimes|required|exists:customers,id',
-            'exam_date' => 'sometimes|required|date',
-            'chief_complaint' => 'nullable|string|max:500',
-            'old_rx_date' => 'nullable|date',
-            'od_va_unaided' => 'nullable|string|max:255',
-            'os_va_unaided' => 'nullable|string|max:255',
-            'od_sphere' => 'nullable|numeric',
-            'od_cylinder' => 'nullable|numeric',
-            'od_axis' => 'nullable|integer|min:0|max:180',
-            'os_sphere' => 'nullable|numeric',
-            'os_cylinder' => 'nullable|numeric',
-            'os_axis' => 'nullable|integer|min:0|max:180',
-            'add_power' => 'nullable|numeric',
-            'pd_distance' => 'nullable|numeric|min:0',
-            'pd_near' => 'nullable|numeric|min:0',
-            'od_bcva' => 'nullable|string|max:255',
-            'os_bcva' => 'nullable|string|max:255',
-            'iop_od' => 'nullable|integer|min:0',
-            'iop_os' => 'nullable|integer|min:0',
-            'fundus_notes' => 'nullable|string',
-            'diagnosis' => 'nullable|string|max:500',
-            'management_plan' => 'nullable|string',
-            'next_recall_date' => 'nullable|date',
-        ], [
-            'customer_id.required' => 'Customer ID is required.',
-            'customer_id.exists' => 'The selected customer does not exist.',
-            'exam_date.required' => 'Examination date is required.',
-            'exam_date.date' => 'Examination date must be a valid date.',
-            'chief_complaint.string' => 'Chief complaint must be a string.',
-            'chief_complaint.max' => 'Chief complaint must not exceed 500 characters.',
-            'diagnosis.string' => 'Diagnosis must be a string.',
-            'diagnosis.max' => 'Diagnosis must not exceed 500 characters.',
-            'od_axis.min' => 'OD axis must be between 0 and 180 degrees.',
-            'od_axis.max' => 'OD axis must be between 0 and 180 degrees.',
-            'os_axis.min' => 'OS axis must be between 0 and 180 degrees.',
-            'os_axis.max' => 'OS axis must be between 0 and 180 degrees.',
-            'pd_distance.min' => 'PD distance must be a positive number.',
-            'pd_near.min' => 'PD near must be a positive number.',
-            'iop_od.min' => 'OD IOP must be a positive number.',
-            'iop_os.min' => 'OS IOP must be a positive number.',
-        ]);
+        try {
+            $examination = $this->eyeExaminationService->updateExamination($examination, $store, $request->validated());
 
-        // Custom validation: If updating chief_complaint or diagnosis, ensure they are not empty
-        if (isset($validated['chief_complaint']) && empty(trim($validated['chief_complaint']))) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Eye examination updated successfully.',
+                'data' => [
+                    'eye_examination' => $this->eyeExaminationService->formatExamination($examination),
+                ],
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Chief complaint cannot be empty.',
-                'errors' => [
-                    'chief_complaint' => ['Chief complaint is required and cannot be empty.']
-                ]
-            ], 422);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
-
-        if (isset($validated['diagnosis']) && empty(trim($validated['diagnosis']))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Diagnosis cannot be empty.',
-                'errors' => [
-                    'diagnosis' => ['Diagnosis is required and cannot be empty.']
-                ]
-            ], 422);
-        }
-
-        // If customer_id is being updated, verify it belongs to the store
-        if (isset($validated['customer_id']) && $validated['customer_id'] != $examination->customer_id) {
-            $customer = Customer::where('id', $validated['customer_id'])
-                ->where('store_id', $store->id)
-                ->first();
-
-            if (!$customer) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Customer not found or does not belong to your store.',
-                ], 404);
-            }
-        }
-
-        $examination->update($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Eye examination updated successfully.',
-            'data' => [
-                'eye_examination' => $this->formatExamination($examination->fresh()),
-            ],
-        ], 200);
     }
 
     /**
@@ -430,12 +233,19 @@ class EyeExaminationController extends Controller
             ], 404);
         }
 
-        $examination->delete();
+        try {
+            $this->eyeExaminationService->deleteExamination($examination);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Eye examination deleted successfully.',
-        ], 200);
+            return response()->json([
+                'success' => true,
+                'message' => 'Eye examination deleted successfully.',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
     }
 
     /**
@@ -468,8 +278,20 @@ class EyeExaminationController extends Controller
         if (!$examination->pdf_path || !Storage::disk('public')->exists($examination->pdf_path)) {
             // Generate PDF if it doesn't exist
             $examination->load(['customer', 'store.user']);
-            $pdfPath = $this->generatePdf($examination, $store, $user, $examination->customer);
-            $examination->update(['pdf_path' => $pdfPath]);
+            try {
+                $pdfPath = $this->eyeExaminationService->generatePdf(
+                    $examination,
+                    $store,
+                    $store->user,
+                    $examination->customer
+                );
+                $examination->update(['pdf_path' => $pdfPath]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to generate PDF: ' . $e->getMessage(),
+                ], 500);
+            }
         }
 
         $filePath = Storage::disk('public')->path($examination->pdf_path);
@@ -499,8 +321,12 @@ class EyeExaminationController extends Controller
             $user = $store->user;
             $customer = $examination->customer;
             
-            $pdfPath = $this->generatePdf($examination, $store, $user, $customer);
-            $examination->update(['pdf_path' => $pdfPath]);
+            try {
+                $pdfPath = $this->eyeExaminationService->generatePdf($examination, $store, $user, $customer);
+                $examination->update(['pdf_path' => $pdfPath]);
+            } catch (\Exception $e) {
+                abort(500, 'Failed to generate PDF: ' . $e->getMessage());
+            }
         }
 
         $filePath = Storage::disk('public')->path($examination->pdf_path);
@@ -509,32 +335,6 @@ class EyeExaminationController extends Controller
         return response()->download($filePath, $fileName, [
             'Content-Type' => 'application/pdf',
         ]);
-    }
-
-    /**
-     * Generate PDF for eye examination.
-     */
-    private function generatePdf($examination, $store, $user, $customer)
-    {
-        // Generate PDF using the view
-        $pdf = DomPDF::loadView('pdf.eye-examination', [
-            'examination' => $examination,
-            'store' => $store,
-            'user' => $user,
-            'customer' => $customer,
-        ]);
-
-        // Set PDF options
-        $pdf->setPaper('A4', 'portrait');
-        $pdf->setOption('enable-local-file-access', true);
-
-        // Generate filename
-        $filename = 'eye-examinations/' . $examination->id . '/examination-' . $examination->id . '-' . $examination->exam_date->format('Y-m-d') . '.pdf';
-        
-        // Store PDF in public disk
-        Storage::disk('public')->put($filename, $pdf->output());
-
-        return $filename;
     }
 
     /**
@@ -553,97 +353,18 @@ class EyeExaminationController extends Controller
             ], 404);
         }
 
-        // Verify customer belongs to the store
-        $customer = Customer::where('id', $customerId)
-            ->where('store_id', $store->id)
-            ->first();
+        try {
+            $data = $this->eyeExaminationService->getPreviousPrescriptionDate($store, $customerId);
 
-        if (!$customer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Customer not found or does not belong to your store.',
-            ], 404);
-        }
-
-        // Get the most recent examination for this customer
-        $latestExamination = EyeExamination::where('store_id', $store->id)
-            ->where('customer_id', $customerId)
-            ->orderBy('exam_date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if (!$latestExamination) {
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'customer_id' => $customerId,
-                    'customer_name' => $customer->name,
-                    'has_previous_examination' => false,
-                    'last_exam_date' => null,
-                    'old_rx_date' => null,
-                    'message' => 'No previous examinations found for this customer.',
-                ],
+                'data' => $data,
             ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'customer_id' => $customerId,
-                'customer_name' => $customer->name,
-                'has_previous_examination' => true,
-                'last_exam_date' => $latestExamination->exam_date->format('Y-m-d'),
-                'last_exam_date_formatted' => $latestExamination->exam_date->format('F d, Y'),
-                'old_rx_date' => $latestExamination->old_rx_date ? $latestExamination->old_rx_date->format('Y-m-d') : null,
-                'old_rx_date_formatted' => $latestExamination->old_rx_date ? $latestExamination->old_rx_date->format('F d, Y') : null,
-                'last_examination_id' => $latestExamination->id,
-                'days_since_last_exam' => now()->diffInDays($latestExamination->exam_date),
-            ],
-        ], 200);
-    }
-
-    /**
-     * Format eye examination data for API response.
-     */
-    private function formatExamination($examination)
-    {
-        return [
-            'id' => $examination->id,
-            'customer_id' => $examination->customer_id,
-            'customer' => $examination->customer ? [
-                'id' => $examination->customer->id,
-                'name' => $examination->customer->name,
-                'email' => $examination->customer->email,
-                'phone_number' => $examination->customer->phone_number,
-            ] : null,
-            'store_id' => $examination->store_id,
-            'exam_date' => $examination->exam_date->format('Y-m-d'),
-            'chief_complaint' => $examination->chief_complaint,
-            'old_rx_date' => $examination->old_rx_date ? $examination->old_rx_date->format('Y-m-d') : null,
-            'od_va_unaided' => $examination->od_va_unaided,
-            'os_va_unaided' => $examination->os_va_unaided,
-            'od_sphere' => $examination->od_sphere,
-            'od_cylinder' => $examination->od_cylinder,
-            'od_axis' => $examination->od_axis,
-            'os_sphere' => $examination->os_sphere,
-            'os_cylinder' => $examination->os_cylinder,
-            'os_axis' => $examination->os_axis,
-            'add_power' => $examination->add_power,
-            'pd_distance' => $examination->pd_distance,
-            'pd_near' => $examination->pd_near,
-            'od_bcva' => $examination->od_bcva,
-            'os_bcva' => $examination->os_bcva,
-            'iop_od' => $examination->iop_od,
-            'iop_os' => $examination->iop_os,
-            'fundus_notes' => $examination->fundus_notes,
-            'diagnosis' => $examination->diagnosis,
-            'management_plan' => $examination->management_plan,
-            'next_recall_date' => $examination->next_recall_date ? $examination->next_recall_date->format('Y-m-d') : null,
-            'pdf_download_url' => $examination->pdf_path ? url('api/eye-examinations/' . $examination->id . '/download-pdf') : null,
-            'pdf_public_download_url' => URL::signedRoute('eye-examination.public-download', ['id' => $examination->id]),
-            'has_pdf' => !empty($examination->pdf_path) && Storage::disk('public')->exists($examination->pdf_path),
-            'created_at' => $examination->created_at->toIso8601String(),
-            'updated_at' => $examination->updated_at->toIso8601String(),
-        ];
     }
 }
