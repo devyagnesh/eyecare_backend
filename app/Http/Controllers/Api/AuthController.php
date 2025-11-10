@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ForgotPasswordRequest;
+use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Requests\Api\ResendVerificationEmailRequest;
 use App\Http\Requests\Api\ResetPasswordRequest;
 use App\Models\User;
@@ -81,17 +82,12 @@ class AuthController extends Controller
     /**
      * Register a new user (if signup is needed in future).
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role_id' => 'nullable|exists:roles,id',
-        ]);
+        $validated = $request->validated();
 
         // Get default "user" role if role_id not provided
-        $roleId = $request->role_id;
+        $roleId = $validated['role_id'] ?? null;
         if (!$roleId) {
             $userRole = Role::where('slug', 'user')->first();
             if (!$userRole) {
@@ -104,9 +100,9 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'role_id' => $roleId,
         ]);
 
@@ -133,7 +129,7 @@ class AuthController extends Controller
         $device = $this->createOrUpdateDevice($user, $request);
 
         // Create API token
-        $token = $user->createToken($request->device_name ?? 'api-token', ['*'])->plainTextToken;
+        $token = $user->createToken($validated['device_name'] ?? 'api-token', ['*'])->plainTextToken;
 
         return response()->json([
             'success' => true,

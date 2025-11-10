@@ -82,6 +82,7 @@ class UpdateStoreRequest extends FormRequest
             'phone_number.required' => 'Phone number is required.',
             'phone_number.string' => 'Phone number must be a string.',
             'phone_number.max' => 'Phone number must not exceed 20 characters.',
+            'phone_number' => 'The phone number must be a valid phone number (7-15 digits, optionally starting with +).',
             'phone_number.unique' => 'A store with this phone number already exists.',
             'address.required' => 'Address is required.',
             'address.string' => 'Address must be a string.',

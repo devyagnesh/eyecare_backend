@@ -26,6 +26,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
     Route::get('/reset-password', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+    Route::get('/password-reset-success', [PasswordResetController::class, 'showSuccess'])->name('password.reset-success');
 });
 
 // Email verification routes (public)

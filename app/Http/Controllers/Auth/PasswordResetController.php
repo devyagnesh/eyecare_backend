@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\DB;
 class PasswordResetController extends Controller
 {
     /**
+     * Show the password reset success page.
+     */
+    public function showSuccess()
+    {
+        return view('auth.password-reset-success');
+    }
+
+    /**
      * Show the forgot password form.
      */
     public function showForgotPasswordForm()
@@ -118,8 +126,7 @@ class PasswordResetController extends Controller
                 $request->password
             );
             
-            return redirect()->route('login')
-                ->with('success', $result['message']);
+            return redirect()->route('password.reset-success');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', $e->getMessage())
