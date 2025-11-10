@@ -16,12 +16,32 @@ class StoreEyeExaminationRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        // Automatically set store_id from authenticated user's store if not provided
+        if (!$this->has('store_id') && $this->user()) {
+            $store = \App\Models\Store::where('user_id', $this->user()->id)->first();
+            if ($store) {
+                $this->merge([
+                    'store_id' => $store->id,
+                ]);
+            }
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $storeId = $this->getStoreId();
+        
         return [
             'customer_id' => [
                 'required',
@@ -32,6 +52,16 @@ class StoreEyeExaminationRequest extends FormRequest
                 'required',
                 'integer',
                 'exists:stores,id',
+                function ($attribute, $value, $fail) use ($storeId) {
+                    // If store_id is provided, it must match the authenticated user's store
+                    if ($value && $storeId && (int)$value !== (int)$storeId) {
+                        $fail('The store ID does not match your store.');
+                    }
+                    // If user doesn't have a store, fail validation
+                    if (!$storeId) {
+                        $fail('You must have a store to create an eye examination.');
+                    }
+                },
             ],
             'exam_date' => [
                 'required',
@@ -160,7 +190,6 @@ class StoreEyeExaminationRequest extends FormRequest
             'customer_id.required' => 'Customer ID is required.',
             'customer_id.integer' => 'Customer ID must be an integer.',
             'customer_id.exists' => 'The selected customer does not exist.',
-            'store_id.required' => 'Store ID is required.',
             'store_id.integer' => 'Store ID must be an integer.',
             'store_id.exists' => 'The selected store does not exist.',
             'exam_date.required' => 'Examination date is required.',
@@ -256,5 +285,20 @@ class StoreEyeExaminationRequest extends FormRequest
                 );
             }
         });
+    }
+
+    /**
+     * Get store ID from authenticated user.
+     *
+     * @return int|null
+     */
+    private function getStoreId(): ?int
+    {
+        if (!$this->user()) {
+            return null;
+        }
+        
+        $store = \App\Models\Store::where('user_id', $this->user()->id)->first();
+        return $store ? (int)$store->id : null;
     }
 }
