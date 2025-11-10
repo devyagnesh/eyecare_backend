@@ -6,7 +6,7 @@ use App\Models\Customer;
 use App\Models\EyeExamination;
 use App\Models\Store;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
+use Spatie\Browsershot\Browsershot;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -282,23 +282,40 @@ class EyeExaminationService
         $this->validatePdfData($examination, $store, $user, $customer);
 
         try {
-            // Generate PDF using the view
-            $pdf = DomPDF::loadView('pdf.eye-examination', [
+            // Render the view to HTML
+            $html = view('pdf.eye-examination', [
                 'examination' => $examination,
                 'store' => $store,
                 'user' => $user,
                 'customer' => $customer,
-            ]);
-
-            // Set PDF options
-            $pdf->setPaper('A4', 'portrait');
-            $pdf->setOption('enable-local-file-access', true);
+            ])->render();
 
             // Generate filename
             $filename = 'eye-examinations/' . $examination->id . '/examination-' . $examination->id . '-' . $examination->exam_date->format('Y-m-d') . '.pdf';
             
+            // Get full path for storage
+            $fullPath = Storage::disk('public')->path($filename);
+            
+            // Ensure directory exists
+            $directory = dirname($fullPath);
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            // Generate PDF using Browsershot (Chrome headless) with full CSS support including flexbox
+            // Browsershot uses Puppeteer which has excellent CSS support
+            $pdfContent = Browsershot::html($html)
+                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']) // For server environments
+                ->paperSize(210, 297, 'mm') // A4 size in mm (width x height)
+                ->margins(10, 10, 10, 10, 'mm') // top, right, bottom, left
+                ->format('A4')
+                ->showBackground() // Include background colors and images
+                ->waitUntilNetworkIdle() // Wait for network to be idle
+                ->timeout(120) // 2 minutes timeout for PDF generation
+                ->pdf();
+            
             // Store PDF in public disk
-            Storage::disk('public')->put($filename, $pdf->output());
+            Storage::disk('public')->put($filename, $pdfContent);
 
             Log::info('PDF generated successfully', [
                 'examination_id' => $examination->id,
