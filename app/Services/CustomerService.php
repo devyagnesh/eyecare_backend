@@ -99,12 +99,22 @@ class CustomerService
             DB::beginTransaction();
 
             $customer = Customer::create([
-                'store_id' => $store->id,
+                'store_id' => (int)$store->id,
                 'name' => $data['name'],
                 'email' => $data['email'] ?? null,
                 'phone_number' => $data['phone_number'],
                 'address' => $data['address'] ?? null,
             ]);
+            
+            // Verify store_id was saved correctly
+            if ($customer->store_id !== (int)$store->id) {
+                Log::error('Customer store_id mismatch after creation', [
+                    'customer_id' => $customer->id,
+                    'saved_store_id' => $customer->store_id,
+                    'expected_store_id' => $store->id,
+                ]);
+                throw new \Exception('Failed to save customer with correct store ID.', 500);
+            }
 
             DB::commit();
 
@@ -136,8 +146,16 @@ class CustomerService
      */
     public function updateCustomer(Customer $customer, Store $store, array $data): Customer
     {
+        // Refresh customer to ensure we have latest data
+        $customer->refresh();
+        
         // Ensure customer belongs to the store
-        if ($customer->store_id !== $store->id) {
+        if ((int)$customer->store_id !== (int)$store->id) {
+            Log::warning('Customer store mismatch in updateCustomer', [
+                'customer_id' => $customer->id,
+                'customer_store_id' => $customer->store_id,
+                'store_id' => $store->id,
+            ]);
             throw new \Exception('Customer does not belong to your store.', 403);
         }
 
@@ -186,7 +204,7 @@ class CustomerService
     public function deleteCustomer(Customer $customer, Store $store): bool
     {
         // Ensure customer belongs to the store
-        if ($customer->store_id !== $store->id) {
+        if ((int)$customer->store_id !== (int)$store->id) {
             throw new \Exception('Customer does not belong to your store.', 403);
         }
 

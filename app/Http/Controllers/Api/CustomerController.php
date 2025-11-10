@@ -146,15 +146,20 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $customer = Customer::where('store_id', $store->id)
-            ->where('id', $id)
-            ->first();
+        $customer = Customer::find($id);
 
         if (!$customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Customer not found.',
             ], 404);
+        }
+
+        if ((int)$customer->store_id !== (int)$store->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer does not belong to your store.',
+            ], 403);
         }
 
         return response()->json([
@@ -181,15 +186,32 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $customer = Customer::where('store_id', $store->id)
-            ->where('id', $id)
-            ->first();
+        $customer = Customer::find($id);
 
         if (!$customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Customer not found.',
             ], 404);
+        }
+
+        // Refresh customer to ensure we have latest data
+        $customer->refresh();
+
+        if ((int)$customer->store_id !== (int)$store->id) {
+            \Log::warning('Customer store mismatch in controller', [
+                'customer_id' => $customer->id,
+                'customer_store_id' => $customer->store_id,
+                'customer_store_id_type' => gettype($customer->store_id),
+                'user_store_id' => $store->id,
+                'user_store_id_type' => gettype($store->id),
+                'user_id' => $user->id,
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer does not belong to your store.',
+            ], 403);
         }
 
         try {
@@ -226,15 +248,20 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $customer = Customer::where('store_id', $store->id)
-            ->where('id', $id)
-            ->first();
+        $customer = Customer::find($id);
 
         if (!$customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Customer not found.',
             ], 404);
+        }
+
+        if ((int)$customer->store_id !== (int)$store->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer does not belong to your store.',
+            ], 403);
         }
 
         try {

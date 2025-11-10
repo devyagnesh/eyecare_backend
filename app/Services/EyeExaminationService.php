@@ -82,12 +82,14 @@ class EyeExaminationService
         }
 
         // Verify customer belongs to the store
-        $customer = Customer::where('id', $data['customer_id'])
-            ->where('store_id', $store->id)
-            ->first();
+        $customer = Customer::find($data['customer_id']);
 
         if (!$customer) {
-            throw new \Exception('Customer not found or does not belong to your store.', 404);
+            throw new \Exception('Customer not found.', 404);
+        }
+
+        if ((int)$customer->store_id !== (int)$store->id) {
+            throw new \Exception('Customer does not belong to your store.', 403);
         }
 
         try {
@@ -172,12 +174,14 @@ class EyeExaminationService
 
         // If customer_id is being updated, verify it belongs to the store
         if (isset($data['customer_id']) && $data['customer_id'] != $examination->customer_id) {
-            $customer = Customer::where('id', $data['customer_id'])
-                ->where('store_id', $store->id)
-                ->first();
+            $customer = Customer::find($data['customer_id']);
 
             if (!$customer) {
-                throw new \Exception('Customer not found or does not belong to your store.', 404);
+                throw new \Exception('Customer not found.', 404);
+            }
+
+            if ($customer->store_id !== $store->id) {
+                throw new \Exception('Customer does not belong to your store.', 403);
             }
         }
 
@@ -370,12 +374,14 @@ class EyeExaminationService
     public function getPreviousPrescriptionDate(Store $store, int $customerId): array
     {
         // Verify customer belongs to the store
-        $customer = Customer::where('id', $customerId)
-            ->where('store_id', $store->id)
-            ->first();
+        $customer = Customer::find($customerId);
 
         if (!$customer) {
-            throw new \Exception('Customer not found or does not belong to your store.', 404);
+            throw new \Exception('Customer not found.', 404);
+        }
+
+        if ((int)$customer->store_id !== (int)$store->id) {
+            throw new \Exception('Customer does not belong to your store.', 403);
         }
 
         // Get the most recent examination for this customer

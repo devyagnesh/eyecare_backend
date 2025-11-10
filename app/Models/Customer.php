@@ -22,6 +22,15 @@ class Customer extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'store_id' => 'integer',
+    ];
+
+    /**
      * Get the store that owns the customer.
      */
     public function store(): BelongsTo
