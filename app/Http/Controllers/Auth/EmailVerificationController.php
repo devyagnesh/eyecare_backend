@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Facades\Auth;
 
 class EmailVerificationController extends Controller
 {
@@ -53,5 +55,42 @@ class EmailVerificationController extends Controller
     public function showAlreadyVerified()
     {
         return view('auth.verify-email-already');
+    }
+
+    /**
+     * Resend email verification notification (web route).
+     */
+    public function resend(Request $request, EmailVerificationService $emailVerificationService)
+    {
+        // If user is authenticated, use authenticated user
+        if (Auth::check()) {
+            $user = Auth::user();
+        } else {
+            // If not authenticated, redirect to login with message
+            return redirect()->route('login')
+                ->with('error', 'Please log in to resend verification email.');
+        }
+
+        try {
+            $result = $emailVerificationService->resendVerificationEmail($user);
+            
+            return redirect()->back()
+                ->with('success', $result['message']);
+        } catch (\Exception $e) {
+            $statusCode = $e->getCode() ?: 500;
+            
+            if ($statusCode === 400) {
+                // Email already verified
+                return redirect()->route('verification.already-verified');
+            } elseif ($statusCode === 429) {
+                // Rate limit exceeded
+                return redirect()->back()
+                    ->with('error', $e->getMessage());
+            } else {
+                // Other errors
+                return redirect()->back()
+                    ->with('error', $e->getMessage());
+            }
+        }
     }
 }

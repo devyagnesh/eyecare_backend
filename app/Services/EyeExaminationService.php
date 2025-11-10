@@ -76,6 +76,11 @@ class EyeExaminationService
      */
     public function createExamination(Store $store, array $data): EyeExamination
     {
+        // Verify store_id matches the authenticated user's store
+        if (isset($data['store_id']) && (int)$data['store_id'] !== $store->id) {
+            throw new \Exception('Store ID does not match your store.', 403);
+        }
+
         // Verify customer belongs to the store
         $customer = Customer::where('id', $data['customer_id'])
             ->where('store_id', $store->id)
@@ -160,6 +165,11 @@ class EyeExaminationService
      */
     public function updateExamination(EyeExamination $examination, Store $store, array $data): EyeExamination
     {
+        // Verify store_id matches the authenticated user's store if provided
+        if (isset($data['store_id']) && (int)$data['store_id'] !== $store->id) {
+            throw new \Exception('Store ID does not match your store.', 403);
+        }
+
         // If customer_id is being updated, verify it belongs to the store
         if (isset($data['customer_id']) && $data['customer_id'] != $examination->customer_id) {
             $customer = Customer::where('id', $data['customer_id'])

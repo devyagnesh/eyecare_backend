@@ -1,45 +1,38 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-nav-layout="vertical" data-vertical-style="overlay" data-theme-mode="light" data-header-styles="light" data-menu-styles="light" data-toggled="close">
 <head>
-    <!-- Meta Data -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Sign In | Admin Panel</title>
-    <meta name="Description" content="Admin Dashboard">
-    
-    <!-- Favicon -->
+    <title>Reset Password | Admin Panel</title>
     <link rel="icon" href="{{ asset('assets/images/brand-logos/favicon.ico') }}" type="image/x-icon">
-    
-    <!-- Main Theme Js -->
     <script src="{{ asset('assets/js/authentication-main.js') }}"></script>
-    
-    <!-- Bootstrap Css -->
     <link id="style" href="{{ asset('assets/libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    
-    <!-- Style Css -->
     <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
-    
-    <!-- Icons Css -->
     <link href="{{ asset('assets/css/icons.css') }}" rel="stylesheet">
 </head>
-
 <body>
     <div class="container">
         <div class="row justify-content-center align-items-center authentication authentication-basic h-100">
             <div class="col-xxl-4 col-xl-5 col-lg-5 col-md-6 col-sm-8 col-12">
                 <div class="my-5 d-flex justify-content-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ route('login') }}">
                         <img src="{{ asset('assets/images/brand-logos/desktop-logo.png') }}" alt="logo" class="desktop-logo">
                         <img src="{{ asset('assets/images/brand-logos/desktop-dark.png') }}" alt="logo" class="desktop-dark">
                     </a>
                 </div>
                 <div class="card custom-card">
                     <div class="card-body p-5">
-                        <p class="h5 fw-semibold mb-2 text-center">Sign In</p>
-                        <p class="mb-4 text-muted op-7 fw-normal text-center">Welcome back! Please sign in to your account.</p>
+                        <p class="h5 fw-semibold mb-2 text-center">Reset Password</p>
+                        <p class="mb-4 text-muted op-7 fw-normal text-center">Enter your new password below.</p>
                         
+                        @if(session('error'))
+                            <div class="alert alert-danger" role="alert">
+                                <i class="ri-error-warning-line me-2"></i>{{ session('error') }}
+                            </div>
+                        @endif
+
                         @if ($errors->any())
                             <div class="alert alert-danger" role="alert">
                                 <ul class="mb-0">
@@ -51,36 +44,41 @@
                         @endif
 
                         <div class="row gy-3">
-                            <form method="POST" action="{{ route('login') }}">
+                            <form method="POST" action="{{ route('password.update') }}">
                                 @csrf
+                                <input type="hidden" name="token" value="{{ $token }}">
+                                <input type="hidden" name="email" value="{{ $email }}">
+                                
                                 <div class="col-xl-12">
                                     <label for="email" class="form-label text-default">Email</label>
-                                    <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" id="email" name="email" placeholder="Enter your email" value="{{ old('email') }}" required autofocus>
-                                    @error('email')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <input type="email" class="form-control form-control-lg" id="email" value="{{ $email }}" disabled>
+                                    <small class="text-muted">This email address will be used for password reset.</small>
                                 </div>
-                                <div class="col-xl-12 mb-2">
-                                    <label for="password" class="form-label text-default d-block">Password</label>
+                                
+                                <div class="col-xl-12">
+                                    <label for="password" class="form-label text-default">New Password</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control form-control-lg @error('password') is-invalid @enderror" id="password" name="password" placeholder="Enter your password" required>
+                                        <input type="password" class="form-control form-control-lg @error('password') is-invalid @enderror" id="password" name="password" placeholder="Enter new password" required>
                                         <button class="btn btn-light" type="button" onclick="createpassword('password',this)" id="button-addon2"><i class="ri-eye-off-line align-middle"></i></button>
                                     </div>
                                     @error('password')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
-                                    <div class="mt-2 d-flex justify-content-between align-items-center">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                                            <label class="form-check-label text-muted fw-normal" for="remember">
-                                                Remember password
-                                            </label>
-                                        </div>
-                                        <a href="{{ route('password.forgot') }}" class="text-primary fw-semibold fs-13">Forgot password?</a>
+                                </div>
+                                
+                                <div class="col-xl-12">
+                                    <label for="password_confirmation" class="form-label text-default">Confirm Password</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control form-control-lg" id="password_confirmation" name="password_confirmation" placeholder="Confirm new password" required>
+                                        <button class="btn btn-light" type="button" onclick="createpassword('password_confirmation',this)" id="button-addon3"><i class="ri-eye-off-line align-middle"></i></button>
                                     </div>
                                 </div>
+                                
                                 <div class="col-xl-12 d-grid mt-2">
-                                    <button type="submit" class="btn btn-lg btn-primary">Sign In</button>
+                                    <button type="submit" class="btn btn-lg btn-primary">Reset Password</button>
+                                </div>
+                                <div class="col-xl-12 text-center mt-3">
+                                    <a href="{{ route('login') }}" class="text-primary fw-semibold fs-13">Back to Sign In</a>
                                 </div>
                             </form>
                         </div>
@@ -90,10 +88,8 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- Show Password JS -->
     <script src="{{ asset('assets/js/show-password.js') }}"></script>
 </body>
 </html>
+

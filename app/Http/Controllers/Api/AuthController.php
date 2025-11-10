@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ForgotPasswordRequest;
+use App\Http\Requests\Api\ResendVerificationEmailRequest;
+use App\Http\Requests\Api\ResetPasswordRequest;
 use App\Models\User;
 use App\Models\UserDevice;
 use App\Models\Role;
+use App\Services\EmailVerificationService;
+use App\Services\PasswordResetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -209,24 +214,21 @@ class AuthController extends Controller
     /**
      * Check if the authenticated user's email is verified.
      */
-    public function checkEmailVerification(Request $request)
+    public function checkEmailVerification(Request $request, EmailVerificationService $emailVerificationService)
     {
         $user = $request->user();
+        $data = $emailVerificationService->checkEmailVerification($user);
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'email_verified' => $user->hasVerifiedEmail(),
-                'email' => $user->email,
-                'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
-            ],
+            'data' => array_merge($data, ['email' => $user->email]),
         ], 200);
     }
 
     /**
      * Verify user's email address via API.
      */
-    public function verifyEmail(Request $request)
+    public function verifyEmail(Request $request, EmailVerificationService $emailVerificationService)
     {
         $request->validate([
             'id' => 'required|exists:users,id',
@@ -235,83 +237,69 @@ class AuthController extends Controller
 
         $user = User::findOrFail($request->id);
 
-        // Check if already verified
-        if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Email already verified.',
-                'data' => [
-                    'user' => [
-                        'id' => $user->id,
-                        'email' => $user->email,
-                        'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
-                    ],
-                ],
-            ], 200);
-        }
-
-        // Verify the hash matches the user's email
-        if (!hash_equals((string) $request->hash, sha1($user->getEmailForVerification()))) {
+        try {
+            $result = $emailVerificationService->verifyEmail($user, $request->hash);
+            return response()->json($result, 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid verification link.',
-            ], 403);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
-
-        // Mark email as verified
-        if ($user->markEmailAsVerified()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Email verified successfully.',
-                'data' => [
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
-                    ],
-                ],
-            ], 200);
-        }
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to verify email.',
-        ], 500);
     }
 
     /**
      * Resend email verification notification.
      */
-    public function resendVerificationEmail(Request $request)
+    public function resendVerificationEmail(ResendVerificationEmailRequest $request, EmailVerificationService $emailVerificationService)
     {
         $user = $request->user();
 
-        if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email already verified.',
-            ], 400);
-        }
-
         try {
-            $user->sendEmailVerificationNotification();
+            $result = $emailVerificationService->resendVerificationEmail($user);
+            return response()->json($result, 200);
         } catch (\Exception $e) {
-            \Log::error('Failed to resend verification email: ' . $e->getMessage(), [
-                'user_id' => $user->id,
-                'email' => $user->email,
-            ]);
-            
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send verification email. Please try again later.',
-            ], 500);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
+    }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Verification email has been sent. Please check your inbox.',
-        ], 200);
+    /**
+     * Send password reset link.
+     */
+    public function forgotPassword(ForgotPasswordRequest $request, PasswordResetService $passwordResetService)
+    {
+        try {
+            $result = $passwordResetService->sendResetLink($request->email);
+            return response()->json($result, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
+    }
+
+    /**
+     * Reset password using token.
+     */
+    public function resetPassword(ResetPasswordRequest $request, PasswordResetService $passwordResetService)
+    {
+        try {
+            $result = $passwordResetService->resetPassword(
+                $request->email,
+                $request->token,
+                $request->password
+            );
+            return response()->json($result, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
     }
 
     /**

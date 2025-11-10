@@ -348,11 +348,24 @@
     function copyToClipboard(button) {
         let textToCopy = button.getAttribute('data-code') || '';
         
+        // Decode HTML entities if present
+        if (textToCopy) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = textToCopy;
+            textToCopy = tempDiv.textContent || tempDiv.innerText || textToCopy;
+        }
+        
         if (!textToCopy) {
             const codeElement = button.closest('.border').querySelector('pre code');
             if (codeElement) {
+                // Get plain text content, not HTML
                 textToCopy = codeElement.textContent || codeElement.innerText;
+                // Replace any non-breaking spaces with regular spaces
+                textToCopy = textToCopy.replace(/\u00A0/g, ' ').replace(/&nbsp;/g, ' ');
             }
+        } else {
+            // Replace any non-breaking spaces with regular spaces
+            textToCopy = textToCopy.replace(/\u00A0/g, ' ').replace(/&nbsp;/g, ' ');
         }
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -407,6 +420,43 @@
             document.body.removeChild(textarea);
         }
     }
+
+    // Handle manual text selection to clean HTML entities
+    document.addEventListener('copy', function(e) {
+        const selection = window.getSelection();
+        if (selection && selection.toString().length > 0) {
+            let selectedText = selection.toString();
+            
+            // Check if selection is from a code block
+            let isFromCodeBlock = false;
+            if (selection.anchorNode) {
+                let node = selection.anchorNode;
+                // If it's a text node, get the parent element
+                if (node.nodeType === Node.TEXT_NODE) {
+                    node = node.parentElement;
+                }
+                // Check if we're inside a code block
+                if (node) {
+                    const codeBlock = node.closest ? node.closest('pre code, .code-block, pre') : null;
+                    isFromCodeBlock = !!codeBlock;
+                }
+            }
+            
+            if (isFromCodeBlock) {
+                // Replace non-breaking spaces and HTML entities with regular spaces
+                selectedText = selectedText.replace(/\u00A0/g, ' ').replace(/&nbsp;/gi, ' ');
+                // Replace other common HTML entities
+                selectedText = selectedText.replace(/&amp;/g, '&')
+                                           .replace(/&lt;/g, '<')
+                                           .replace(/&gt;/g, '>')
+                                           .replace(/&quot;/g, '"')
+                                           .replace(/&#39;/g, "'");
+                
+                e.clipboardData.setData('text/plain', selectedText);
+                e.preventDefault();
+            }
+        }
+    });
 
     // Search functionality
     $(document).ready(function() {

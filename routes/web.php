@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ApiDocumentationController;
 use App\Http\Controllers\Admin\TestEmailController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Api\EyeExaminationController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,12 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    
+    // Password reset routes
+    Route::get('/forgot-password', [PasswordResetController::class, 'showForgotPasswordForm'])->name('password.forgot');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 });
 
 // Email verification routes (public)
@@ -34,6 +41,9 @@ Route::get('/email/verify-failed', [EmailVerificationController::class, 'showFai
 
 Route::get('/email/verify-already', [EmailVerificationController::class, 'showAlreadyVerified'])
     ->name('verification.already-verified');
+
+Route::post('/email/verify/resend', [EmailVerificationController::class, 'resend'])
+    ->name('verification.resend');
 
 // Public download route (signed URL for security)
 Route::get('/download/eye-examination/{id}', [EyeExaminationController::class, 'publicDownload'])

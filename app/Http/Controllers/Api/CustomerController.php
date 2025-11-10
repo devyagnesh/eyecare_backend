@@ -3,13 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreCustomerRequest;
+use App\Http\Requests\Api\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Models\Store;
+use App\Services\CustomerService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(
+        private CustomerService $customerService
+    ) {}
+
     /**
      * Get all customers for the authenticated user's store.
      * 
@@ -38,73 +47,30 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $query = Customer::where('store_id', $store->id);
+        $filters = [
+            'search' => $request->get('search'),
+            'name' => $request->get('name'),
+            'email' => $request->get('email'),
+            'phone_number' => $request->get('phone_number'),
+            'created_from' => $request->get('created_from'),
+            'created_to' => $request->get('created_to'),
+            'sort_by' => $request->get('sort_by', 'created_at'),
+            'sort_order' => $request->get('sort_order', 'desc'),
+            'paginated' => filter_var($request->get('paginated', true), FILTER_VALIDATE_BOOLEAN),
+            'per_page' => $request->get('per_page', 15),
+        ];
 
-        // Search functionality (searches in name, email, and phone_number)
-        if ($request->has('search') && !empty($request->search)) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%");
+        $customers = $this->customerService->getCustomers($store, $filters);
+
+        if ($filters['paginated']) {
+            $formattedCustomers = $customers->map(function ($customer) {
+                return $this->customerService->formatCustomer($customer);
             });
-        }
-
-        // Filter by exact name match
-        if ($request->has('name') && !empty($request->name)) {
-            $query->where('name', $request->name);
-        }
-
-        // Filter by exact email match
-        if ($request->has('email') && !empty($request->email)) {
-            $query->where('email', $request->email);
-        }
-
-        // Filter by exact phone_number match
-        if ($request->has('phone_number') && !empty($request->phone_number)) {
-            $query->where('phone_number', $request->phone_number);
-        }
-
-        // Filter by date range (created_at)
-        if ($request->has('created_from')) {
-            $query->whereDate('created_at', '>=', $request->created_from);
-        }
-        if ($request->has('created_to')) {
-            $query->whereDate('created_at', '<=', $request->created_to);
-        }
-
-        // Sorting
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        
-        // Validate sort_by field
-        $allowedSortFields = ['name', 'email', 'phone_number', 'created_at', 'updated_at'];
-        if (!in_array($sortBy, $allowedSortFields)) {
-            $sortBy = 'created_at';
-        }
-        
-        // Validate sort_order
-        $sortOrder = strtolower($sortOrder);
-        if (!in_array($sortOrder, ['asc', 'desc'])) {
-            $sortOrder = 'desc';
-        }
-        
-        $query->orderBy($sortBy, $sortOrder);
-
-        // Pagination toggle
-        $paginated = filter_var($request->get('paginated', true), FILTER_VALIDATE_BOOLEAN);
-        
-        if ($paginated) {
-            $perPage = (int) $request->get('per_page', 15);
-            // Limit per_page to max 100
-            $perPage = min(max($perPage, 1), 100);
-            
-            $customers = $query->paginate($perPage);
             
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'customers' => $customers->items(),
+                    'customers' => $formattedCustomers->values()->all(),
                     'pagination' => [
                         'current_page' => $customers->currentPage(),
                         'last_page' => $customers->lastPage(),
@@ -116,12 +82,14 @@ class CustomerController extends Controller
                 ],
             ], 200);
         } else {
-            $customers = $query->get();
+            $formattedCustomers = $customers->map(function ($customer) {
+                return $this->customerService->formatCustomer($customer);
+            });
             
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'customers' => $customers,
+                    'customers' => $formattedCustomers->values()->all(),
                     'total' => $customers->count(),
                 ],
             ], 200);
@@ -131,7 +99,7 @@ class CustomerController extends Controller
     /**
      * Create a new customer for the authenticated user's store.
      */
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
         $user = $request->user();
         
@@ -144,51 +112,22 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => [
-                'nullable',
-                'email',
-                'max:255',
-                Rule::unique('customers')->where(function ($query) use ($store) {
-                    return $query->where('store_id', $store->id);
-                }),
-            ],
-            'phone_number' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('customers')->where(function ($query) use ($store) {
-                    return $query->where('store_id', $store->id);
-                }),
-            ],
-            'address' => 'nullable|string',
-        ]);
+        try {
+            $customer = $this->customerService->createCustomer($store, $request->validated());
 
-        $customer = Customer::create([
-            'store_id' => $store->id,
-            'name' => $validated['name'],
-            'email' => $validated['email'] ?? null,
-            'phone_number' => $validated['phone_number'],
-            'address' => $validated['address'] ?? null,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Customer created successfully.',
-            'data' => [
-                'customer' => [
-                    'id' => $customer->id,
-                    'store_id' => $customer->store_id,
-                    'name' => $customer->name,
-                    'email' => $customer->email,
-                    'phone_number' => $customer->phone_number,
-                    'address' => $customer->address,
-                    'created_at' => $customer->created_at->toIso8601String(),
-                    'updated_at' => $customer->updated_at->toIso8601String(),
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer created successfully.',
+                'data' => [
+                    'customer' => $this->customerService->formatCustomer($customer),
                 ],
-            ],
-        ], 201);
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
     }
 
     /**
@@ -221,16 +160,7 @@ class CustomerController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'customer' => [
-                    'id' => $customer->id,
-                    'store_id' => $customer->store_id,
-                    'name' => $customer->name,
-                    'email' => $customer->email,
-                    'phone_number' => $customer->phone_number,
-                    'address' => $customer->address,
-                    'created_at' => $customer->created_at->toIso8601String(),
-                    'updated_at' => $customer->updated_at->toIso8601String(),
-                ],
+                'customer' => $this->customerService->formatCustomer($customer),
             ],
         ], 200);
     }
@@ -238,7 +168,7 @@ class CustomerController extends Controller
     /**
      * Update a customer.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCustomerRequest $request, $id)
     {
         $user = $request->user();
         
@@ -262,46 +192,22 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'email' => [
-                'nullable',
-                'email',
-                'max:255',
-                Rule::unique('customers')->where(function ($query) use ($store) {
-                    return $query->where('store_id', $store->id);
-                })->ignore($customer->id),
-            ],
-            'phone_number' => [
-                'sometimes',
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('customers')->where(function ($query) use ($store) {
-                    return $query->where('store_id', $store->id);
-                })->ignore($customer->id),
-            ],
-            'address' => 'nullable|string',
-        ]);
+        try {
+            $customer = $this->customerService->updateCustomer($customer, $store, $request->validated());
 
-        $customer->update($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Customer updated successfully.',
-            'data' => [
-                'customer' => [
-                    'id' => $customer->id,
-                    'store_id' => $customer->store_id,
-                    'name' => $customer->name,
-                    'email' => $customer->email,
-                    'phone_number' => $customer->phone_number,
-                    'address' => $customer->address,
-                    'created_at' => $customer->created_at->toIso8601String(),
-                    'updated_at' => $customer->updated_at->toIso8601String(),
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer updated successfully.',
+                'data' => [
+                    'customer' => $this->customerService->formatCustomer($customer),
                 ],
-            ],
-        ], 200);
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
     }
 
     /**
@@ -331,11 +237,18 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $customer->delete();
+        try {
+            $this->customerService->deleteCustomer($customer, $store);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Customer deleted successfully.',
-        ], 200);
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer deleted successfully.',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
     }
 }

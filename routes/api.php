@@ -24,6 +24,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
     Route::get('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify-api');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.forgot-api');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset-api');
 });
 
 // Test email routes (for debugging)

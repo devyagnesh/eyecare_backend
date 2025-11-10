@@ -52,10 +52,31 @@
                             <a href="{{ route('login') }}" class="btn btn-lg btn-primary">
                                 Go to Login
                             </a>
-                            <a href="{{ route('verification.resend') }}" class="btn btn-lg btn-outline-secondary">
-                                Resend Verification Email
+                            @auth
+                            <form action="{{ route('verification.resend') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-lg btn-outline-secondary w-100">
+                                    Resend Verification Email
+                                </button>
+                            </form>
+                            @else
+                            <a href="{{ route('login') }}" class="btn btn-lg btn-outline-secondary">
+                                Login to Resend Verification Email
                             </a>
+                            @endauth
                         </div>
+                        
+                        @if(session('success'))
+                        <div class="alert alert-success mt-3 mb-0">
+                            <i class="bx bx-check-circle me-2"></i>{{ session('success') }}
+                        </div>
+                        @endif
+                        
+                        @if(session('error'))
+                        <div class="alert alert-danger mt-3 mb-0">
+                            <i class="bx bx-error-circle me-2"></i>{{ session('error') }}
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
