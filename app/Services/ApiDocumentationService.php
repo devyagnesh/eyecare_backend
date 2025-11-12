@@ -111,15 +111,398 @@ class ApiDocumentationService
             
             $docComment = $method->getDocComment();
             
-            // If no PHPDoc, create basic documentation
-            if (!$docComment) {
-                return $this->generateBasicDocumentation($methodName, $route);
+            // Parse documentation
+            $doc = $docComment ? $this->parseDocComment($docComment, $route) : $this->generateBasicDocumentation($methodName, $route);
+            
+            // Generate real examples if not present in PHPDoc
+            if (empty($doc['payload_example'])) {
+                $doc['payload_example'] = $this->generatePayloadExample($controllerClass, $methodName, $route);
             }
-
-            return $this->parseDocComment($docComment, $route);
+            
+            if (empty($doc['success_response'])) {
+                $doc['success_response'] = $this->generateSuccessResponse($controllerClass, $methodName, $route);
+            }
+            
+            if (empty($doc['error_response'])) {
+                $doc['error_response'] = $this->generateErrorResponse($controllerClass, $methodName, $route);
+            }
+            
+            return $doc;
         } catch (\ReflectionException $e) {
             return $this->generateBasicDocumentation($methodName, $route);
         }
+    }
+    
+    /**
+     * Generate real payload example based on controller and method.
+     */
+    private function generatePayloadExample(string $controllerClass, string $methodName, $route): ?array
+    {
+        $method = strtoupper($route->methods()[0] ?? 'GET');
+        
+        // Only generate for POST, PUT, PATCH
+        if (!in_array($method, ['POST', 'PUT', 'PATCH'])) {
+            return null;
+        }
+        
+        $controllerName = class_basename($controllerClass);
+        
+        // Generate examples based on controller
+        if ($controllerName === 'AuthController') {
+            if ($methodName === 'login') {
+                return [
+                    'email' => 'user@example.com',
+                    'password' => 'password123',
+                    'device_id' => 'device_123456',
+                    'device_type' => 'mobile',
+                    'device_name' => 'iPhone 14',
+                    'os_name' => 'iOS',
+                    'os_version' => '17.0',
+                    'browser_name' => 'Safari',
+                    'browser_version' => '17.0',
+                    'notification_token' => 'fcm_token_here',
+                    'notification_platform' => 'fcm'
+                ];
+            } elseif ($methodName === 'register') {
+                return [
+                    'name' => 'John Doe',
+                    'email' => 'john.doe@example.com',
+                    'password' => 'SecurePassword123!',
+                    'password_confirmation' => 'SecurePassword123!',
+                    'device_id' => 'device_123456',
+                    'device_type' => 'mobile'
+                ];
+            }
+        } elseif ($controllerName === 'StoreController') {
+            if ($methodName === 'store') {
+                return [
+                    'name' => 'Vision Care Center',
+                    'email' => 'info@visioncare.com',
+                    'phone_number' => '+1234567890',
+                    'address' => '123 Main Street, City, State 12345',
+                    'logo' => null
+                ];
+            } elseif ($methodName === 'update') {
+                return [
+                    'name' => 'Vision Care Center Updated',
+                    'email' => 'info@visioncare.com',
+                    'phone_number' => '+1234567890',
+                    'address' => '123 Main Street, City, State 12345'
+                ];
+            }
+        } elseif ($controllerName === 'CustomerController') {
+            if ($methodName === 'store') {
+                return [
+                    'name' => 'Jane Smith',
+                    'email' => 'jane.smith@example.com',
+                    'phone_number' => '+1987654321',
+                    'address' => '456 Oak Avenue, City, State 54321'
+                ];
+            } elseif ($methodName === 'update') {
+                return [
+                    'name' => 'Jane Smith Updated',
+                    'email' => 'jane.smith.new@example.com',
+                    'phone_number' => '+1987654321',
+                    'address' => '456 Oak Avenue, City, State 54321'
+                ];
+            }
+        } elseif ($controllerName === 'EyeExaminationController') {
+            if ($methodName === 'store') {
+                return [
+                    'customer_id' => 1,
+                    'exam_date' => '2025-01-15',
+                    'chief_complaint' => 'Blurred vision',
+                    'old_rx_date' => '2024-01-10',
+                    'od_va_unaided' => '6/12',
+                    'os_va_unaided' => '6/12',
+                    'od_sphere' => -2.50,
+                    'od_cylinder' => -0.75,
+                    'od_axis' => 90,
+                    'os_sphere' => -2.25,
+                    'os_cylinder' => -0.50,
+                    'os_axis' => 85,
+                    'add_power' => 1.50,
+                    'pd_distance' => 64,
+                    'pd_near' => 62,
+                    'od_bcva' => '6/6',
+                    'os_bcva' => '6/6',
+                    'iop_od' => 15,
+                    'iop_os' => 16,
+                    'fundus_notes' => 'Normal fundus',
+                    'diagnosis' => 'Myopia with astigmatism',
+                    'management_plan' => 'Prescribe glasses',
+                    'next_recall_date' => '2026-01-15'
+                ];
+            } elseif ($methodName === 'update') {
+                return [
+                    'exam_date' => '2025-01-15',
+                    'od_sphere' => -2.75,
+                    'od_cylinder' => -0.75,
+                    'od_axis' => 90
+                ];
+            }
+        } elseif ($controllerName === 'SettingController') {
+            if ($methodName === 'store') {
+                return [
+                    'key' => 'app_name',
+                    'value' => 'Eyecare',
+                    'type' => 'string',
+                    'group' => 'general',
+                    'description' => 'Application name',
+                    'is_public' => true
+                ];
+            } elseif ($methodName === 'update') {
+                return [
+                    'value' => 'Eyecare Pro',
+                    'description' => 'Updated application name'
+                ];
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Generate real success response example.
+     */
+    private function generateSuccessResponse(string $controllerClass, string $methodName, $route): ?array
+    {
+        $method = strtoupper($route->methods()[0] ?? 'GET');
+        $controllerName = class_basename($controllerClass);
+        
+        if ($controllerName === 'AuthController') {
+            if ($methodName === 'login') {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'user' => [
+                            'id' => 1,
+                            'name' => 'John Doe',
+                            'email' => 'user@example.com',
+                            'email_verified_at' => '2025-01-15T10:30:00.000000Z',
+                            'role' => [
+                                'id' => 1,
+                                'name' => 'User',
+                                'slug' => 'user'
+                            ],
+                            'permissions' => ['view-dashboard', 'manage-customers']
+                        ],
+                        'token' => '1|abcdefghijklmnopqrstuvwxyz1234567890',
+                        'device' => [
+                            'id' => 1,
+                            'device_id' => 'device_123456',
+                            'device_type' => 'mobile'
+                        ]
+                    ],
+                    'message' => 'Login successful'
+                ];
+            } elseif ($methodName === 'me') {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'user' => [
+                            'id' => 1,
+                            'name' => 'John Doe',
+                            'email' => 'user@example.com',
+                            'email_verified' => true,
+                            'email_verified_at' => '2025-01-15T10:30:00.000000Z',
+                            'role' => [
+                                'id' => 1,
+                                'name' => 'User',
+                                'slug' => 'user'
+                            ],
+                            'permissions' => ['view-dashboard', 'manage-customers']
+                        ]
+                    ]
+                ];
+            }
+        } elseif ($controllerName === 'StoreController') {
+            if ($methodName === 'show') {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'store' => [
+                            'id' => 1,
+                            'name' => 'Vision Care Center',
+                            'logo' => 'http://example.com/storage/stores/logos/logo.png',
+                            'email' => 'info@visioncare.com',
+                            'phone_number' => '+1234567890',
+                            'address' => '123 Main Street, City, State 12345',
+                            'created_at' => '2025-01-15T10:30:00.000000Z',
+                            'updated_at' => '2025-01-15T10:30:00.000000Z'
+                        ]
+                    ]
+                ];
+            } elseif ($methodName === 'store') {
+                return [
+                    'success' => true,
+                    'message' => 'Store created successfully.',
+                    'data' => [
+                        'store' => [
+                            'id' => 1,
+                            'name' => 'Vision Care Center',
+                            'logo' => 'http://example.com/storage/stores/logos/logo.png',
+                            'email' => 'info@visioncare.com',
+                            'phone_number' => '+1234567890',
+                            'address' => '123 Main Street, City, State 12345',
+                            'created_at' => '2025-01-15T10:30:00.000000Z',
+                            'updated_at' => '2025-01-15T10:30:00.000000Z'
+                        ]
+                    ]
+                ];
+            }
+        } elseif ($controllerName === 'CustomerController') {
+            if ($methodName === 'index') {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'customers' => [
+                            [
+                                'id' => 1,
+                                'store_id' => 1,
+                                'name' => 'Jane Smith',
+                                'email' => 'jane.smith@example.com',
+                                'phone_number' => '+1987654321',
+                                'address' => '456 Oak Avenue, City, State 54321',
+                                'created_at' => '2025-01-15T10:30:00.000000Z',
+                                'updated_at' => '2025-01-15T10:30:00.000000Z'
+                            ]
+                        ],
+                        'pagination' => [
+                            'current_page' => 1,
+                            'last_page' => 1,
+                            'per_page' => 15,
+                            'total' => 1,
+                            'from' => 1,
+                            'to' => 1
+                        ]
+                    ]
+                ];
+            } elseif ($methodName === 'store') {
+                return [
+                    'success' => true,
+                    'message' => 'Customer created successfully.',
+                    'data' => [
+                        'customer' => [
+                            'id' => 1,
+                            'store_id' => 1,
+                            'name' => 'Jane Smith',
+                            'email' => 'jane.smith@example.com',
+                            'phone_number' => '+1987654321',
+                            'address' => '456 Oak Avenue, City, State 54321',
+                            'created_at' => '2025-01-15T10:30:00.000000Z',
+                            'updated_at' => '2025-01-15T10:30:00.000000Z'
+                        ]
+                    ]
+                ];
+            }
+        } elseif ($controllerName === 'EyeExaminationController') {
+            if ($methodName === 'store') {
+                return [
+                    'success' => true,
+                    'message' => 'Eye examination created successfully.',
+                    'data' => [
+                        'eye_examination' => [
+                            'id' => 1,
+                            'customer_id' => 1,
+                            'customer' => [
+                                'id' => 1,
+                                'name' => 'Jane Smith',
+                                'email' => 'jane.smith@example.com',
+                                'phone_number' => '+1987654321'
+                            ],
+                            'store_id' => 1,
+                            'exam_date' => '2025-01-15',
+                            'chief_complaint' => 'Blurred vision',
+                            'old_rx_date' => '2024-01-10',
+                            'od_sphere' => -2.50,
+                            'od_cylinder' => -0.75,
+                            'od_axis' => 90,
+                            'os_sphere' => -2.25,
+                            'os_cylinder' => -0.50,
+                            'os_axis' => 85,
+                            'add_power' => 1.50,
+                            'pd_distance' => 64,
+                            'pd_near' => 62,
+                            'od_bcva' => '6/6',
+                            'os_bcva' => '6/6',
+                            'iop_od' => 15,
+                            'iop_os' => 16,
+                            'fundus_notes' => 'Normal fundus',
+                            'diagnosis' => 'Myopia with astigmatism',
+                            'management_plan' => 'Prescribe glasses',
+                            'next_recall_date' => '2026-01-15',
+                            'pdf_download_url' => 'http://example.com/api/eye-examinations/1/download-pdf'
+                        ]
+                    ]
+                ];
+            }
+        } elseif ($controllerName === 'SettingController') {
+            if ($methodName === 'index') {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'settings' => [
+                            [
+                                'id' => 1,
+                                'key' => 'app_name',
+                                'value' => 'Eyecare',
+                                'type' => 'string',
+                                'group' => 'general',
+                                'is_public' => true,
+                                'description' => 'Application name'
+                            ]
+                        ],
+                        'pagination' => [
+                            'current_page' => 1,
+                            'last_page' => 1,
+                            'per_page' => 15,
+                            'total' => 1,
+                            'from' => 1,
+                            'to' => 1
+                        ]
+                    ],
+                    'message' => 'Settings retrieved successfully'
+                ];
+            }
+        }
+        
+        return [
+            'success' => true,
+            'data' => []
+        ];
+    }
+    
+    /**
+     * Generate real error response example.
+     */
+    private function generateErrorResponse(string $controllerClass, string $methodName, $route): ?array
+    {
+        $controllerName = class_basename($controllerClass);
+        
+        // Common validation error
+        if (in_array($controllerName, ['StoreController', 'CustomerController', 'EyeExaminationController', 'SettingController'])) {
+            return [
+                'success' => false,
+                'message' => 'The provided data is invalid.'
+            ];
+        }
+        
+        // Auth errors
+        if ($controllerName === 'AuthController') {
+            if ($methodName === 'login') {
+                return [
+                    'success' => false,
+                    'message' => 'The provided credentials are incorrect.'
+                ];
+            }
+        }
+        
+        // Not found errors
+        return [
+            'success' => false,
+            'message' => 'Resource not found.'
+        ];
     }
 
     /**
@@ -223,9 +606,14 @@ class ApiDocumentationService
         if (preg_match('/@example\s+payload\s*\n\s*\*\s*(.*?)(?=@example|@return|@status|\*\/|$)/s', $docComment, $matches)) {
             $example = trim($matches[1]);
             $example = preg_replace('/^\s*\*\s*/m', '', $example);
-            // Try to decode as JSON, if fails use as string
-            $decoded = json_decode($example, true);
-            $doc['payload_example'] = ($decoded !== null && json_last_error() === JSON_ERROR_NONE) ? $decoded : $example;
+            // Remove GET /api/... format if present
+            if (preg_match('/^GET\s+/', $example)) {
+                $doc['payload_example'] = $example; // Keep as string for GET requests
+            } else {
+                // Try to decode as JSON, if fails use as string
+                $decoded = json_decode($example, true);
+                $doc['payload_example'] = ($decoded !== null && json_last_error() === JSON_ERROR_NONE) ? $decoded : $example;
+            }
         }
 
         // Extract @example success_response
