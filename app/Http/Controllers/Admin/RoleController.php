@@ -9,18 +9,54 @@ use App\Http\Traits\HandlesAjaxResponses;
 use App\Http\Traits\HandlesSlugGeneration;
 use App\Models\Role;
 use App\Models\Permission;
+use App\Services\RoleService;
 use Illuminate\Http\Request;
 
+/**
+ * Role Controller
+ * 
+ * Handles admin panel requests for roles management.
+ * 
+ * @package App\Http\Controllers\Admin
+ */
 class RoleController extends Controller
 {
     use HandlesAjaxResponses, HandlesSlugGeneration;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param RoleService $roleService
+     */
+    public function __construct(
+        private RoleService $roleService
+    ) {}
+
     /**
      * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::withCount('users')->latest()->get();
-        return view('admin.roles.index', compact('roles'));
+        $filters = [
+            'search' => $request->get('search'),
+            'is_active' => $request->get('is_active'),
+            'sort_by' => $request->get('sort_by', 'created_at'),
+            'sort_order' => $request->get('sort_order', 'desc'),
+        ];
+
+        $roles = $this->roleService->getRoles($filters, false);
+        
+        // If AJAX request, return only table HTML
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'html' => view('admin.roles.index', compact('roles', 'filters'))->render()
+            ]);
+        }
+        
+        return view('admin.roles.index', compact('roles', 'filters'));
     }
 
     /**
@@ -34,20 +70,27 @@ class RoleController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param StoreRoleRequest $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(StoreRoleRequest $request)
     {
-        $validated = $request->validated();
-        $validated = $this->generateSlug($validated);
-        $validated = $this->setActiveFlag($validated, $request);
+        try {
+            $validated = $request->validated();
+            $validated = $this->generateSlug($validated);
+            $validated = $this->setActiveFlag($validated, $request);
 
-        $role = Role::create($validated);
+            $role = $this->roleService->createRole($validated);
 
-        if ($request->has('permissions')) {
-            $role->permissions()->sync($request->permissions);
+            if ($request->has('permissions')) {
+                $role->permissions()->sync($request->permissions);
+            }
+
+            return $this->handleResponse($request, 'Role created successfully.', 'admin.roles.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.roles.create');
         }
-
-        return $this->handleResponse($request, 'Role created successfully.', 'admin.roles.index');
     }
 
     /**
@@ -71,36 +114,80 @@ class RoleController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param UpdateRoleRequest $request
+     * @param Role $role
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(UpdateRoleRequest $request, Role $role)
     {
-        $validated = $request->validated();
-        $validated = $this->generateSlug($validated);
-        $validated = $this->setActiveFlag($validated, $request);
+        try {
+            $validated = $request->validated();
+            $validated = $this->generateSlug($validated);
+            $validated = $this->setActiveFlag($validated, $request);
 
-        $role->update($validated);
+            $this->roleService->updateRole($role->id, $validated);
 
-        if ($request->has('permissions')) {
-            $role->permissions()->sync($request->permissions);
-        } else {
-            $role->permissions()->detach();
+            if ($request->has('permissions')) {
+                $role->permissions()->sync($request->permissions);
+            } else {
+                $role->permissions()->detach();
+            }
+
+            return $this->handleResponse($request, 'Role updated successfully.', 'admin.roles.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.roles.edit', ['role' => $role]);
         }
-
-        return $this->handleResponse($request, 'Role updated successfully.', 'admin.roles.index');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (soft delete).
+     *
+     * @param Request $request
+     * @param Role $role
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Request $request, Role $role)
     {
-        if ($role->users()->count() > 0) {
-            return $this->handleErrorResponse($request, 'Cannot delete role. It is assigned to one or more users.', 'admin.roles.index', 403);
+        try {
+            $this->roleService->deleteRole($role->id);
+            return $this->handleResponse($request, 'Role deleted successfully.', 'admin.roles.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.roles.index');
         }
+    }
 
-        $role->permissions()->detach();
-        $role->delete();
+    /**
+     * Restore a soft-deleted role.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restore(Request $request, int $id)
+    {
+        try {
+            $this->roleService->restoreRole($id);
+            return $this->handleResponse($request, 'Role restored successfully.', 'admin.roles.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.roles.index');
+        }
+    }
 
-        return $this->handleResponse($request, 'Role deleted successfully.', 'admin.roles.index');
+    /**
+     * Permanently delete a role.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function forceDelete(Request $request, int $id)
+    {
+        try {
+            $this->roleService->forceDeleteRole($id);
+            return $this->handleResponse($request, 'Role permanently deleted.', 'admin.roles.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.roles.index');
+        }
     }
 }

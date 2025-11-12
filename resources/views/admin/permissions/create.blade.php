@@ -2,74 +2,82 @@
 
 @section('title', 'Create Permission')
 
+@section('subtitle', 'Add a new permission to the system')
+
 @section('content')
 <div class="row">
-    <div class="col-12">
-        <x-card title="Create New Permission">
-            <x-slot name="headerActions">
-                <a href="{{ route('admin.permissions.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bx bx-arrow-back me-1"></i>Back to Permissions
-                </a>
-            </x-slot>
-            <form action="{{ route('admin.permissions.store') }}" method="POST" id="permissionForm" data-ajax="true" data-success-message="Permission created successfully" data-redirect-on-success="true" data-redirect-url="{{ route('admin.permissions.index') }}">
-                @csrf
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="name"
-                            label="Permission Name"
-                            placeholder="Enter permission name"
-                            :required="true"
-                        />
+    <div class="col-xl-12">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Create New Permission</div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.permissions.store') }}" method="POST" data-ajax="true" data-table-id="#permissions-table">
+                    @csrf
+                    <div class="row gy-4">
+                        <div class="col-xl-6">
+                            <label for="name" class="form-label">Permission Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Enter permission name" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="slug" class="form-label">Slug <small class="text-muted">(Auto-generated if left blank)</small></label>
+                            <input type="text" class="form-control @error('slug') is-invalid @enderror" id="slug" name="slug" value="{{ old('slug') }}" placeholder="Enter slug">
+                            @error('slug')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="module" class="form-label">Module</label>
+                            <input type="text" class="form-control @error('module') is-invalid @enderror" id="module" name="module" value="{{ old('module') }}" placeholder="Enter module name (e.g., Users, Roles)">
+                            @error('module')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Enter permission description">{{ old('description') }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active">Active</label>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="slug"
-                            label="Slug"
-                            placeholder="Auto-generated from name"
-                            helpText="Auto-generated from name if left blank"
-                        />
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Create Permission</button>
+                        <a href="{{ route('admin.permissions.index') }}" class="btn btn-secondary">Cancel</a>
                     </div>
-
-                    <div class="col-md-12">
-                        <x-form.input 
-                            name="module"
-                            label="Module"
-                            placeholder="e.g., users, roles, permissions"
-                            helpText="Optional: Group permissions by module"
-                        />
-                    </div>
-
-                    <div class="col-md-12">
-                        <x-form.textarea 
-                            name="description"
-                            label="Description"
-                            placeholder="Enter permission description"
-                            :rows="3"
-                        />
-                    </div>
-
-                    <div class="col-md-12">
-                        <x-form.checkbox 
-                            name="is_active"
-                            label="Active"
-                            :checked="true"
-                        />
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bx bx-check me-1"></i>Create Permission
-                    </button>
-                    <a href="{{ route('admin.permissions.index') }}" class="btn btn-outline-secondary">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-        </x-card>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Auto-generate slug from name
+    document.getElementById('name').addEventListener('input', function() {
+        const slugInput = document.getElementById('slug');
+        if (!slugInput.value || slugInput.dataset.autoGenerated === 'true') {
+            const slug = this.value.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            slugInput.value = slug;
+            slugInput.dataset.autoGenerated = 'true';
+        }
+    });
+    
+    document.getElementById('slug').addEventListener('input', function() {
+        this.dataset.autoGenerated = 'false';
+    });
+</script>
+@endpush
+

@@ -1,180 +1,226 @@
 /**
  * Global Toast Notification System
- * Provides unified toast notifications for success, error, warning, and info messages
+ * Handles all success, error, warning, and info messages
+ * Works with both Laravel flash messages and AJAX responses
  */
 
 (function($) {
     'use strict';
 
-    // Toast container
-    let toastContainer = null;
-
     /**
-     * Initialize toast container
+     * Global Toast Notification Object
      */
-    function initToastContainer() {
-        if (!toastContainer) {
-            toastContainer = $('<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>');
-            $('body').append(toastContainer);
-        }
-        return toastContainer;
-    }
-
-    /**
-     * Show Bootstrap Toast
-     */
-    function showBootstrapToast(type, message, title, duration) {
-        const container = initToastContainer();
-        const toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        
-        const iconMap = {
-            success: '<i class="bx bx-check-circle fs-18"></i>',
-            error: '<i class="bx bx-error-circle fs-18"></i>',
-            warning: '<i class="bx bx-error fs-18"></i>',
-            info: '<i class="bx bx-info-circle fs-18"></i>'
-        };
-
-        const bgMap = {
-            success: 'bg-success',
-            error: 'bg-danger',
-            warning: 'bg-warning',
-            info: 'bg-info'
-        };
-
-        const toastHtml = `
-            <div id="${toastId}" class="toast align-items-center text-white ${bgMap[type]} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body d-flex align-items-center">
-                        <span class="me-2">${iconMap[type] || ''}</span>
-                        <div>
-                            ${title ? '<strong>' + title + '</strong><br>' : ''}
-                            ${message}
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-
-        const $toast = $(toastHtml);
-        container.append($toast);
-
-        const toast = new bootstrap.Toast($toast[0], {
-            autohide: true,
-            delay: duration || (type === 'error' ? 5000 : 3000)
-        });
-
-        $toast.on('hidden.bs.toast', function() {
-            $toast.remove();
-            if (container.children().length === 0) {
-                container.remove();
-                toastContainer = null;
-            }
-        });
-
-        toast.show();
-    }
-
-    /**
-     * Show SweetAlert2 Toast
-     */
-    function showSweetAlertToast(type, message, title, duration) {
-        if (typeof Swal !== 'undefined') {
-            const iconMap = {
-                success: 'success',
-                error: 'error',
-                warning: 'warning',
-                info: 'info'
-            };
-
-            Swal.fire({
-                icon: iconMap[type] || 'info',
-                title: title || (type === 'error' ? 'Error' : type === 'success' ? 'Success' : type.charAt(0).toUpperCase() + type.slice(1)),
-                text: message,
-                toast: true,
-                position: 'top-end',
+    window.ToastNotification = {
+        /**
+         * Show a toast notification
+         * 
+         * @param {string} message - The message to display
+         * @param {string} type - Type of notification: success, error, warning, info
+         * @param {object} options - Additional options
+         */
+        show: function(message, type = 'success', options = {}) {
+            // Default options
+            const defaultOptions = {
+                position: 'bottom-end', // Changed to bottom-right
+                timer: type === 'error' ? 5000 : 3000,
                 showConfirmButton: false,
-                timer: duration || (type === 'error' ? 5000 : 3000),
                 timerProgressBar: true,
+                allowOutsideClick: true,
+                allowEscapeKey: true,
                 didOpen: (toast) => {
                     toast.addEventListener('mouseenter', Swal.stopTimer);
                     toast.addEventListener('mouseleave', Swal.resumeTimer);
                 }
-            });
-        } else {
-            // Fallback to Bootstrap toast
-            showBootstrapToast(type, message, title, duration);
+            };
+
+            // Merge with custom options
+            const finalOptions = Object.assign({}, defaultOptions, options);
+
+            // Map type to SweetAlert2 icon
+            const iconMap = {
+                'success': 'success',
+                'error': 'error',
+                'warning': 'warning',
+                'info': 'info',
+                'danger': 'error'
+            };
+
+            const icon = iconMap[type] || 'info';
+
+            // Use SweetAlert2 if available
+            if (typeof Swal !== 'undefined') {
+                const Toast = Swal.mixin(finalOptions);
+
+                Toast.fire({
+                    icon: icon,
+                    title: message,
+                    html: options.html || null
+                });
+            } else {
+                // Fallback to browser alert
+                alert(message);
+            }
+        },
+
+        /**
+         * Show success message
+         * 
+         * @param {string} message - Success message
+         * @param {object} options - Additional options
+         */
+        success: function(message, options = {}) {
+            this.show(message, 'success', options);
+        },
+
+        /**
+         * Show error message
+         * 
+         * @param {string} message - Error message
+         * @param {object} options - Additional options
+         */
+        error: function(message, options = {}) {
+            this.show(message, 'error', Object.assign({ timer: 5000 }, options));
+        },
+
+        /**
+         * Show warning message
+         * 
+         * @param {string} message - Warning message
+         * @param {object} options - Additional options
+         */
+        warning: function(message, options = {}) {
+            this.show(message, 'warning', options);
+        },
+
+        /**
+         * Show info message
+         * 
+         * @param {string} message - Info message
+         * @param {object} options - Additional options
+         */
+        info: function(message, options = {}) {
+            this.show(message, 'info', options);
+        },
+
+        /**
+         * Show validation errors
+         * 
+         * @param {object|array} errors - Validation errors
+         */
+        validationErrors: function(errors) {
+            let errorMessage = 'Please fix the following errors:';
+            
+            if (Array.isArray(errors)) {
+                errorMessage += '<ul class="text-start mt-2 mb-0">';
+                errors.forEach(error => {
+                    errorMessage += '<li>' + error + '</li>';
+                });
+                errorMessage += '</ul>';
+            } else if (typeof errors === 'object') {
+                errorMessage += '<ul class="text-start mt-2 mb-0">';
+                Object.keys(errors).forEach(key => {
+                    const fieldErrors = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
+                    fieldErrors.forEach(error => {
+                        errorMessage += '<li><strong>' + key + ':</strong> ' + error + '</li>';
+                    });
+                });
+                errorMessage += '</ul>';
+            } else {
+                errorMessage = errors;
+            }
+
+            this.error(errorMessage, { html: errorMessage });
         }
-    }
-
-    /**
-     * Global Toast Notification Function
-     */
-    window.showToast = function(type, message, title, options) {
-        const defaults = {
-            useSweetAlert: true, // Prefer SweetAlert2 if available
-            duration: null // Auto-detect based on type
-        };
-        const config = $.extend({}, defaults, options || {});
-
-        if (config.useSweetAlert && typeof Swal !== 'undefined') {
-            showSweetAlertToast(type, message, title, config.duration);
-        } else {
-            showBootstrapToast(type, message, title, config.duration);
-        }
     };
 
     /**
-     * Convenience methods
-     */
-    window.showSuccessToast = function(message, title, options) {
-        window.showToast('success', message, title || 'Success', options);
-    };
-
-    window.showErrorToast = function(message, title, options) {
-        window.showToast('error', message, title || 'Error', options);
-    };
-
-    window.showWarningToast = function(message, title, options) {
-        window.showToast('warning', message, title || 'Warning', options);
-    };
-
-    window.showInfoToast = function(message, title, options) {
-        window.showToast('info', message, title || 'Info', options);
-    };
-
-    /**
-     * Initialize on page load
-     * Flash messages are handled via data attributes in the HTML
+     * Initialize toast system on page load
      */
     $(document).ready(function() {
-        // Check for flash messages in data attributes
-        const flashSuccess = $('body').data('flash-success');
-        const flashError = $('body').data('flash-error');
-        const flashWarning = $('body').data('flash-warning');
-        const flashInfo = $('body').data('flash-info');
+        // Check for Laravel flash messages
+        const flashMessages = {
+            success: window.flashSuccess || null,
+            error: window.flashError || null,
+            warning: window.flashWarning || null,
+            info: window.flashInfo || null
+        };
 
-        if (flashSuccess) {
-            showSuccessToast(flashSuccess);
+        // Show flash messages if they exist
+        if (flashMessages.success) {
+            ToastNotification.success(flashMessages.success);
         }
-        if (flashError) {
-            showErrorToast(flashError);
+        if (flashMessages.error) {
+            ToastNotification.error(flashMessages.error);
         }
-        if (flashWarning) {
-            showWarningToast(flashWarning);
+        if (flashMessages.warning) {
+            ToastNotification.warning(flashMessages.warning);
         }
-        if (flashInfo) {
-            showInfoToast(flashInfo);
+        if (flashMessages.info) {
+            ToastNotification.info(flashMessages.info);
         }
 
-        // Check for validation errors
-        const validationErrors = $('body').data('validation-errors');
-        if (validationErrors && Array.isArray(validationErrors)) {
-            validationErrors.forEach(function(error) {
-                showErrorToast(error);
-            });
-        }
+        // Listen for custom toast events
+        $(document).on('toast:success', function(e, message, options) {
+            ToastNotification.success(message, options || {});
+        });
+
+        $(document).on('toast:error', function(e, message, options) {
+            ToastNotification.error(message, options || {});
+        });
+
+        $(document).on('toast:warning', function(e, message, options) {
+            ToastNotification.warning(message, options || {});
+        });
+
+        $(document).on('toast:info', function(e, message, options) {
+            ToastNotification.info(message, options || {});
+        });
+
+        // Global error handler for unhandled AJAX errors
+        $(document).ajaxError(function(event, xhr, settings, thrownError) {
+            // Only show error if it's not already handled
+            if (xhr.status === 0 || xhr.status >= 400) {
+                let errorMessage = 'An error occurred. Please try again.';
+                
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                    } else if (xhr.responseJSON.errors) {
+                        ToastNotification.validationErrors(xhr.responseJSON.errors);
+                        return;
+                    }
+                } else if (xhr.status === 0) {
+                    errorMessage = 'Network error. Please check your connection.';
+                } else if (xhr.status === 401) {
+                    errorMessage = 'Unauthorized. Please login again.';
+                } else if (xhr.status === 403) {
+                    errorMessage = 'Access denied. You don\'t have permission.';
+                } else if (xhr.status === 404) {
+                    errorMessage = 'Resource not found.';
+                } else if (xhr.status === 422) {
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        ToastNotification.validationErrors(xhr.responseJSON.errors);
+                        return;
+                    }
+                    errorMessage = 'Validation error. Please check your input.';
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Server error. Please try again later.';
+                }
+
+                // Don't show error for already handled cases
+                if (!settings.skipGlobalErrorHandler) {
+                    ToastNotification.error(errorMessage);
+                }
+            }
+        });
     });
+
+    // Make it available globally
+    window.showToast = function(message, type, options) {
+        ToastNotification.show(message, type, options);
+    };
 
 })(jQuery);
 

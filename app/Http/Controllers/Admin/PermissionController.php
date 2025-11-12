@@ -8,19 +8,56 @@ use App\Http\Requests\Admin\UpdatePermissionRequest;
 use App\Http\Traits\HandlesAjaxResponses;
 use App\Http\Traits\HandlesSlugGeneration;
 use App\Models\Permission;
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 
+/**
+ * Permission Controller
+ * 
+ * Handles admin panel requests for permissions management.
+ * 
+ * @package App\Http\Controllers\Admin
+ */
 class PermissionController extends Controller
 {
     use HandlesAjaxResponses, HandlesSlugGeneration;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param PermissionService $permissionService
+     */
+    public function __construct(
+        private PermissionService $permissionService
+    ) {}
+
     /**
      * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $permissions = Permission::latest()->get();
-        $modules = Permission::distinct()->pluck('module')->filter()->sort()->values();
-        return view('admin.permissions.index', compact('permissions', 'modules'));
+        $filters = [
+            'search' => $request->get('search'),
+            'module' => $request->get('module'),
+            'is_active' => $request->get('is_active'),
+            'sort_by' => $request->get('sort_by', 'created_at'),
+            'sort_order' => $request->get('sort_order', 'desc'),
+        ];
+
+        $permissions = $this->permissionService->getPermissions($filters, false);
+        $modules = $this->permissionService->getModules();
+
+        // If AJAX request, return only table HTML
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'html' => view('admin.permissions.index', compact('permissions', 'modules', 'filters'))->render()
+            ]);
+        }
+
+        return view('admin.permissions.index', compact('permissions', 'modules', 'filters'));
     }
 
     /**
@@ -33,16 +70,23 @@ class PermissionController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param StorePermissionRequest $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(StorePermissionRequest $request)
     {
-        $validated = $request->validated();
-        $validated = $this->generateSlug($validated);
-        $validated = $this->setActiveFlag($validated, $request);
+        try {
+            $validated = $request->validated();
+            $validated = $this->generateSlug($validated);
+            $validated = $this->setActiveFlag($validated, $request);
 
-        Permission::create($validated);
+            $this->permissionService->createPermission($validated);
 
-        return $this->handleResponse($request, 'Permission created successfully.', 'admin.permissions.index');
+            return $this->handleResponse($request, 'Permission created successfully.', 'admin.permissions.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.permissions.create');
+        }
     }
 
     /**
@@ -64,29 +108,74 @@ class PermissionController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param UpdatePermissionRequest $request
+     * @param Permission $permission
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(UpdatePermissionRequest $request, Permission $permission)
     {
-        $validated = $request->validated();
-        $validated = $this->generateSlug($validated);
-        $validated = $this->setActiveFlag($validated, $request);
+        try {
+            $validated = $request->validated();
+            $validated = $this->generateSlug($validated);
+            $validated = $this->setActiveFlag($validated, $request);
 
-        $permission->update($validated);
+            $this->permissionService->updatePermission($permission->id, $validated);
 
-        return $this->handleResponse($request, 'Permission updated successfully.', 'admin.permissions.index');
+            return $this->handleResponse($request, 'Permission updated successfully.', 'admin.permissions.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.permissions.edit', ['permission' => $permission]);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (soft delete).
+     *
+     * @param Request $request
+     * @param Permission $permission
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Request $request, Permission $permission)
     {
-        if ($permission->roles()->count() > 0) {
-            return $this->handleErrorResponse($request, 'Cannot delete permission. It is assigned to one or more roles.', 'admin.permissions.index', 403);
+        try {
+            $this->permissionService->deletePermission($permission->id);
+            return $this->handleResponse($request, 'Permission deleted successfully.', 'admin.permissions.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.permissions.index');
         }
+    }
 
-        $permission->delete();
+    /**
+     * Restore a soft-deleted permission.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restore(Request $request, int $id)
+    {
+        try {
+            $this->permissionService->restorePermission($id);
+            return $this->handleResponse($request, 'Permission restored successfully.', 'admin.permissions.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.permissions.index');
+        }
+    }
 
-        return $this->handleResponse($request, 'Permission deleted successfully.', 'admin.permissions.index');
+    /**
+     * Permanently delete a permission.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function forceDelete(Request $request, int $id)
+    {
+        try {
+            $this->permissionService->forceDeletePermission($id);
+            return $this->handleResponse($request, 'Permission permanently deleted.', 'admin.permissions.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.permissions.index');
+        }
     }
 }

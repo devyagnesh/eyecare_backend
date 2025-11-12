@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\EyeExaminationController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Admin\TestEmailController;
 
 /*
@@ -70,6 +71,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [EyeExaminationController::class, 'show'])->name('eye_examinations.show');
         Route::put('/{id}', [EyeExaminationController::class, 'update'])->name('eye_examinations.update');
         Route::delete('/{id}', [EyeExaminationController::class, 'destroy'])->name('eye_examinations.destroy');
+    });
+    
+    // Settings routes (admin only)
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('/', [SettingController::class, 'store'])->name('settings.create');
+        Route::get('/group/{group}', [SettingController::class, 'getByGroup'])->name('settings.by-group');
+        Route::get('/{setting}', [SettingController::class, 'show'])->name('settings.show');
+        Route::put('/{setting}', [SettingController::class, 'update'])->name('settings.update');
+        Route::delete('/{setting}', [SettingController::class, 'destroy'])->name('settings.destroy');
     });
     
     // Example: Get authenticated user

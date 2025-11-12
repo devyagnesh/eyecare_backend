@@ -2,79 +2,63 @@
 
 @section('title', 'Edit Permission')
 
+@section('subtitle', 'Update permission information')
+
 @section('content')
 <div class="row">
-    <div class="col-12">
-        <x-card :title="'Edit Permission: ' . $permission->name">
-            <x-slot name="headerActions">
-                <a href="{{ route('admin.permissions.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bx bx-arrow-back me-1"></i>Back to Permissions
-                </a>
-            </x-slot>
-            <form action="{{ route('admin.permissions.update', $permission) }}" method="POST" id="permissionForm" data-ajax="true" data-success-message="Permission updated successfully" data-redirect-on-success="true" data-redirect-url="{{ route('admin.permissions.index') }}">
-                @csrf
-                @method('PUT')
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="name"
-                            label="Permission Name"
-                            :value="$permission->name"
-                            placeholder="Enter permission name"
-                            :required="true"
-                        />
+    <div class="col-xl-12">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Edit Permission</div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.permissions.update', $permission) }}" method="POST" data-ajax="true" data-table-id="#permissions-table">
+                    @csrf
+                    @method('PUT')
+                    <div class="row gy-4">
+                        <div class="col-xl-6">
+                            <label for="name" class="form-label">Permission Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $permission->name) }}" placeholder="Enter permission name" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="slug" class="form-label">Slug</label>
+                            <input type="text" class="form-control @error('slug') is-invalid @enderror" id="slug" name="slug" value="{{ old('slug', $permission->slug) }}" placeholder="Enter slug">
+                            @error('slug')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="module" class="form-label">Module</label>
+                            <input type="text" class="form-control @error('module') is-invalid @enderror" id="module" name="module" value="{{ old('module', $permission->module) }}" placeholder="Enter module name (e.g., Users, Roles)">
+                            @error('module')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Enter permission description">{{ old('description', $permission->description) }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $permission->is_active) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active">Active</label>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="slug"
-                            label="Slug"
-                            :value="$permission->slug"
-                            placeholder="Auto-generated from name"
-                            helpText="Auto-generated from name if left blank"
-                        />
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Update Permission</button>
+                        <a href="{{ route('admin.permissions.index') }}" class="btn btn-secondary">Cancel</a>
                     </div>
-
-                    <div class="col-md-12">
-                        <x-form.input 
-                            name="module"
-                            label="Module"
-                            :value="$permission->module"
-                            placeholder="e.g., users, roles, permissions"
-                            helpText="Optional: Group permissions by module"
-                        />
-                    </div>
-
-                    <div class="col-md-12">
-                        <x-form.textarea 
-                            name="description"
-                            label="Description"
-                            :value="$permission->description"
-                            placeholder="Enter permission description"
-                            :rows="3"
-                        />
-                    </div>
-
-                    <div class="col-md-12">
-                        <x-form.checkbox 
-                            name="is_active"
-                            label="Active"
-                            :checked="$permission->is_active"
-                        />
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bx bx-check me-1"></i>Update Permission
-                    </button>
-                    <a href="{{ route('admin.permissions.index') }}" class="btn btn-outline-secondary">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-        </x-card>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
+

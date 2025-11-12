@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ApiDocumentationController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TestEmailController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -65,12 +66,23 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         // Roles management
         Route::resource('roles', RoleController::class);
+        Route::post('roles/{id}/restore', [RoleController::class, 'restore'])->name('roles.restore');
+        Route::delete('roles/{id}/force-delete', [RoleController::class, 'forceDelete'])->name('roles.force-delete');
         
         // Permissions management
         Route::resource('permissions', PermissionController::class);
+        Route::post('permissions/{id}/restore', [PermissionController::class, 'restore'])->name('permissions.restore');
+        Route::delete('permissions/{id}/force-delete', [PermissionController::class, 'forceDelete'])->name('permissions.force-delete');
         
         // Users management
         Route::resource('users', UserController::class);
+        Route::post('users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+        Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
+        
+        // Settings management
+        Route::resource('settings', SettingController::class);
+        Route::post('settings/{id}/restore', [SettingController::class, 'restore'])->name('settings.restore');
+        Route::delete('settings/{id}/force-delete', [SettingController::class, 'forceDelete'])->name('settings.force-delete');
         
         // API Documentation
         Route::get('api-documentation', [ApiDocumentationController::class, 'index'])->name('api-documentation.index');

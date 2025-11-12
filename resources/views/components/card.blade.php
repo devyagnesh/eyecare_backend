@@ -1,29 +1,30 @@
 @props([
     'title' => null,
-    'subtitle' => null,
+    'headerActions' => null,
+    'footer' => null,
+    'class' => '',
 ])
 
-<div class="card {{ $attributes->get('class') }}">
-    @if($title || isset($headerActions))
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                @if($title)
-                    <div class="card-title">{{ $title }}</div>
-                @endif
-                @if($subtitle)
-                    <div class="card-subtitle text-muted">{{ $subtitle }}</div>
-                @endif
-            </div>
-            @isset($headerActions)
-                <div>{{ $headerActions }}</div>
-            @endisset
-        </div>
+<div class="card custom-card {{ $class }}">
+    @if($title || $headerActions)
+    <div class="card-header @if($headerActions) justify-content-between @endif">
+        @if($title)
+        <div class="card-title">{{ $title }}</div>
+        @endif
+        @if($headerActions)
+        <div>{{ $headerActions }}</div>
+        @endif
     </div>
     @endif
     
     <div class="card-body">
         {{ $slot }}
     </div>
+    
+    @if($footer)
+    <div class="card-footer">
+        {{ $footer }}
+    </div>
+    @endif
 </div>
 

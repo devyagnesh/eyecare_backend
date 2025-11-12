@@ -17,7 +17,7 @@
             icon: 'error',
             title: 'Oops...',
             text: 'Something went wrong!',
-            footer: '<a href="">Why do I have this issue?</a>'
+            footer: '<a href="javascript:void(0);">Why do I have this issue?</a>'
         })
     }
     document.getElementById('long-window').onclick = function () {
@@ -186,17 +186,21 @@
             confirmButtonText: 'Look up',
             showLoaderOnConfirm: true,
             preConfirm: (login) => {
-                return fetch(`https://jsonplaceholder.typicode.com/posts`)
+                // Use jQuery AJAX instead of fetch
+                return $.ajax({
+                    url: 'https://jsonplaceholder.typicode.com/posts',
+                    type: 'GET',
+                    dataType: 'json'
+                })
                     .then(response => {
-                        if (!response.ok) {
-                            throw new Error(response.statusText)
-                        }
-                        return response.json()
+                        // jQuery AJAX already returns parsed JSON
+                        return response;
                     })
                     .catch(error => {
                         Swal.showValidationMessage(
-                            `Request failed: ${error}`
+                            `Request failed: ${error.message || error}`
                         )
+                        return false;
                     })
             },
             allowOutsideClick: () => !Swal.isLoading()

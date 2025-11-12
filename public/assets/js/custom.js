@@ -2,7 +2,6 @@
   "use strict";
 
   /* page loader */
-  
   function hideLoader() {
     const loader = document.getElementById("loader");
     loader.classList.add("d-none")
@@ -27,6 +26,15 @@
     (popoverTriggerEl) => new bootstrap.Popover(popoverTriggerEl)
   );
 
+  /* breadcrumb date range picker */
+  flatpickr("#daterange", {
+    mode: "range",
+    dateFormat: "F, d Y", 
+    defaultDate: ["May, 01 2024", "May, 30 2024"],
+    disableMobile: true
+  });
+  /* breadcrumb date range picker */
+
   //switcher color pickers
   const pickrContainerPrimary = document.querySelector(
     ".pickr-container-primary"
@@ -40,6 +48,11 @@
   const themeContainerBackground = document.querySelector(
     ".theme-container-background"
   );
+
+  // Skip color picker initialization if elements don't exist
+  if (!pickrContainerPrimary || !themeContainerPrimary || !pickrContainerBackground || !themeContainerBackground) {
+    return;
+  }
 
   /* for theme primary */
   const nanoThemes = [
@@ -72,6 +85,7 @@
     nanoButtons.push(button);
 
     button.addEventListener("click", () => {
+      if (!pickrContainerPrimary) return;
       const el = document.createElement("p");
       pickrContainerPrimary.appendChild(el);
 
@@ -91,7 +105,7 @@
           {
             el,
             theme,
-            default: "#845adf",
+            default: "#735dff",
           },
           config
         )
@@ -114,13 +128,17 @@
             color[2]
           )}`
         );
-        updateColors();
+        // updateColors();
       });
     });
 
-    themeContainerPrimary.appendChild(button);
+    if (themeContainerPrimary) {
+      themeContainerPrimary.appendChild(button);
+    }
   }
-  nanoButtons[0].click();
+  if (nanoButtons.length > 0 && nanoButtons[0]) {
+    nanoButtons[0].click();
+  }
   /* for theme primary */
 
   /* for theme background */
@@ -154,6 +172,7 @@
     nanoButtons1.push(button);
 
     button.addEventListener("click", () => {
+      if (!pickrContainerBackground) return;
       const el = document.createElement("p");
       pickrContainerBackground.appendChild(el);
 
@@ -173,7 +192,7 @@
           {
             el,
             theme,
-            default: "#845adf",
+            default: "#735dff",
           },
           config
         )
@@ -205,8 +224,14 @@
             "--form-control-bg",
             `rgb(${color[0] + 14}, ${color[1] + 14}, ${color[2] + 14})`
           );
+          document
+            .querySelector("html")
+            .style.setProperty(
+              "--gray-3",
+              `rgb(${color[0] + 14}, ${color[1] + 14}, ${color[2] + 14})`
+            );
         localStorage.removeItem("bgtheme");
-        updateColors();
+        // updateColors();
         html.setAttribute("data-theme-mode", "dark");
         html.setAttribute("data-menu-styles", "dark");
         html.setAttribute("data-header-styles", "dark");
@@ -221,9 +246,13 @@
         );
       });
     });
-    themeContainerBackground.appendChild(button);
+    if (themeContainerBackground) {
+      themeContainerBackground.appendChild(button);
+    }
   }
-  nanoButtons1[0].click();
+  if (nanoButtons1.length > 0 && nanoButtons1[0]) {
+    nanoButtons1[0].click();
+  }
   /* for theme background */
 
   /* header theme toggle */
@@ -255,14 +284,11 @@
       document.querySelector("#switcher-background2").checked = false;
       document.querySelector("#switcher-background1").checked = false;
       document.querySelector("#switcher-background").checked = false;
-      localStorage.removeItem("ynexdarktheme");
-      localStorage.removeItem("ynexMenu");
-      localStorage.removeItem("ynexHeader");
+      localStorage.removeItem("zynixdarktheme");
+      localStorage.removeItem("zynixMenu");
+      localStorage.removeItem("zynixHeader");
       localStorage.removeItem("bodylightRGB");
       localStorage.removeItem("bodyBgRGB");
-      if (localStorage.getItem("ynexlayout") != "horizontal") {
-        html.setAttribute("data-menu-styles", "dark");
-      }
       html.setAttribute("data-header-styles", "light");
     } else {
       html.setAttribute("data-theme-mode", "dark");
@@ -283,9 +309,9 @@
       document.querySelector("#switcher-background2").checked = false;
       document.querySelector("#switcher-background1").checked = false;
       document.querySelector("#switcher-background").checked = false;
-      localStorage.setItem("ynexdarktheme", "true");
-      localStorage.setItem("ynexMenu", "dark");
-      localStorage.setItem("ynexHeader", "dark");
+      localStorage.setItem("zynixdarktheme", "true");
+      localStorage.setItem("zynixMenu", "dark");
+      localStorage.setItem("zynixHeader", "dark");
       localStorage.removeItem("bodylightRGB");
       localStorage.removeItem("bodyBgRGB");
     }
@@ -380,17 +406,50 @@
   /* back to top */
 
   /* header dropdowns scroll */
-  var myHeaderShortcut = document.getElementById("header-shortcut-scroll");
-  new SimpleBar(myHeaderShortcut, { autoHide: true });
+  var myHeadernotification = document.getElementById("header-notification-scroll1");
+  new SimpleBar(myHeadernotification, { autoHide: true });
 
-  var myHeadernotification = document.getElementById(
-    "header-notification-scroll"
-  );
+  /* header dropdowns scroll */
+    var myHeadernotification = document.getElementById("header-notification-scroll2");
+    new SimpleBar(myHeadernotification, { autoHide: true });
+
+  /* header dropdowns scroll */
+  var myHeadernotification = document.getElementById("header-notification-scroll3");
   new SimpleBar(myHeadernotification, { autoHide: true });
 
   var myHeaderCart = document.getElementById("header-cart-items-scroll");
   new SimpleBar(myHeaderCart, { autoHide: true });
   /* header dropdowns scroll */
+
+  const autoCompleteJS = new autoComplete({
+    selector: "#header-search",
+    data: {
+      src: [
+        "What is the meaning of life?",
+        "How does gravity work?",
+        "Why is the sky blue?",
+        "What is the capital of France?",
+        "Who painted the Mona Lisa?",
+        "What is the speed of light?",
+        "Why do we dream?",
+        "How do birds fly?",
+        "What is the largest mammal?",
+        "Why do leaves change color in the fall?"
+      ],
+      cache: true,
+    },
+    resultItem: {
+      highlight: true
+    },
+    events: {
+      input: {
+        selection: (event) => {
+          const selection = event.detail.selection.value;
+          autoCompleteJS.input.value = selection;
+        }
+      }
+    }
+  });
 })();
 
 /* full screen */
@@ -422,7 +481,6 @@ function openFullscreen() {
     } else if (document.webkitExitFullscreen) {
       /* Safari */
       document.webkitExitFullscreen();
-      console.log("working");
     } else if (document.msExitFullscreen) {
       /* IE11 */
       document.msExitFullscreen();
@@ -448,28 +506,31 @@ customSwitch.forEach((e) =>
 
 /* for cart dropdown */
 const headerbtn = document.querySelectorAll(".dropdown-item-close");
+
 headerbtn.forEach((button) => {
   button.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    button.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
-    document.getElementById("cart-data").innerText = `${
-      document.querySelectorAll(".dropdown-item-close").length
-    } Items`;
-    document.getElementById("cart-icon-badge").innerText = `${
-      document.querySelectorAll(".dropdown-item-close").length
-    }`;
-    console.log(
-      document.getElementById("header-cart-items-scroll").children.length
-    );
-    if (document.querySelectorAll(".dropdown-item-close").length == 0) {
-      let elementHide = document.querySelector(".empty-header-item");
-      let elementShow = document.querySelector(".empty-item");
-      elementHide.classList.add("d-none");
-      elementShow.classList.remove("d-none");
+
+    // Find the closest parent element with class 'dropdown-item'
+    const listItem = button.closest('.dropdown-item');
+    if (listItem) {
+      listItem.remove(); // Remove the list item
+    }
+
+    // Update the cart badge and cart data
+    const itemCount = document.querySelectorAll(".dropdown-item-close").length;
+    document.getElementById("cart-data").innerText = `${itemCount} Items`;
+    document.getElementById("cart-icon-badge").innerText = `${itemCount}`;
+
+    // Check if there are no items left
+    if (itemCount === 0) {
+      document.querySelector(".empty-header-item").classList.add("d-none");
+      document.querySelector(".empty-item").classList.remove("d-none");
     }
   });
 });
+
 /* for cart dropdown */
 
 /* for notifications dropdown */
@@ -479,12 +540,8 @@ headerbtn1.forEach((button) => {
     e.preventDefault();
     e.stopPropagation();
     button.parentNode.parentNode.parentNode.parentNode.remove();
-    document.getElementById("notifiation-data").innerText = `${
-      document.querySelectorAll(".dropdown-item-close1").length
-    } Unread`;
-    document.getElementById("notification-icon-badge").innerText = `${
-      document.querySelectorAll(".dropdown-item-close1").length
-    }`;
+    document.getElementById("notifiation-data").innerText = `${document.querySelectorAll(".dropdown-item-close1").length
+      } Unread`;
     if (document.querySelectorAll(".dropdown-item-close1").length == 0) {
       let elementHide1 = document.querySelector(".empty-header-item1");
       let elementShow1 = document.querySelector(".empty-item1");
@@ -493,4 +550,31 @@ headerbtn1.forEach((button) => {
     }
   });
 });
+
 /* for notifications dropdown */
+
+
+// for nummber of products selected 
+var value = 1,
+minValue = 0,
+maxValue = 30;
+
+let productMinusBtn = document.querySelectorAll(".product-quantity-minus")
+let productPlusBtn = document.querySelectorAll(".product-quantity-plus")
+productMinusBtn.forEach((element) => {
+element.onclick = () => {
+    value = Number(element.parentElement.childNodes[3].value)
+    if (value > minValue) {
+        value = Number(element.parentElement.childNodes[3].value) - 1;
+        element.parentElement.childNodes[3].value = value;
+    }
+}
+})
+productPlusBtn.forEach((element) => {
+element.onclick = () => {
+    if (value < maxValue) {
+        value = Number(element.parentElement.childNodes[3].value) + 1;
+        element.parentElement.childNodes[3].value = value;
+    }
+}
+})

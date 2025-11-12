@@ -1,174 +1,191 @@
 ---
 alwaysApply: true
 ---
-# Project Rules and Guidelines: Eyecare API & Admin Panel (Laravel)
-# Author: Keplersoft.in | System Standard Revision 2.2
-# Type: MDC (Cursor AI Configuration)
-# Purpose: Define secure, scalable, and production-grade architecture for Eyecare application.
+
+# Eyecare Admin Panel – Cursor AI Ruleset (v3.1)
+# Author: Keplersoft.in
+# Purpose: Force Cursor AI to use existing theme assets and generate scalable Laravel + jQuery-based code.
 
 ---
 
-## 1. Core Theme Integration
-- Use only the local theme located at:
-  C:\Users\yjvc1\Desktop\Projects\eyecare\LMS_UI\HTML\dist
-- No Tailwind, Bootstrap, or external frameworks.
-- Maintain all assets locally:
-  - CSS: public/assets/css/app.css
-  - JS: public/assets/js/app.js
-  - Images: public/assets/images/
-  - Vendor libraries: public/assets/vendor/
+project:
+  name: "Eyecare API & Admin Panel"
+  framework: "Laravel 12"
+  theme_path: "./resources/theme/zynix/dist"
+  frontend: "jQuery + DataTables + Theme Assets"
+  backend: "Laravel MVC + Service Layer"
 
 ---
 
-## 2. Asset Management
-- No CDN usage allowed.
-- All vendor files (jQuery, DataTables, Validation, etc.) must exist in:
-  public/assets/vendor/
-- Use Laravel’s asset helper for references.
-- Validate asset existence before build/deploy.
+rules:
+  # ==========================
+  # 1. Theme & UI Integration
+  # ==========================
+  - description: "Use only existing Zynix theme from theme_path"
+    enforcement: "strict"
+    conditions:
+      - "Never create or modify CSS files"
+      - "Do not write inline CSS or JS"
+      - "Do not import from CDN"
+    code:
+      - "Use existing HTML structure and classes from the theme."
+      - "If a layout or style is needed, locate and reuse it from theme assets."
+      - "If a component doesn't exist in the theme, skip or adapt from available markup."
+
+  - description: "Theme Assets Loading"
+    enforce_asset_path: true
+    asset_resolution: "relative"
+    asset_reference_method: "Laravel asset() helper"
+    asset_validation: true
 
 ---
 
-## 3. Architecture and Coding Standards
-- Strict MVC + Service Layer architecture.
-- All business logic must reside in dedicated Service Classes under:
-  app/Services/
-- Use **Dependency Injection** (DI) in controllers and jobs for maintainability:
-  ```php
-  public function __construct(private EyeExamService $eyeExamService) {}
-  ```
-- Use Repository pattern for database operations when appropriate.
-- Never mix business logic into Controllers or Views.
-- Maintain **SRP (Single Responsibility Principle)** across all classes.
-- Use FormRequests for validation.
-- Follow PSR-12 coding standards and DRY principle.
+  # ==========================
+  # 2. Backend Architecture
+  # ==========================
+  - description: "Maintain service-oriented Laravel structure"
+    enforce_structure: true
+    directories:
+      services: "app/Services"
+      repositories: "app/Repositories"
+      requests: "app/Http/Requests"
+    code:
+      - "Controllers must only handle request/response, not logic."
+      - "Inject all business logic via Service Layer using Dependency Injection."
+      - |
+        example:
+          public function __construct(
+              private EyeExamService $eyeExamService
+          ) {}
+
+  - description: "Validation and Error Handling"
+    enforce_form_requests: true
+    validation_examples:
+      axis: "integer|min:0|max:180"
+      sphere: "numeric|min:-20|max:20"
+      pd: "integer|min:40|max:80"
+      iop: "integer|min:5|max:60"
+    json_error_format: |
+      {
+        "success": false,
+        "error_code": "VALIDATION_ERROR",
+        "message": "The provided data is invalid."
+      }
 
 ---
 
-## 4. API and Controller Design
-- Use RESTful design with versioned routes: /api/v1/
-- All API endpoints must return JSON with structure:
-  {
-    "success": true,
-    "data": {},
-    "errors": null,
-    "message": "Success",
-    "timestamp": "2025-11-10T12:00:00Z"
-  }
-- All controllers must delegate logic to services via DI.
-- Implement caching for expensive operations using Cache::remember().
+  # ==========================
+  # 3. API Standards
+  # ==========================
+  - description: "RESTful API conventions"
+    base_path: "/api/v1"
+    json_response_format: |
+      {
+        "success": true,
+        "data": {},
+        "errors": null,
+        "message": "Success",
+        "timestamp": "ISO8601"
+      }
+    enforce_rest_conventions: true
+    enforce_versioning: true
+    enable_caching: true
 
 ---
 
-## 5. Frontend Rules
-- Only jQuery is allowed (no vanilla JS or frameworks).
-- Use jQuery Validation Plugin for all forms.
-- Use DataTables for table rendering (server-side when dataset >1000 rows).
-- AJAX must always return standardized JSON.
-- All JS modularized in public/assets/js/app.js.
+  # ==========================
+  # 4. Frontend Behavior
+  # ==========================
+  - description: "Frontend scripting standards"
+    allow_frameworks:
+      - "jQuery"
+    disallow_frameworks:
+      - "React"
+      - "Vue"
+      - "Angular"
+    js_location: "public/assets/js/app.js"
+    validation_library: "jQuery Validation Plugin"
+    table_library: "DataTables (server-side when >1000 rows)"
+    enforce_modular_js: true
+    code:
+      - "All event handlers and AJAX calls must be defined in modular functions."
+      - "All AJAX responses must match standardized JSON schema."
 
 ---
 
-## 6. Security & Production Readiness
-- Enforce HTTPS in production.
-- Use Laravel Sanctum for API authentication.
-- Use middleware for route protection and permissions.
-- Apply Content Security Policy headers.
-- Sanitize and validate all input server-side.
-- Log all authentication events and role/permission changes.
-- Encrypt sensitive data using Laravel Crypt or Hash.
+  # ==========================
+  # 5. Security & Middleware
+  # ==========================
+  - description: "Security enforcement"
+    use_auth: "Laravel Sanctum"
+    enforce_https: true
+    enforce_csp: true
+    sanitize_inputs: true
+    log_sensitive_actions: true
+    encryption: "Laravel Crypt/Hash"
 
 ---
 
-## 7. Database & Validation Rules
-- Use proper foreign key constraints with cascade delete.
-- Include created_by and updated_by fields for audit tracking.
-- Use softDeletes() for sensitive entities.
-- Validation examples:
-  - Axis: integer 0–180
-  - Sphere/Cylinder: numeric -20.00 to +20.00
-  - PD: 40–80 mm
-  - IOP: 5–60 mmHg
-  - Date: exam_date <= today, next_recall_date > exam_date
+  # ==========================
+  # 6. Database & Auditing
+  # ==========================
+  - description: "Database integrity and soft deletes"
+    enforce_foreign_keys: true
+    add_audit_columns:
+      - "created_by"
+      - "updated_by"
+    use_soft_deletes: true
 
 ---
 
-## 8. Dependency Injection and Services
-- All controllers must depend on interfaces or service classes, not direct models.
-- Register bindings in AppServiceProvider or dedicated providers.
-  ```php
-  $this->app->bind(EyeExamServiceInterface::class, EyeExamService::class);
-  ```
-- Services must handle:
-  - Business rules
-  - Transactions
-  - Validation coordination
-  - Logging and notifications
-- Use dependency injection for Mailers, Notifications, and external APIs.
+  # ==========================
+  # 7. RBAC
+  # ==========================
+  - description: "Roles & Permissions"
+    library: "spatie/laravel-permission"
+    enforce_backend_permissions: true
+    enforce_frontend_permissions: true
+    log_role_changes: true
 
 ---
 
-## 9. Performance Optimization
-- Prevent N+1 queries using eager loading.
-- Cache reusable data with cache tags.
-- Paginate large datasets.
-- Compress and version assets via Laravel Mix/Vite.
-- Serve optimized WebP images.
-- Optimize DB with indexes and constraints.
+  # ==========================
+  # 8. CI/CD & Quality
+  # ==========================
+  - description: "CI pipeline rules"
+    required_files:
+      - "README.md"
+      - "SECURITY.md"
+      - "CHANGELOG.md"
+    fail_on_missing_assets: true
+    static_analysis:
+      - "PHPStan"
+      - "Larastan"
+    test_requirements:
+      - "Unit tests for services"
+      - "Feature tests for APIs"
 
 ---
 
-## 10. Error Handling
-- Centralize error handling in app/Exceptions/Handler.php.
-- JSON error structure:
-  {
-    "success": false,
-    "error_code": "VALIDATION_ERROR",
-    "message": "The provided data is invalid."
-  }
-- Log all exceptions with user, route, and IP context.
+cursor_behavior:
+  execution_policy:
+    - "Never write inline CSS or JS."
+    - "Never use external CDN links."
+    - "Always import UI components from theme_path."
+    - "Always apply PSR-12, SOLID, and DRY principles."
+    - "Always inject services via constructor (DI)."
+    - "Always validate using FormRequests."
+    - "Always sanitize user input."
+    - "Always log authentication and permission events."
+    - "Always return standardized JSON responses."
+    - "Always prioritize maintainability and security."
 
 ---
 
-## 11. RBAC (Roles & Permissions)
-- Use spatie/laravel-permission.
-- Enforce permissions both backend and frontend.
-- Log every role or permission change.
-- Middleware example:
-  ->middleware(['role:admin'])
-
----
-
-## 12. API Documentation
-- Provide in-app API documentation module with endpoints, payloads, and examples.
-- Use collapsible sections with local Markdown/JSON data.
-- Include version, last updated timestamp, and authentication requirements.
-
----
-
-## 13. CI/CD & Build Rules
-- Verify asset presence before build.
-- Fail CI if missing vendor/theme assets.
-- Include automated tests:
-  - Unit tests for business logic.
-  - Feature tests for API endpoints.
-- Include README.md, SECURITY.md, and CHANGELOG.md.
-- Run static analysis tools (PHPStan, Larastan) in CI pipeline.
-
----
-
-## 14. Cursor Execution Policy
-Cursor must always:
-1. Use Service Layer + DI.
-2. Apply PSR-12 and DRY standards.
-3. Use only local theme assets.
-4. Apply both frontend and backend validation.
-5. Generate modular, reusable, and secure code.
-6. Enforce REST conventions and versioning.
-7. Use caching, pagination, and logging by default.
-8. Sanitize and validate every request field.
-9. Never use inline JS/CSS or CDN dependencies.
-10. Produce production-ready, scalable Laravel code.
+notes:
+  - "If theme_path is not accessible, use relative path only."
+  - "Cursor must fail build if required assets not found."
+  - "Generated output must match theme visually and structurally — no redesigns."
 
 ---
 

@@ -9,61 +9,60 @@
     <link rel="icon" href="{{ asset('assets/images/brand-logos/favicon.ico') }}" type="image/x-icon">
     <script src="{{ asset('assets/js/authentication-main.js') }}"></script>
     <link id="style" href="{{ asset('assets/libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/styles.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/icons.css') }}" rel="stylesheet">
+    
+    <!-- Preloader CSS -->
+    @if(file_exists(public_path('assets/css/preloader.css')))
+    <link rel="stylesheet" href="{{ asset('assets/css/preloader.css') }}?v={{ filemtime(public_path('assets/css/preloader.css')) }}">
+    @endif
 </head>
-<body>
+
+<body class="authentication-background authenticationcover-background position-relative" id="particles-js">
+    @include('layouts.partials._preloader')
     <div class="container">
-        <div class="row justify-content-center align-items-center authentication authentication-basic h-100">
+        <div class="row justify-content-center authentication authentication-basic align-items-center h-100">
             <div class="col-xxl-4 col-xl-5 col-lg-5 col-md-6 col-sm-8 col-12">
-                <div class="my-5 d-flex justify-content-center">
-                    <a href="{{ route('login') }}">
-                        <img src="{{ asset('assets/images/brand-logos/desktop-logo.png') }}" alt="logo" class="desktop-logo">
+                <div class="mb-3 d-flex justify-content-center auth-logo">
+                    <a href="{{ route('dashboard') }}">
                         <img src="{{ asset('assets/images/brand-logos/desktop-dark.png') }}" alt="logo" class="desktop-dark">
                     </a>
                 </div>
-                <div class="card custom-card">
-                    <div class="card-body p-5">
-                        <p class="h5 fw-semibold mb-2 text-center">Forgot Password</p>
-                        <p class="mb-4 text-muted op-7 fw-normal text-center">Enter your email address and we'll send you a link to reset your password.</p>
-                        
-                        @if(session('success'))
-                            <div class="alert alert-success" role="alert">
-                                <i class="ri-checkbox-circle-line me-2"></i>{{ session('success') }}
-                            </div>
-                        @endif
+                <div class="card custom-card my-4 border z-3 position-relative">
+                    <div class="card-body p-0">
+                        <div class="p-5">
+                            <p class="h4 fw-semibold mb-0 text-center">Forgot Password</p>
+                            <p class="mb-3 text-muted fw-normal text-center">Enter your email to reset password</p>
 
-                        @if(session('error'))
-                            <div class="alert alert-danger" role="alert">
-                                <i class="ri-error-warning-line me-2"></i>{{ session('error') }}
-                            </div>
-                        @endif
+                            @if(session('status'))
+                                <div class="alert alert-success">{{ session('status') }}</div>
+                            @endif
 
-                        @if ($errors->any())
-                            <div class="alert alert-danger" role="alert">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
+                            @if($errors->any())
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
 
-                        <div class="row gy-3">
                             <form method="POST" action="{{ route('password.email') }}">
                                 @csrf
-                                <div class="col-xl-12">
-                                    <label for="email" class="form-label text-default">Email</label>
-                                    <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" id="email" name="email" placeholder="Enter your email" value="{{ old('email') }}" required autofocus>
-                                    @error('email')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <div class="row gy-3">
+                                    <div class="col-xl-12">
+                                        <label for="email" class="form-label text-default">Email</label>
+                                        <div class="position-relative">
+                                            <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" placeholder="Enter Email" required autofocus>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-xl-12 d-grid mt-2">
-                                    <button type="submit" class="btn btn-lg btn-primary">Send Reset Link</button>
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-primary">Send Reset Link</button>
                                 </div>
-                                <div class="col-xl-12 text-center mt-3">
-                                    <a href="{{ route('login') }}" class="text-primary fw-semibold fs-13">Back to Sign In</a>
+                                <div class="text-center mb-0 mt-3">
+                                    <p class="text-muted mb-0">Remember your password? <a href="{{ route('login') }}" class="text-primary">Sign In</a></p>
                                 </div>
                             </form>
                         </div>
@@ -74,6 +73,13 @@
     </div>
 
     <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <!-- Preloader JS -->
+    @if(file_exists(public_path('assets/js/preloader.js')))
+    <script src="{{ asset('assets/js/preloader.js') }}?v={{ filemtime(public_path('assets/js/preloader.js')) }}"></script>
+    @endif
+    
+    <script src="{{ asset('assets/js/custom.js') }}"></script>
 </body>
 </html>
 

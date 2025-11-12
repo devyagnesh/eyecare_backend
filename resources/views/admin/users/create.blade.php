@@ -2,135 +2,65 @@
 
 @section('title', 'Create User')
 
+@section('subtitle', 'Add a new user to the system')
+
 @section('content')
 <div class="row">
-    <div class="col-12">
-        <x-card title="Create New User">
-            <x-slot name="headerActions">
-                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bx bx-arrow-back me-1"></i>Back to Users
-                </a>
-            </x-slot>
-            <form action="{{ route('admin.users.store') }}" method="POST" id="userForm" data-ajax="true" data-success-message="User created successfully" data-redirect-on-success="true" data-redirect-url="{{ route('admin.users.index') }}">
-                @csrf
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="name"
-                            label="Full Name"
-                            placeholder="Enter full name"
-                            :required="true"
-                        />
+    <div class="col-xl-12">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Create New User</div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.users.store') }}" method="POST" data-ajax="true" data-table-id="#users-table">
+                    @csrf
+                    <div class="row gy-4">
+                        <div class="col-xl-6">
+                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Enter full name" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" placeholder="Enter email address" required>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="Enter password" required>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="password_confirmation" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm password" required>
+                        </div>
+                        <div class="col-xl-6">
+                            <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
+                            <select class="form-control @error('role_id') is-invalid @enderror" id="role_id" name="role_id" required>
+                                <option value="">Select a role</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('role_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
-
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="email"
-                            type="email"
-                            label="Email Address"
-                            placeholder="Enter email address"
-                            :required="true"
-                        />
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
                     </div>
-
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="password"
-                            type="password"
-                            label="Password"
-                            placeholder="Enter password"
-                            :required="true"
-                        />
-                    </div>
-
-                    <div class="col-md-6">
-                        <x-form.input 
-                            name="password_confirmation"
-                            type="password"
-                            label="Confirm Password"
-                            placeholder="Confirm password"
-                            :required="true"
-                        />
-                    </div>
-
-                    <div class="col-md-12">
-                        <x-form.select 
-                            name="role_id"
-                            label="Role"
-                            :options="$roles->pluck('name', 'id')->toArray()"
-                            placeholder="Select a role"
-                            :required="true"
-                        />
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bx bx-check me-1"></i>Create User
-                    </button>
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-        </x-card>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
 
-@push('scripts')
-@if(file_exists(public_path('assets/libs/jquery-validation/jquery.validate.min.js')))
-<script>
-    $(document).ready(function() {
-        $('#userForm').validate({
-            rules: {
-                name: {
-                    required: true,
-                    minlength: 2
-                },
-                email: {
-                    required: true,
-                    email: true
-                },
-                password: {
-                    required: true,
-                    minlength: 8
-                },
-                password_confirmation: {
-                    required: true,
-                    equalTo: "#password"
-                },
-                role_id: {
-                    required: true
-                }
-            },
-            messages: {
-                name: {
-                    required: "Please enter the user's name",
-                    minlength: "Name must be at least 2 characters"
-                },
-                email: {
-                    required: "Please enter an email address",
-                    email: "Please enter a valid email address"
-                },
-                password: {
-                    required: "Please enter a password",
-                    minlength: "Password must be at least 8 characters"
-                },
-                password_confirmation: {
-                    required: "Please confirm the password",
-                    equalTo: "Passwords do not match"
-                },
-                role_id: {
-                    required: "Please select a role"
-                }
-            },
-            errorPlacement: function(error, element) {
-                error.insertAfter(element);
-            }
-        });
-    });
-</script>
-@endif
-@endpush

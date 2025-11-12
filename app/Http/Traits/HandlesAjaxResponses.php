@@ -18,11 +18,19 @@ trait HandlesAjaxResponses
      */
     protected function handleResponse($request, string $message, ?string $route = null, array $additionalData = []): JsonResponse|RedirectResponse
     {
-        if ($request->expectsJson() || $request->ajax()) {
+        // Check for AJAX requests (multiple methods for compatibility)
+        $isAjax = $request->expectsJson() 
+            || $request->ajax() 
+            || $request->wantsJson()
+            || $request->header('X-Requested-With') === 'XMLHttpRequest'
+            || $request->hasHeader('X-Requested-With');
+        
+        if ($isAjax) {
             return response()->json(array_merge([
                 'success' => true,
                 'message' => $message,
-                'redirect' => $route ? route($route) : null
+                'redirect' => $route ? route($route) : null,
+                'forceRedirect' => false // Don't force redirect by default
             ], $additionalData));
         }
 
@@ -37,15 +45,29 @@ trait HandlesAjaxResponses
      * @param string $message
      * @param string|null $route
      * @param int $statusCode
+     * @param array $errors
      * @return JsonResponse|RedirectResponse
      */
-    protected function handleErrorResponse($request, string $message, ?string $route = null, int $statusCode = 400): JsonResponse|RedirectResponse
+    protected function handleErrorResponse($request, string $message, ?string $route = null, int $statusCode = 400, array $errors = []): JsonResponse|RedirectResponse
     {
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
+        // Check for AJAX requests (multiple methods for compatibility)
+        $isAjax = $request->expectsJson() 
+            || $request->ajax() 
+            || $request->wantsJson()
+            || $request->header('X-Requested-With') === 'XMLHttpRequest'
+            || $request->hasHeader('X-Requested-With');
+        
+        if ($isAjax) {
+            $response = [
                 'success' => false,
                 'message' => $message
-            ], $statusCode);
+            ];
+            
+            if (!empty($errors)) {
+                $response['errors'] = $errors;
+            }
+            
+            return response()->json($response, $statusCode);
         }
 
         $redirect = $route ? redirect()->route($route) : redirect()->back();
