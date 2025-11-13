@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\ValidEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -27,7 +28,7 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($userId)],
+            'email' => ['required', 'string', 'max:255', new ValidEmail(), Rule::unique('users')->ignore($userId)],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'role_id' => 'required|exists:roles,id',
         ];
@@ -43,7 +44,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name.required' => 'The name field is required.',
             'email.required' => 'The email field is required.',
-            'email.email' => 'The email must be a valid email address.',
+            'email' => 'The email must be a valid email address.',
             'email.unique' => 'The email has already been taken.',
             'password.confirmed' => 'The password confirmation does not match.',
             'role_id.required' => 'Please select a role.',

@@ -4,90 +4,132 @@
 
 @push('styles')
 <style>
+    /* React.dev-inspired API Documentation Styles */
     :root {
-        --doc-sidebar-width: 280px;
-        --doc-primary: #6366f1;
-        --doc-primary-dark: #4f46e5;
-        --doc-success: #10b981;
-        --doc-error: #ef4444;
-        --doc-warning: #f59e0b;
-        --doc-bg: #ffffff;
-        --doc-sidebar-bg: #f8fafc;
-        --doc-text: #1e293b;
-        --doc-text-muted: #64748b;
-        --doc-border: #e2e8f0;
-        --doc-code-bg: #0f172a;
-        --doc-code-text: #e2e8f0;
+        --react-blue: #087ea4;
+        --react-blue-dark: #0a5d7a;
+        --react-bg: #ffffff;
+        --react-sidebar-bg: #f9fafb;
+        --react-text: #23272f;
+        --react-text-muted: #6b7280;
+        --react-border: #e5e7eb;
+        --react-code-bg: #1e1e1e;
+        --react-code-text: #d4d4d4;
+        --react-success: #22c55e;
+        --react-error: #ef4444;
+        --react-warning: #f59e0b;
     }
 
     [data-theme="dark"] {
-        --doc-bg: #0f172a;
-        --doc-sidebar-bg: #1e293b;
-        --doc-text: #f1f5f9;
-        --doc-text-muted: #94a3b8;
-        --doc-border: #334155;
-        --doc-code-bg: #020617;
-        --doc-code-text: #cbd5e1;
+        --react-bg: #0d1117;
+        --react-sidebar-bg: #161b22;
+        --react-text: #c9d1d9;
+        --react-text-muted: #8b949e;
+        --react-border: #30363d;
+        --react-code-bg: #0d1117;
+        --react-code-text: #c9d1d9;
     }
 
-    .api-doc-container {
-        display: flex;
+    .api-docs-wrapper {
+        background: var(--react-bg);
         min-height: calc(100vh - 200px);
-        background: var(--doc-bg);
-        transition: background 0.3s;
+        display: flex;
+        transition: background 0.2s ease;
     }
 
-    /* Left Sidebar Navigation */
-    .api-doc-sidebar {
-        width: var(--doc-sidebar-width);
-        background: var(--doc-sidebar-bg);
-        border-right: 1px solid var(--doc-border);
-        padding: 2rem 0;
+    /* Top Navigation Bar (React.dev style) */
+    .api-docs-nav {
         position: sticky;
         top: 0;
-        height: calc(100vh - 200px);
-        overflow-y: auto;
-        transition: all 0.3s;
+        z-index: 100;
+        background: var(--react-bg);
+        border-bottom: 1px solid var(--react-border);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
     }
 
-    .sidebar-header {
-        padding: 0 1.5rem 1.5rem;
-        border-bottom: 1px solid var(--doc-border);
-        margin-bottom: 1rem;
+    .api-docs-nav-left {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex: 1;
     }
 
-    .sidebar-header h2 {
+    .api-docs-logo {
         font-size: 1.25rem;
         font-weight: 700;
-        color: var(--doc-text);
-        margin: 0 0 0.5rem 0;
+        color: var(--react-blue);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .sidebar-header .meta {
-        font-size: 0.875rem;
-        color: var(--doc-text-muted);
+    .api-docs-search-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 500px;
     }
 
-    .sidebar-search {
-        padding: 0 1.5rem 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .sidebar-search input {
+    .api-docs-search {
         width: 100%;
-        padding: 0.625rem 0.875rem;
-        border: 1px solid var(--doc-border);
-        border-radius: 8px;
-        background: var(--doc-bg);
-        color: var(--doc-text);
-        font-size: 0.875rem;
+        padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+        border: 1px solid var(--react-border);
+        border-radius: 6px;
+        background: var(--react-sidebar-bg);
+        color: var(--react-text);
+        font-size: 0.9375rem;
         transition: all 0.2s;
     }
 
-    .sidebar-search input:focus {
+    .api-docs-search:focus {
         outline: none;
-        border-color: var(--doc-primary);
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        border-color: var(--react-blue);
+        box-shadow: 0 0 0 3px rgba(8, 126, 164, 0.1);
+    }
+
+    .api-docs-search-icon {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--react-text-muted);
+    }
+
+    .api-docs-nav-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    /* Sidebar */
+    .api-docs-sidebar {
+        width: 260px;
+        background: var(--react-sidebar-bg);
+        border-right: 1px solid var(--react-border);
+        padding: 1.5rem 0;
+        position: sticky;
+        top: 73px;
+        height: calc(100vh - 273px);
+        overflow-y: auto;
+        transition: all 0.2s;
+    }
+
+    .sidebar-section {
+        margin-bottom: 2rem;
+    }
+
+    .sidebar-section-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--react-text-muted);
+        padding: 0 1.5rem;
+        margin-bottom: 0.75rem;
     }
 
     .sidebar-nav {
@@ -97,309 +139,263 @@
     }
 
     .sidebar-nav-item {
-        margin: 0.25rem 0;
+        margin: 0.125rem 0;
     }
 
     .sidebar-nav-link {
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        padding: 0.75rem 1.5rem;
-        color: var(--doc-text-muted);
+        padding: 0.5rem 1.5rem;
+        color: var(--react-text);
         text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.2s;
+        font-size: 0.9375rem;
+        transition: all 0.15s;
         border-left: 3px solid transparent;
     }
 
     .sidebar-nav-link:hover {
-        background: rgba(99, 102, 241, 0.05);
-        color: var(--doc-primary);
+        background: rgba(8, 126, 164, 0.08);
+        color: var(--react-blue);
     }
 
     .sidebar-nav-link.active {
-        background: rgba(99, 102, 241, 0.1);
-        color: var(--doc-primary);
-        border-left-color: var(--doc-primary);
+        background: rgba(8, 126, 164, 0.12);
+        color: var(--react-blue);
+        border-left-color: var(--react-blue);
         font-weight: 600;
     }
 
     .sidebar-nav-link i {
-        font-size: 1.125rem;
-        width: 20px;
+        font-size: 1rem;
+        width: 18px;
         text-align: center;
     }
 
-    /* Main Content Area */
-    .api-doc-content {
+    /* Main Content */
+    .api-docs-content {
         flex: 1;
-        padding: 2rem;
-        overflow-y: auto;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
     }
 
-    .content-header {
+    .docs-group {
+        margin-bottom: 4rem;
+    }
+
+    .docs-group-header {
         margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid var(--doc-border);
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--react-border);
     }
 
-    .content-header h1 {
-        font-size: 2rem;
+    .docs-group-title {
+        font-size: 2.5rem;
         font-weight: 700;
-        color: var(--doc-text);
+        color: var(--react-text);
         margin: 0 0 0.5rem 0;
+        line-height: 1.2;
     }
 
-    .content-header .description {
-        font-size: 1rem;
-        color: var(--doc-text-muted);
+    .docs-group-description {
+        font-size: 1.125rem;
+        color: var(--react-text-muted);
         margin: 0;
+        line-height: 1.6;
     }
 
     /* Endpoint Card */
-    .endpoint-card {
-        background: var(--doc-bg);
-        border: 1px solid var(--doc-border);
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        overflow: hidden;
-        transition: all 0.3s;
+    .endpoint-item {
+        margin-bottom: 3rem;
+        scroll-margin-top: 100px;
     }
 
-    .endpoint-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        border-color: var(--doc-primary);
+    .endpoint-header-section {
+        margin-bottom: 1.5rem;
     }
 
-    .endpoint-header {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
-        border-bottom: 1px solid var(--doc-border);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-    }
-
-    .endpoint-header-left {
+    .endpoint-method-url {
         display: flex;
         align-items: center;
         gap: 1rem;
-        flex: 1;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
     }
 
-    .method-badge {
-        padding: 0.375rem 0.875rem;
-        border-radius: 6px;
+    .method-tag {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
         font-weight: 700;
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        min-width: 70px;
+        min-width: 65px;
         text-align: center;
     }
 
-    .method-get { background: var(--doc-success); color: white; }
-    .method-post { background: #3b82f6; color: white; }
-    .method-put { background: var(--doc-warning); color: white; }
-    .method-delete { background: var(--doc-error); color: white; }
+    .method-get { background: var(--react-success); color: white; }
+    .method-post { background: var(--react-blue); color: white; }
+    .method-put { background: var(--react-warning); color: white; }
+    .method-delete { background: var(--react-error); color: white; }
     .method-patch { background: #8b5cf6; color: white; }
 
-    .endpoint-url {
+    .endpoint-url-code {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         font-size: 0.9375rem;
-        color: var(--doc-primary);
+        color: var(--react-blue);
         font-weight: 500;
-        flex: 1;
+        background: rgba(8, 126, 164, 0.1);
+        padding: 0.375rem 0.75rem;
+        border-radius: 4px;
     }
 
     .endpoint-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--doc-text);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--react-text);
         margin: 0.5rem 0;
+        line-height: 1.3;
     }
 
     .endpoint-description {
-        color: var(--doc-text-muted);
-        margin: 0;
-        font-size: 0.875rem;
-        line-height: 1.5;
-    }
-
-    .endpoint-toggle {
-        background: transparent;
-        border: none;
-        color: var(--doc-text-muted);
-        cursor: pointer;
-        font-size: 1.25rem;
-        transition: transform 0.3s;
-        padding: 0.5rem;
-    }
-
-    .endpoint-toggle.expanded {
-        transform: rotate(180deg);
-    }
-
-    .endpoint-body {
-        display: none;
-        padding: 1.5rem;
-    }
-
-    .endpoint-body.expanded {
-        display: block;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .section {
-        margin-bottom: 2rem;
-    }
-
-    .section:last-child {
-        margin-bottom: 0;
-    }
-
-    .section-title {
         font-size: 1rem;
-        font-weight: 600;
-        color: var(--doc-text);
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid var(--doc-border);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        color: var(--react-text-muted);
+        margin: 0.75rem 0 0 0;
+        line-height: 1.6;
     }
 
-    .section-title i {
-        color: var(--doc-primary);
+    /* Sections */
+    .docs-section {
+        margin: 2rem 0;
+    }
+
+    .docs-section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--react-text);
+        margin: 0 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--react-border);
     }
 
     /* Tables */
-    .params-table {
+    .docs-table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 1rem;
+        margin: 1rem 0;
+        font-size: 0.9375rem;
+    }
+
+    .docs-table th {
+        background: var(--react-sidebar-bg);
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--react-text);
+        border-bottom: 2px solid var(--react-border);
         font-size: 0.875rem;
     }
 
-    .params-table th {
-        background: rgba(99, 102, 241, 0.05);
-        padding: 0.75rem;
-        text-align: left;
-        font-weight: 600;
-        color: var(--doc-text);
-        border-bottom: 2px solid var(--doc-border);
+    .docs-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--react-border);
+        color: var(--react-text);
+        vertical-align: top;
     }
 
-    .params-table td {
-        padding: 0.75rem;
-        border-bottom: 1px solid var(--doc-border);
-        color: var(--doc-text);
-    }
-
-    .params-table tr:last-child td {
+    .docs-table tr:last-child td {
         border-bottom: none;
     }
 
-    .param-name {
+    .param-code {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        color: var(--doc-primary);
+        color: var(--react-blue);
         font-weight: 500;
+        font-size: 0.875rem;
     }
 
-    .param-type {
+    .type-badge {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        color: var(--doc-success);
-        background: rgba(16, 185, 129, 0.1);
+        color: var(--react-success);
+        background: rgba(34, 197, 94, 0.1);
         padding: 0.125rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
+        border-radius: 3px;
+        font-size: 0.8125rem;
     }
 
-    .required-badge {
+    .required-tag {
         background: rgba(239, 68, 68, 0.1);
         color: #dc2626;
         padding: 0.125rem 0.5rem;
-        border-radius: 4px;
+        border-radius: 3px;
         font-size: 0.75rem;
         font-weight: 600;
     }
 
-    .optional-badge {
+    .optional-tag {
         background: rgba(107, 114, 128, 0.1);
-        color: var(--doc-text-muted);
+        color: var(--react-text-muted);
         padding: 0.125rem 0.5rem;
-        border-radius: 4px;
+        border-radius: 3px;
         font-size: 0.75rem;
     }
 
     /* Code Blocks */
-    .code-block {
-        background: var(--doc-code-bg);
+    .code-example {
+        background: var(--react-code-bg);
         border-radius: 8px;
         padding: 1.25rem;
         position: relative;
-        margin-bottom: 1rem;
+        margin: 1rem 0;
         overflow-x: auto;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--react-border);
     }
 
-    .code-block pre {
+    .code-example pre {
         margin: 0;
-        color: var(--doc-code-text);
+        color: var(--react-code-text);
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        font-size: 0.8125rem;
+        font-size: 0.875rem;
         line-height: 1.6;
         white-space: pre-wrap;
         word-wrap: break-word;
     }
 
-    .code-block code {
-        color: var(--doc-code-text);
+    .code-example code {
+        color: var(--react-code-text);
     }
 
-    .copy-button {
+    .code-copy-btn {
         position: absolute;
         top: 0.75rem;
         right: 0.75rem;
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        color: var(--doc-code-text);
+        color: var(--react-code-text);
         padding: 0.375rem 0.75rem;
-        border-radius: 6px;
+        border-radius: 4px;
         font-size: 0.75rem;
         cursor: pointer;
         transition: all 0.2s;
     }
 
-    .copy-button:hover {
+    .code-copy-btn:hover {
         background: rgba(255, 255, 255, 0.2);
     }
 
-    .copy-button.copied {
-        background: var(--doc-success);
-        border-color: var(--doc-success);
+    .code-copy-btn.copied {
+        background: var(--react-success);
+        border-color: var(--react-success);
+        color: white;
     }
 
     /* Status Codes */
-    .status-codes {
+    .status-list {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        margin: 1rem 0;
     }
 
     .status-item {
@@ -407,66 +403,89 @@
         align-items: center;
         gap: 1rem;
         padding: 0.75rem;
-        background: rgba(99, 102, 241, 0.05);
+        background: var(--react-sidebar-bg);
         border-radius: 6px;
+        border-left: 3px solid transparent;
     }
 
-    .status-code {
+    .status-code-badge {
         font-weight: 600;
         padding: 0.25rem 0.75rem;
         border-radius: 4px;
-        font-size: 0.75rem;
-        min-width: 60px;
+        font-size: 0.8125rem;
+        min-width: 55px;
         text-align: center;
     }
 
-    .status-2xx { background: rgba(16, 185, 129, 0.2); color: #059669; }
-    .status-4xx { background: rgba(239, 68, 68, 0.2); color: #dc2626; }
-    .status-5xx { background: rgba(245, 158, 11, 0.2); color: #d97706; }
-
-    /* Notes */
-    .notes-box {
-        background: rgba(245, 158, 11, 0.1);
-        border-left: 4px solid var(--doc-warning);
-        padding: 1rem;
-        border-radius: 6px;
-        margin-top: 1rem;
+    .status-2xx { 
+        background: rgba(34, 197, 94, 0.15); 
+        color: var(--react-success);
+        border-left-color: var(--react-success);
+    }
+    .status-4xx { 
+        background: rgba(239, 68, 68, 0.15); 
+        color: var(--react-error);
+        border-left-color: var(--react-error);
+    }
+    .status-5xx { 
+        background: rgba(245, 158, 11, 0.15); 
+        color: var(--react-warning);
+        border-left-color: var(--react-warning);
     }
 
-    .notes-box p {
+    /* Callout Boxes */
+    .callout {
+        padding: 1rem 1.25rem;
+        border-radius: 6px;
+        margin: 1.5rem 0;
+        border-left: 4px solid;
+    }
+
+    .callout-info {
+        background: rgba(8, 126, 164, 0.1);
+        border-left-color: var(--react-blue);
+        color: var(--react-text);
+    }
+
+    .callout-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-left-color: var(--react-warning);
+        color: var(--react-text);
+    }
+
+    .callout p {
         margin: 0;
-        color: var(--doc-text);
-        font-size: 0.875rem;
+        font-size: 0.9375rem;
         line-height: 1.6;
     }
 
     /* Responsive */
     @media (max-width: 1024px) {
-        .api-doc-container {
+        .api-docs-wrapper {
             flex-direction: column;
         }
 
-        .api-doc-sidebar {
+        .api-docs-sidebar {
             width: 100%;
             height: auto;
             position: relative;
+            top: 0;
             border-right: none;
-            border-bottom: 1px solid var(--doc-border);
+            border-bottom: 1px solid var(--react-border);
         }
 
-        .api-doc-content {
-            padding: 1.5rem;
+        .api-docs-content {
+            padding: 2rem 1.5rem;
         }
     }
 
-    /* No Results */
-    .no-results {
+    .no-results-state {
         text-align: center;
         padding: 4rem 2rem;
-        color: var(--doc-text-muted);
+        color: var(--react-text-muted);
     }
 
-    .no-results-icon {
+    .no-results-state i {
         font-size: 4rem;
         margin-bottom: 1rem;
         opacity: 0.5;
@@ -500,22 +519,33 @@
 @endsection
 
 @section('content')
-<div class="api-doc-container" id="api-doc-container">
-    <!-- Left Sidebar -->
-    <aside class="api-doc-sidebar">
-        <div class="sidebar-header">
-            <h2>API Reference</h2>
-            <div class="meta">
-                <div>Version: {{ $apiVersion }}</div>
-                <div>Base URL: <code style="font-size: 0.75rem;">{{ $baseUrl }}</code></div>
+<div class="api-docs-wrapper" id="api-docs-wrapper">
+    <!-- Top Navigation -->
+    <nav class="api-docs-nav">
+        <div class="api-docs-nav-left">
+            <a href="#getting-started" class="api-docs-logo">
+                <i class="ri-code-s-slash-line"></i>
+                API Reference
+            </a>
+            <div class="api-docs-search-wrapper">
+                <i class="ri-search-line api-docs-search-icon"></i>
+                <input type="text" 
+                       class="api-docs-search" 
+                       id="api-search" 
+                       placeholder="Search endpoints...">
             </div>
         </div>
-
-        <div class="sidebar-search">
-            <input type="text" id="sidebar-search" placeholder="Search endpoints...">
+        <div class="api-docs-nav-right">
+            <div style="font-size: 0.875rem; color: var(--react-text-muted);">
+                <strong>v{{ $apiVersion }}</strong> · {{ $lastUpdated }}
+            </div>
         </div>
+    </nav>
 
-        <nav>
+    <!-- Sidebar -->
+    <aside class="api-docs-sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">API Groups</div>
             <ul class="sidebar-nav">
                 @foreach($endpoints as $groupIndex => $group)
                 <li class="sidebar-nav-item">
@@ -528,240 +558,227 @@
                 </li>
                 @endforeach
             </ul>
-        </nav>
+        </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="api-doc-content">
-        @foreach($endpoints as $groupIndex => $group)
-        <div class="api-doc-group" id="group-{{ $groupIndex }}" data-group-name="{{ strtolower($group['group']) }}">
-            <div class="content-header">
-                <h1>{{ $group['group'] }}</h1>
-                <p class="description">{{ $group['description'] }}</p>
+    <main class="api-docs-content">
+        <!-- Getting Started -->
+        <div class="docs-group" id="getting-started">
+            <div class="docs-group-header">
+                <h1 class="docs-group-title">Getting Started</h1>
+                <p class="docs-group-description">
+                    Welcome to the Eyecare API documentation. This guide will help you integrate with our RESTful API.
+                </p>
             </div>
 
-            <div class="endpoints-list">
-                @foreach($group['endpoints'] as $endpointIndex => $endpoint)
-                <div class="endpoint-card" 
+            <div class="callout callout-info">
+                <p><strong>Base URL:</strong> <code style="background: rgba(8, 126, 164, 0.2); padding: 2px 6px; border-radius: 3px;">{{ $baseUrl }}</code></p>
+                <p style="margin-top: 0.5rem;"><strong>Authentication:</strong> Most endpoints require authentication. Include your Bearer token in the Authorization header.</p>
+            </div>
+        </div>
+
+        <!-- API Groups -->
+        @foreach($endpoints as $groupIndex => $group)
+        <div class="docs-group" id="group-{{ $groupIndex }}" data-group-name="{{ strtolower($group['group']) }}">
+            <div class="docs-group-header">
+                <h1 class="docs-group-title">{{ $group['group'] }}</h1>
+                <p class="docs-group-description">{{ $group['description'] }}</p>
+            </div>
+
+            @foreach($group['endpoints'] as $endpointIndex => $endpoint)
+            <article class="endpoint-item" 
+                     id="endpoint-{{ $groupIndex }}-{{ $endpointIndex }}"
                      data-endpoint-name="{{ strtolower($endpoint['name']) }}"
                      data-endpoint-method="{{ strtolower($endpoint['method']) }}"
                      data-endpoint-url="{{ strtolower($endpoint['url']) }}"
                      data-endpoint-description="{{ strtolower($endpoint['description']) }}">
-                    
-                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
-                        <div class="endpoint-header-left">
-                            <span class="method-badge method-{{ strtolower($endpoint['method']) }}">
-                                {{ $endpoint['method'] }}
-                            </span>
-                            <code class="endpoint-url">{{ $endpoint['url'] }}</code>
-                        </div>
-                        <div style="flex: 1; margin-left: 1rem;">
-                            <h3 class="endpoint-title">{{ $endpoint['name'] }}</h3>
-                            <p class="endpoint-description">{{ $endpoint['description'] ?: 'No description available.' }}</p>
-                        </div>
-                        <button class="endpoint-toggle" type="button">
-                            <i class="ri-arrow-down-s-line"></i>
-                        </button>
+                
+                <div class="endpoint-header-section">
+                    <div class="endpoint-method-url">
+                        <span class="method-tag method-{{ strtolower($endpoint['method']) }}">
+                            {{ $endpoint['method'] }}
+                        </span>
+                        <code class="endpoint-url-code">{{ $endpoint['url'] }}</code>
                     </div>
+                    <h2 class="endpoint-title">{{ $endpoint['name'] }}</h2>
+                    <p class="endpoint-description">{{ $endpoint['description'] ?: 'No description available.' }}</p>
+                </div>
 
-                    <div class="endpoint-body">
-                        <!-- Headers Table -->
-                        @if(!empty($endpoint['headers']))
-                        <div class="section">
-                            <h4 class="section-title">
-                                <i class="ri-file-list-3-line"></i>
-                                Headers
-                            </h4>
-                            <table class="params-table">
-                                <thead>
-                                    <tr>
-                                        <th>Header</th>
-                                        <th>Type</th>
-                                        <th>Required</th>
-                                        <th>Description</th>
-                                        <th>Example</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($endpoint['headers'] as $headerName => $headerData)
-                                    <tr>
-                                        <td><code class="param-name">{{ $headerName }}</code></td>
-                                        <td><span class="param-type">{{ $headerData['type'] ?? 'string' }}</span></td>
-                                        <td>
-                                            @if($headerData['required'] ?? false)
-                                            <span class="required-badge">Required</span>
-                                            @else
-                                            <span class="optional-badge">Optional</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $headerData['description'] ?? '' }}</td>
-                                        <td><code style="font-size: 0.75rem;">{{ $headerData['example'] ?? '' }}</code></td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @endif
+                <!-- Headers -->
+                @if(!empty($endpoint['headers']))
+                <div class="docs-section">
+                    <h3 class="docs-section-title">Headers</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Header</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($endpoint['headers'] as $headerName => $headerData)
+                            <tr>
+                                <td><code class="param-code">{{ $headerName }}</code></td>
+                                <td><span class="type-badge">{{ $headerData['type'] ?? 'string' }}</span></td>
+                                <td>
+                                    @if($headerData['required'] ?? false)
+                                    <span class="required-tag">Required</span>
+                                    @else
+                                    <span class="optional-tag">Optional</span>
+                                    @endif
+                                </td>
+                                <td>{{ $headerData['description'] ?? '' }}</td>
+                                <td><code style="font-size: 0.8125rem;">{{ $headerData['example'] ?? '' }}</code></td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
 
-                        <!-- Query Parameters -->
-                        @if(!empty($endpoint['query_parameters']))
-                        <div class="section">
-                            <h4 class="section-title">
-                                <i class="ri-search-line"></i>
-                                Query Parameters
-                            </h4>
-                            <table class="params-table">
-                                <thead>
-                                    <tr>
-                                        <th>Parameter</th>
-                                        <th>Type</th>
-                                        <th>Required</th>
-                                        <th>Description</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($endpoint['query_parameters'] as $paramName => $paramDetails)
-                                    <tr>
-                                        <td><code class="param-name">{{ $paramName }}</code></td>
-                                        <td><span class="param-type">{{ $paramDetails['type'] ?? 'string' }}</span></td>
-                                        <td>
-                                            @if($paramDetails['required'] ?? false)
-                                            <span class="required-badge">Required</span>
-                                            @else
-                                            <span class="optional-badge">Optional</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $paramDetails['description'] ?? '' }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @endif
+                <!-- Query Parameters -->
+                @if(!empty($endpoint['query_parameters']))
+                <div class="docs-section">
+                    <h3 class="docs-section-title">Query Parameters</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($endpoint['query_parameters'] as $paramName => $paramDetails)
+                            <tr>
+                                <td><code class="param-code">{{ $paramName }}</code></td>
+                                <td><span class="type-badge">{{ $paramDetails['type'] ?? 'string' }}</span></td>
+                                <td>
+                                    @if($paramDetails['required'] ?? false)
+                                    <span class="required-tag">Required</span>
+                                    @else
+                                    <span class="optional-tag">Optional</span>
+                                    @endif
+                                </td>
+                                <td>{{ $paramDetails['description'] ?? '' }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
 
-                        <!-- Request Parameters -->
-                        @if(!empty($endpoint['parameters']))
-                        <div class="section">
-                            <h4 class="section-title">
-                                <i class="ri-file-edit-line"></i>
-                                Request Parameters
-                            </h4>
-                            <table class="params-table">
-                                <thead>
-                                    <tr>
-                                        <th>Parameter</th>
-                                        <th>Type</th>
-                                        <th>Required</th>
-                                        <th>Description</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($endpoint['parameters'] as $paramName => $paramDetails)
-                                    <tr>
-                                        <td><code class="param-name">{{ $paramName }}</code></td>
-                                        <td><span class="param-type">{{ $paramDetails['type'] ?? 'string' }}</span></td>
-                                        <td>
-                                            @if($paramDetails['required'] ?? false)
-                                            <span class="required-badge">Required</span>
-                                            @else
-                                            <span class="optional-badge">Optional</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $paramDetails['description'] ?? '' }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @endif
+                <!-- Request Parameters -->
+                @if(!empty($endpoint['parameters']))
+                <div class="docs-section">
+                    <h3 class="docs-section-title">Request Parameters</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($endpoint['parameters'] as $paramName => $paramDetails)
+                            <tr>
+                                <td><code class="param-code">{{ $paramName }}</code></td>
+                                <td><span class="type-badge">{{ $paramDetails['type'] ?? 'string' }}</span></td>
+                                <td>
+                                    @if($paramDetails['required'] ?? false)
+                                    <span class="required-tag">Required</span>
+                                    @else
+                                    <span class="optional-tag">Optional</span>
+                                    @endif
+                                </td>
+                                <td>{{ $paramDetails['description'] ?? '' }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
 
-                        <!-- Request Payload Example -->
-                        @if($endpoint['payload_example'])
-                        <div class="section">
-                            <h4 class="section-title">
-                                <i class="ri-code-s-slash-line"></i>
-                                Request Payload Example
-                            </h4>
-                            <div class="code-block">
-                                <button class="copy-button" onclick="copyToClipboard('payload-{{ $groupIndex }}-{{ $endpointIndex }}', this)">
-                                    <i class="ri-file-copy-line"></i> Copy
-                                </button>
-                                <pre id="payload-{{ $groupIndex }}-{{ $endpointIndex }}"><code class="json">{{ is_string($endpoint['payload_example']) ? $endpoint['payload_example'] : json_encode($endpoint['payload_example'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Success Response Example -->
-                        @if($endpoint['success_response'])
-                        <div class="section">
-                            <h4 class="section-title" style="color: var(--doc-success);">
-                                <i class="ri-checkbox-circle-line"></i>
-                                Success Response Example
-                            </h4>
-                            <div class="code-block">
-                                <button class="copy-button" onclick="copyToClipboard('success-{{ $groupIndex }}-{{ $endpointIndex }}', this)">
-                                    <i class="ri-file-copy-line"></i> Copy
-                                </button>
-                                <pre id="success-{{ $groupIndex }}-{{ $endpointIndex }}"><code class="json">{{ is_string($endpoint['success_response']) ? $endpoint['success_response'] : json_encode($endpoint['success_response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Error Response Example -->
-                        @if($endpoint['error_response'])
-                        <div class="section">
-                            <h4 class="section-title" style="color: var(--doc-error);">
-                                <i class="ri-error-warning-line"></i>
-                                Error Response Example
-                            </h4>
-                            <div class="code-block">
-                                <button class="copy-button" onclick="copyToClipboard('error-{{ $groupIndex }}-{{ $endpointIndex }}', this)">
-                                    <i class="ri-file-copy-line"></i> Copy
-                                </button>
-                                <pre id="error-{{ $groupIndex }}-{{ $endpointIndex }}"><code class="json">{{ is_string($endpoint['error_response']) ? $endpoint['error_response'] : json_encode($endpoint['error_response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Status Codes -->
-                        @if(!empty($endpoint['status_codes']))
-                        <div class="section">
-                            <h4 class="section-title">
-                                <i class="ri-information-line"></i>
-                                Status Codes
-                            </h4>
-                            <div class="status-codes">
-                                @foreach($endpoint['status_codes'] as $code => $message)
-                                <div class="status-item">
-                                    <span class="status-code status-{{ floor($code / 100) }}xx">{{ $code }}</span>
-                                    <span>{{ $message }}</span>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Notes -->
-                        @if(!empty($endpoint['notes']))
-                        <div class="section">
-                            <div class="notes-box">
-                                <p><strong>Note:</strong> {{ $endpoint['notes'] }}</p>
-                            </div>
-                        </div>
-                        @endif
+                <!-- Request Payload Example -->
+                @if($endpoint['payload_example'])
+                <div class="docs-section">
+                    <h3 class="docs-section-title">Request Payload</h3>
+                    <div class="code-example">
+                        <button class="code-copy-btn" onclick="copyCode('payload-{{ $groupIndex }}-{{ $endpointIndex }}', this)">
+                            <i class="ri-file-copy-line"></i> Copy
+                        </button>
+                        <pre id="payload-{{ $groupIndex }}-{{ $endpointIndex }}"><code class="json">{{ is_string($endpoint['payload_example']) ? $endpoint['payload_example'] : json_encode($endpoint['payload_example'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
                     </div>
                 </div>
-                @endforeach
-            </div>
+                @endif
+
+                <!-- Success Response Example -->
+                @if($endpoint['success_response'])
+                <div class="docs-section">
+                    <h3 class="docs-section-title" style="color: var(--react-success);">
+                        Success Response
+                    </h3>
+                    <div class="code-example">
+                        <button class="code-copy-btn" onclick="copyCode('success-{{ $groupIndex }}-{{ $endpointIndex }}', this)">
+                            <i class="ri-file-copy-line"></i> Copy
+                        </button>
+                        <pre id="success-{{ $groupIndex }}-{{ $endpointIndex }}"><code class="json">{{ is_string($endpoint['success_response']) ? $endpoint['success_response'] : json_encode($endpoint['success_response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Error Response Example -->
+                @if($endpoint['error_response'])
+                <div class="docs-section">
+                    <h3 class="docs-section-title" style="color: var(--react-error);">
+                        Error Response
+                    </h3>
+                    <div class="code-example">
+                        <button class="code-copy-btn" onclick="copyCode('error-{{ $groupIndex }}-{{ $endpointIndex }}', this)">
+                            <i class="ri-file-copy-line"></i> Copy
+                        </button>
+                        <pre id="error-{{ $groupIndex }}-{{ $endpointIndex }}"><code class="json">{{ is_string($endpoint['error_response']) ? $endpoint['error_response'] : json_encode($endpoint['error_response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Status Codes -->
+                @if(!empty($endpoint['status_codes']))
+                <div class="docs-section">
+                    <h3 class="docs-section-title">Status Codes</h3>
+                    <div class="status-list">
+                        @foreach($endpoint['status_codes'] as $code => $message)
+                        <div class="status-item status-{{ floor($code / 100) }}xx">
+                            <span class="status-code-badge">{{ $code }}</span>
+                            <span>{{ $message }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <!-- Notes -->
+                @if(!empty($endpoint['notes']))
+                <div class="callout callout-warning">
+                    <p><strong>Note:</strong> {{ $endpoint['notes'] }}</p>
+                </div>
+                @endif
+            </article>
+            @endforeach
         </div>
         @endforeach
 
         <!-- No Results -->
-        <div id="no-results" class="no-results" style="display: none;">
-            <div class="no-results-icon">
-                <i class="ri-search-line"></i>
-            </div>
-            <h5>No endpoints found</h5>
+        <div id="no-results" class="no-results-state" style="display: none;">
+            <i class="ri-search-line"></i>
+            <h3>No endpoints found</h3>
             <p>Try adjusting your search criteria</p>
         </div>
     </main>
@@ -773,31 +790,31 @@
 (function($) {
     'use strict';
 
-    const container = document.getElementById('api-doc-container');
+    const wrapper = document.getElementById('api-docs-wrapper');
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     const themeText = document.getElementById('theme-text');
 
     // Theme Toggle
-    const savedTheme = localStorage.getItem('api-doc-theme') || 'light';
+    const savedTheme = localStorage.getItem('api-docs-theme') || 'light';
     if (savedTheme === 'dark') {
-        container.setAttribute('data-theme', 'dark');
+        wrapper.setAttribute('data-theme', 'dark');
         themeIcon.className = 'ri-sun-line';
         themeText.textContent = 'Light Mode';
     }
 
     themeToggle.addEventListener('click', function() {
-        const currentTheme = container.getAttribute('data-theme');
+        const currentTheme = wrapper.getAttribute('data-theme');
         if (currentTheme === 'dark') {
-            container.removeAttribute('data-theme');
+            wrapper.removeAttribute('data-theme');
             themeIcon.className = 'ri-moon-line';
             themeText.textContent = 'Dark Mode';
-            localStorage.setItem('api-doc-theme', 'light');
+            localStorage.setItem('api-docs-theme', 'light');
         } else {
-            container.setAttribute('data-theme', 'dark');
+            wrapper.setAttribute('data-theme', 'dark');
             themeIcon.className = 'ri-sun-line';
             themeText.textContent = 'Light Mode';
-            localStorage.setItem('api-doc-theme', 'dark');
+            localStorage.setItem('api-docs-theme', 'dark');
         }
     });
 
@@ -809,48 +826,30 @@
             const targetElement = document.getElementById(targetId);
             
             if (targetElement) {
-                // Remove active from all links
                 document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
                 this.classList.add('active');
-                
-                // Scroll to target
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
     });
 
-    // Endpoint Toggle
-    window.toggleEndpoint = function(header) {
-        const card = header.closest('.endpoint-card');
-        const body = card.querySelector('.endpoint-body');
-        const toggle = card.querySelector('.endpoint-toggle');
-        
-        if (body.classList.contains('expanded')) {
-            body.classList.remove('expanded');
-            toggle.classList.remove('expanded');
-        } else {
-            body.classList.add('expanded');
-            toggle.classList.add('expanded');
-        }
-    };
-
     // Search Functionality
-    $('#sidebar-search, #endpoint-search').on('input', function() {
+    $('#api-search').on('input', function() {
         const searchTerm = $(this).val().toLowerCase().trim();
         let visibleCount = 0;
 
         if (searchTerm === '') {
-            $('.endpoint-card, .api-doc-group').show();
+            $('.endpoint-item, .docs-group').show();
             $('#no-results').hide();
             return;
         }
 
-        $('.endpoint-card').each(function() {
-            const $card = $(this);
-            const name = $card.data('endpoint-name') || '';
-            const method = $card.data('endpoint-method') || '';
-            const url = $card.data('endpoint-url') || '';
-            const description = $card.data('endpoint-description') || '';
+        $('.endpoint-item').each(function() {
+            const $item = $(this);
+            const name = $item.data('endpoint-name') || '';
+            const method = $item.data('endpoint-method') || '';
+            const url = $item.data('endpoint-url') || '';
+            const description = $item.data('endpoint-description') || '';
 
             const matches = name.includes(searchTerm) || 
                           method.includes(searchTerm) || 
@@ -858,18 +857,17 @@
                           description.includes(searchTerm);
 
             if (matches) {
-                $card.show();
-                $card.closest('.api-doc-group').show();
+                $item.show();
+                $item.closest('.docs-group').show();
                 visibleCount++;
             } else {
-                $card.hide();
+                $item.hide();
             }
         });
 
-        // Hide groups with no visible endpoints
-        $('.api-doc-group').each(function() {
+        $('.docs-group').each(function() {
             const $group = $(this);
-            const visibleInGroup = $group.find('.endpoint-card:visible').length;
+            const visibleInGroup = $group.find('.endpoint-item:visible').length;
             if (visibleInGroup === 0 && searchTerm !== '') {
                 $group.hide();
             }
@@ -882,8 +880,8 @@
         }
     });
 
-    // Copy to Clipboard
-    window.copyToClipboard = function(elementId, button) {
+    // Copy Code Function
+    window.copyCode = function(elementId, button) {
         const element = document.getElementById(elementId);
         if (!element) return;
 
@@ -904,17 +902,27 @@
         });
     };
 
-    // Auto-expand first endpoint in each group
-    document.querySelectorAll('.api-doc-group').forEach(group => {
-        const firstCard = group.querySelector('.endpoint-card');
-        if (firstCard) {
-            const header = firstCard.querySelector('.endpoint-header');
-            if (header) {
-                toggleEndpoint(header);
+    // Highlight active section on scroll
+    let currentSection = null;
+    window.addEventListener('scroll', function() {
+        const sections = document.querySelectorAll('.docs-group');
+        const sidebarLinks = document.querySelectorAll('.sidebar-nav-link');
+        
+        sections.forEach((section, index) => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top <= 150 && rect.bottom >= 150) {
+                if (currentSection !== index) {
+                    currentSection = index;
+                    sidebarLinks.forEach(link => link.classList.remove('active'));
+                    if (sidebarLinks[index]) {
+                        sidebarLinks[index].classList.add('active');
+                    }
+                }
             }
-        }
+        });
     });
 
 })(jQuery);
 </script>
 @endpush
+

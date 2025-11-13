@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Rules\PhoneNumber;
+use App\Rules\ValidEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -37,8 +38,9 @@ class StoreStoreRequest extends FormRequest
             ],
             'email' => [
                 'required',
-                'email',
+                'string',
                 'max:255',
+                new ValidEmail(),
                 'unique:stores,email',
             ],
             'phone_number' => [
@@ -70,7 +72,7 @@ class StoreStoreRequest extends FormRequest
             'logo.mimes' => 'Logo must be a file of type: jpeg, png, jpg, gif, svg.',
             'logo.max' => 'Logo must not exceed 2048 kilobytes.',
             'email.required' => 'Email address is required.',
-            'email.email' => 'Please provide a valid email address.',
+            'email' => 'Please provide a valid email address.',
             'email.max' => 'Email address must not exceed 255 characters.',
             'email.unique' => 'A store with this email already exists.',
             'phone_number.required' => 'Phone number is required.',

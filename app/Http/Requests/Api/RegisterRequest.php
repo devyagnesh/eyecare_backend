@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\ValidEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -31,8 +32,8 @@ class RegisterRequest extends FormRequest
             'email' => [
                 'required',
                 'string',
-                'email',
                 'max:255',
+                new ValidEmail(),
                 'unique:users,email',
             ],
             'password' => [
@@ -65,8 +66,7 @@ class RegisterRequest extends FormRequest
             'name.string' => 'Name must be a string.',
             'name.max' => 'Name must not exceed 255 characters.',
             'email.required' => 'Email address is required.',
-            'email.string' => 'Email must be a string.',
-            'email.email' => 'Please provide a valid email address.',
+            'email' => 'Please provide a valid email address.',
             'email.max' => 'Email address must not exceed 255 characters.',
             'email.unique' => 'A user with this email already exists.',
             'password.required' => 'Password is required.',

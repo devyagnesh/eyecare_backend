@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Rules\PhoneNumber;
+use App\Rules\ValidEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,7 +26,7 @@ class StoreCustomerRequest extends FormRequest
     {
         $storeId = $this->getStoreId();
         
-        $emailRules = ['nullable', 'email', 'max:255'];
+        $emailRules = ['nullable', 'string', 'max:255', new ValidEmail()];
         $phoneRules = ['required', 'string', 'max:20', new PhoneNumber()];
         
         if ($storeId) {
@@ -78,7 +79,7 @@ class StoreCustomerRequest extends FormRequest
             'name.required' => 'Customer name is required.',
             'name.string' => 'Customer name must be a string.',
             'name.max' => 'Customer name must not exceed 255 characters.',
-            'email.email' => 'Please provide a valid email address.',
+            'email' => 'Please provide a valid email address.',
             'email.max' => 'Email address must not exceed 255 characters.',
             'email.unique' => 'A customer with this email already exists in your store.',
             'phone_number.required' => 'Phone number is required.',
