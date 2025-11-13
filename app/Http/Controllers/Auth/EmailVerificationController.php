@@ -8,6 +8,7 @@ use App\Services\EmailVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class EmailVerificationController extends Controller
 {
@@ -27,6 +28,10 @@ class EmailVerificationController extends Controller
         }
 
         if ($user->markEmailAsVerified()) {
+            // Clear the cache so the next check-email-verification API request returns updated status
+            $cacheKey = 'email_verification_check_' . $user->id;
+            Cache::forget($cacheKey);
+            
             event(new Verified($user));
         }
 

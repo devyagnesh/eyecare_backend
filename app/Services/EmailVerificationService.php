@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Cache;
 
 class EmailVerificationService
 {
@@ -108,6 +109,10 @@ class EmailVerificationService
 
         // Mark email as verified
         if ($user->markEmailAsVerified()) {
+            // Clear the cache so the next check-email-verification request returns updated status
+            $cacheKey = 'email_verification_check_' . $user->id;
+            Cache::forget($cacheKey);
+            
             Log::info('Email verified successfully', [
                 'user_id' => $user->id,
                 'email' => $user->email,

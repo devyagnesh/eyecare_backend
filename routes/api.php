@@ -40,7 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
-        Route::get('/check-email-verification', [AuthController::class, 'checkEmailVerification']);
+        Route::get('/check-email-verification', [AuthController::class, 'checkEmailVerification'])
+            ->middleware('throttle:email-verification-check');
         Route::post('/update-notification-token', [AuthController::class, 'updateNotificationToken']);
         Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('verification.resend-api');
     });

@@ -209,11 +209,22 @@ class AuthController extends Controller
 
     /**
      * Check if the authenticated user's email is verified.
+     * 
+     * This endpoint is frequently polled by mobile apps, so we:
+     * 1. Use a custom rate limiter (60 requests/minute)
+     * 2. Cache the response for 3 seconds to reduce database load
      */
     public function checkEmailVerification(Request $request, EmailVerificationService $emailVerificationService)
     {
         $user = $request->user();
-        $data = $emailVerificationService->checkEmailVerification($user);
+        
+        // Cache the verification status for 3 seconds to reduce database queries
+        // This helps when mobile apps poll every 5 seconds
+        $cacheKey = 'email_verification_check_' . $user->id;
+        
+        $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3, function () use ($user, $emailVerificationService) {
+            return $emailVerificationService->checkEmailVerification($user);
+        });
 
         return response()->json([
             'success' => true,

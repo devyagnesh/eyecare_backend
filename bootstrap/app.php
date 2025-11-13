@@ -15,6 +15,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
+        
+        // Configure rate limiters
+        $middleware->throttleApi();
+    })
+    ->withRateLimiting(function () {
+        // Custom rate limiter for email verification check endpoint
+        // Allows 60 requests per minute (12 requests per 5 seconds)
+        \Illuminate\Support\Facades\RateLimiter::for('email-verification-check', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Customize validation error response for API routes
