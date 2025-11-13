@@ -27,7 +27,6 @@ class UpdateStoreRequest extends FormRequest
         
         return [
             'name' => [
-                'sometimes',
                 'required',
                 'string',
                 'max:255',
@@ -39,7 +38,6 @@ class UpdateStoreRequest extends FormRequest
                 'max:2048',
             ],
             'email' => [
-                'sometimes',
                 'required',
                 'email',
                 'max:255',
