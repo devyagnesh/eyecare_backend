@@ -55,9 +55,38 @@ class ValidEmail implements ValidationRule
             return;
         }
 
-        // Check that domain part has at least one dot
+        // Check that domain part has at least one dot and is not empty
         $parts = explode('@', $value);
-        if (count($parts) !== 2 || !strpos($parts[1], '.')) {
+        if (count($parts) !== 2) {
+            $fail('The :attribute must be a valid email address.');
+            return;
+        }
+        
+        $domain = $parts[1];
+        
+        // Domain must not be empty
+        if (empty($domain)) {
+            $fail('The :attribute must be a valid email address.');
+            return;
+        }
+        
+        // Domain must contain at least one dot
+        if (strpos($domain, '.') === false) {
+            $fail('The :attribute must be a valid email address.');
+            return;
+        }
+        
+        // Domain must have a valid TLD (at least 2 characters after the last dot)
+        $domainParts = explode('.', $domain);
+        $tld = end($domainParts);
+        if (strlen($tld) < 2 || !ctype_alpha($tld)) {
+            $fail('The :attribute must be a valid email address.');
+            return;
+        }
+        
+        // Domain cannot start or end with a dot or hyphen
+        if (str_starts_with($domain, '.') || str_starts_with($domain, '-') || 
+            str_ends_with($domain, '.') || str_ends_with($domain, '-')) {
             $fail('The :attribute must be a valid email address.');
             return;
         }
