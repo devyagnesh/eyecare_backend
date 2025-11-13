@@ -22,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Default API rate limiter (60 requests per minute)
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
         // Custom rate limiter for email verification check endpoint
         // Allows 60 requests per minute (12 requests per 5 seconds)
         RateLimiter::for('email-verification-check', function (Request $request) {
