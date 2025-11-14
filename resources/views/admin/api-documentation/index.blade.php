@@ -1065,7 +1065,7 @@
         scrollTimeout = setTimeout(updateActiveSidebar, 100);
     });
 
-    // Enhanced Copy Function with SweetAlert2
+    // Enhanced Copy Function with Toast Notification System
     window.copyCode = function(elementId, button) {
         const element = document.getElementById(elementId);
         if (!element) return;
@@ -1083,7 +1083,11 @@
                 $btn.removeClass('copied');
             }, 2000);
 
-            if (typeof Swal !== 'undefined') {
+            // Use global toast notification system
+            if (typeof window.ToastNotification !== 'undefined') {
+                window.ToastNotification.success('Code has been copied successfully.');
+            } else if (typeof Swal !== 'undefined') {
+                // Fallback to SweetAlert2 if toast system not available
                 const Toast = Swal.mixin({
                     toast: true,
                     position: 'bottom-end',
@@ -1098,14 +1102,17 @@
 
                 Toast.fire({
                     icon: 'success',
-                    title: 'Copied to clipboard!',
-                    text: 'Code has been copied successfully.'
+                    title: 'Copied to clipboard!'
                 });
             }
         }).catch(function(err) {
             console.error('Failed to copy: ', err);
             
-            if (typeof Swal !== 'undefined') {
+            // Use global toast notification system
+            if (typeof window.ToastNotification !== 'undefined') {
+                window.ToastNotification.error('Failed to copy to clipboard. Please try again or copy manually.');
+            } else if (typeof Swal !== 'undefined') {
+                // Fallback to SweetAlert2 if toast system not available
                 const Toast = Swal.mixin({
                     toast: true,
                     position: 'bottom-end',
@@ -1120,8 +1127,7 @@
 
                 Toast.fire({
                     icon: 'error',
-                    title: 'Failed to copy!',
-                    text: 'Please try again or copy manually.'
+                    title: 'Failed to copy!'
                 });
             }
         });

@@ -45,4 +45,12 @@ class Customer extends Model
     {
         return $this->hasMany(EyeExamination::class);
     }
+
+    /**
+     * Get the orders for the customer.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

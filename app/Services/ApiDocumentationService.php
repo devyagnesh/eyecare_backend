@@ -241,6 +241,19 @@ class ApiDocumentationService
                     'od_axis' => 90
                 ];
             }
+        } elseif ($controllerName === 'OrderController') {
+            if ($methodName === 'store') {
+                return [
+                    'customer_id' => 1,
+                    'eye_examination_id' => 5,
+                    'frame_photo' => '[FILE_UPLOAD]',
+                    'glass_details' => 'Progressive lenses, anti-glare coating, blue light filter',
+                    'total_price' => 2500.00,
+                    'expected_completion_date' => '2025-12-01',
+                    'status' => 'pending',
+                    'notes' => 'Customer prefers thinner frames'
+                ];
+            }
         } elseif ($controllerName === 'SettingController') {
             if ($methodName === 'store') {
                 return [
@@ -734,6 +747,7 @@ class ApiDocumentationService
             'Store' => 'Stores',
             'Customer' => 'Customers',
             'EyeExamination' => 'Eye Examinations',
+            'Order' => 'Orders',
             'Setting' => 'Settings',
         ];
         
@@ -765,6 +779,7 @@ class ApiDocumentationService
             'Stores' => 'store',
             'Customers' => 'users',
             'Eye Examinations' => 'eye',
+            'Orders' => 'shopping-cart',
             'Settings' => 'settings',
         ];
         
@@ -784,6 +799,7 @@ class ApiDocumentationService
             'Stores' => 'Store management endpoints for creating and managing store information.',
             'Customers' => 'Customer management endpoints for CRUD operations on customer records.',
             'Eye Examinations' => 'Eye examination management endpoints for creating, viewing, and managing eye examination records.',
+            'Orders' => 'Order management endpoints for creating orders with frame photos, generating invoices with examination data, and managing order status.',
             'Settings' => 'Application settings management endpoints for system configuration.',
         ];
         
@@ -829,15 +845,52 @@ class ApiDocumentationService
                 }
                 
                 if ($endpoint['payload_example']) {
-                    $item['request']['body'] = [
-                        'mode' => 'raw',
-                        'raw' => json_encode($endpoint['payload_example'], JSON_PRETTY_PRINT),
-                        'options' => [
-                            'raw' => [
-                                'language' => 'json',
+                    // Check if this is a file upload endpoint (multipart/form-data)
+                    $hasFileUpload = false;
+                    $payloadArray = is_array($endpoint['payload_example']) ? $endpoint['payload_example'] : [];
+                    
+                    foreach ($payloadArray as $key => $value) {
+                        if (is_string($value) && (str_contains($value, '[FILE_UPLOAD]') || str_contains(strtolower($endpoint['description'] ?? ''), 'multipart/form-data'))) {
+                            $hasFileUpload = true;
+                            break;
+                        }
+                    }
+                    
+                    if ($hasFileUpload) {
+                        // Use form-data mode for file uploads
+                        $formData = [];
+                        foreach ($payloadArray as $key => $value) {
+                            if (is_string($value) && str_contains($value, '[FILE_UPLOAD]')) {
+                                $formData[] = [
+                                    'key' => $key,
+                                    'type' => 'file',
+                                    'src' => [],
+                                    'description' => 'Frame photo (JPEG, PNG, WebP, max 5MB)',
+                                ];
+                            } else {
+                                $formData[] = [
+                                    'key' => $key,
+                                    'value' => is_array($value) ? json_encode($value) : (string)$value,
+                                    'type' => 'text',
+                                ];
+                            }
+                        }
+                        $item['request']['body'] = [
+                            'mode' => 'formdata',
+                            'formdata' => $formData,
+                        ];
+                    } else {
+                        // Use raw JSON for regular requests
+                        $item['request']['body'] = [
+                            'mode' => 'raw',
+                            'raw' => json_encode($endpoint['payload_example'], JSON_PRETTY_PRINT),
+                            'options' => [
+                                'raw' => [
+                                    'language' => 'json',
+                                ],
                             ],
-                        ],
-                    ];
+                        ];
+                    }
                 }
                 
                 $groupItems[] = $item;

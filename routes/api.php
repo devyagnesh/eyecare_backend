@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\EyeExaminationController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Admin\TestEmailController;
 
@@ -72,6 +73,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [EyeExaminationController::class, 'show'])->name('eye_examinations.show');
         Route::put('/{id}', [EyeExaminationController::class, 'update'])->name('eye_examinations.update');
         Route::delete('/{id}', [EyeExaminationController::class, 'destroy'])->name('eye_examinations.destroy');
+    });
+    
+    // Order routes (require store)
+    Route::prefix('orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('orders.index');
+        Route::post('/', [OrderController::class, 'store'])->name('orders.create');
+        Route::get('/{id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('/{id}/download-invoice', [OrderController::class, 'downloadInvoice'])->name('orders.download-invoice');
     });
     
     // Settings routes (admin only)
