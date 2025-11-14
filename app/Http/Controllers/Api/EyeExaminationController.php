@@ -289,7 +289,7 @@ class EyeExaminationController extends Controller
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to generate PDF: ' . $e->getMessage(),
+                    'message' => 'Failed to generate PDF.',
                 ], 500);
             }
         }

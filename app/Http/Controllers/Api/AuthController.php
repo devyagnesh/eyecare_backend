@@ -329,7 +329,7 @@ class AuthController extends Controller
         if (!$device) {
             return response()->json([
                 'success' => false,
-                'message' => 'Device not found',
+                'message' => 'Device not found.',
             ], 404);
         }
 

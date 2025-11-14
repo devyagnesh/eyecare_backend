@@ -450,6 +450,106 @@ class ApiDocumentationService
                     ]
                 ];
             }
+        } elseif ($controllerName === 'OrderController') {
+            if ($methodName === 'index') {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'orders' => [
+                            [
+                                'id' => 1,
+                                'invoice_number' => 'INV-ABC-202511-0001',
+                                'customer' => [
+                                    'id' => 1,
+                                    'name' => 'Jane Smith',
+                                    'email' => 'jane.smith@example.com',
+                                    'phone_number' => '+1987654321'
+                                ],
+                                'eye_examination' => [
+                                    'id' => 5,
+                                    'exam_date' => '2025-11-10'
+                                ],
+                                'frame_photo' => 'http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg',
+                                'glass_details' => 'Progressive lenses, anti-glare coating, blue light filter',
+                                'total_price' => 2500.00,
+                                'expected_completion_date' => '2025-12-01',
+                                'status' => 'pending',
+                                'invoice_pdf_url' => 'http://example.com/storage/invoices/1/INV-ABC-202511-0001/invoice-INV-ABC-202511-0001.pdf',
+                                'notes' => 'Customer prefers thinner frames',
+                                'created_at' => '2025-11-14 17:00:00',
+                                'updated_at' => '2025-11-14 17:00:00'
+                            ]
+                        ],
+                        'pagination' => [
+                            'current_page' => 1,
+                            'last_page' => 1,
+                            'per_page' => 15,
+                            'total' => 1,
+                            'from' => 1,
+                            'to' => 1
+                        ]
+                    ]
+                ];
+            } elseif ($methodName === 'store') {
+                return [
+                    'success' => true,
+                    'message' => 'Order created successfully and invoice generated.',
+                    'data' => [
+                        'order' => [
+                            'id' => 1,
+                            'invoice_number' => 'INV-ABC-202511-0001',
+                            'customer' => [
+                                'id' => 1,
+                                'name' => 'Jane Smith',
+                                'email' => 'jane.smith@example.com',
+                                'phone_number' => '+1987654321'
+                            ],
+                            'eye_examination' => [
+                                'id' => 5,
+                                'exam_date' => '2025-11-10'
+                            ],
+                            'frame_photo' => 'http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg',
+                            'glass_details' => 'Progressive lenses, anti-glare coating, blue light filter',
+                            'total_price' => 2500.00,
+                            'expected_completion_date' => '2025-12-01',
+                            'status' => 'pending',
+                            'invoice_pdf_url' => 'http://example.com/storage/invoices/1/INV-ABC-202511-0001/invoice-INV-ABC-202511-0001.pdf',
+                            'notes' => 'Customer prefers thinner frames',
+                            'created_at' => '2025-11-14 17:00:00',
+                            'updated_at' => '2025-11-14 17:00:00'
+                        ]
+                    ]
+                ];
+            } elseif ($methodName === 'show') {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'order' => [
+                            'id' => 1,
+                            'invoice_number' => 'INV-ABC-202511-0001',
+                            'customer' => [
+                                'id' => 1,
+                                'name' => 'Jane Smith',
+                                'email' => 'jane.smith@example.com',
+                                'phone_number' => '+1987654321'
+                            ],
+                            'eye_examination' => [
+                                'id' => 5,
+                                'exam_date' => '2025-11-10'
+                            ],
+                            'frame_photo' => 'http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg',
+                            'glass_details' => 'Progressive lenses, anti-glare coating, blue light filter',
+                            'total_price' => 2500.00,
+                            'expected_completion_date' => '2025-12-01',
+                            'status' => 'pending',
+                            'invoice_pdf_url' => 'http://example.com/storage/invoices/1/INV-ABC-202511-0001/invoice-INV-ABC-202511-0001.pdf',
+                            'notes' => 'Customer prefers thinner frames',
+                            'created_at' => '2025-11-14 17:00:00',
+                            'updated_at' => '2025-11-14 17:00:00'
+                        ]
+                    ]
+                ];
+            }
         } elseif ($controllerName === 'SettingController') {
             if ($methodName === 'index') {
                 return [
@@ -635,7 +735,12 @@ class ApiDocumentationService
             $example = preg_replace('/^\s*\*\s*/m', '', $example);
             // Try to decode as JSON, if fails use as string
             $decoded = json_decode($example, true);
-            $doc['success_response'] = ($decoded !== null && json_last_error() === JSON_ERROR_NONE) ? $decoded : $example;
+            if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
+                // Expand any {...} placeholders in the decoded JSON
+                $doc['success_response'] = $this->expandJsonPlaceholders($decoded);
+            } else {
+                $doc['success_response'] = $example;
+            }
         }
 
         // Extract @example error_response
@@ -644,7 +749,12 @@ class ApiDocumentationService
             $example = preg_replace('/^\s*\*\s*/m', '', $example);
             // Try to decode as JSON, if fails use as string
             $decoded = json_decode($example, true);
-            $doc['error_response'] = ($decoded !== null && json_last_error() === JSON_ERROR_NONE) ? $decoded : $example;
+            if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
+                // Expand any {...} placeholders in the decoded JSON
+                $doc['error_response'] = $this->expandJsonPlaceholders($decoded);
+            } else {
+                $doc['error_response'] = $example;
+            }
         }
 
         // Extract @status tags
@@ -804,6 +914,62 @@ class ApiDocumentationService
         ];
         
         return $descriptions[$group] ?? "Endpoints for {$group}.";
+    }
+
+    /**
+     * Expand JSON placeholders like {...} with full example data.
+     * 
+     * @param mixed $data
+     * @return mixed
+     */
+    private function expandJsonPlaceholders($data)
+    {
+        if (is_array($data)) {
+            $expanded = [];
+            foreach ($data as $key => $value) {
+                if (is_string($value) && preg_match('/^\{\.\.\.\}$/', $value)) {
+                    // Replace {...} with appropriate example based on context
+                    if (str_contains($key, 'customer')) {
+                        $expanded[$key] = [
+                            'id' => 1,
+                            'name' => 'Jane Smith',
+                            'email' => 'jane.smith@example.com',
+                            'phone_number' => '+1987654321'
+                        ];
+                    } elseif (str_contains($key, 'examination') || str_contains($key, 'exam')) {
+                        $expanded[$key] = [
+                            'id' => 5,
+                            'exam_date' => '2025-11-10'
+                        ];
+                    } elseif (str_contains($key, 'pagination')) {
+                        $expanded[$key] = [
+                            'current_page' => 1,
+                            'last_page' => 1,
+                            'per_page' => 15,
+                            'total' => 1,
+                            'from' => 1,
+                            'to' => 1
+                        ];
+                    } else {
+                        $expanded[$key] = $this->expandJsonPlaceholders($value);
+                    }
+                } elseif (is_string($value) && str_ends_with($value, '...')) {
+                    // Expand truncated strings
+                    $base = rtrim($value, '.');
+                    if (str_contains($key, 'glass')) {
+                        $expanded[$key] = 'Progressive lenses, anti-glare coating, blue light filter';
+                    } elseif (str_contains($key, 'photo') || str_contains($key, 'url')) {
+                        $expanded[$key] = 'http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg';
+                    } else {
+                        $expanded[$key] = $base;
+                    }
+                } else {
+                    $expanded[$key] = $this->expandJsonPlaceholders($value);
+                }
+            }
+            return $expanded;
+        }
+        return $data;
     }
 
     /**

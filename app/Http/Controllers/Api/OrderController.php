@@ -42,13 +42,35 @@ class OrderController extends Controller
      *       {
      *         "id": 1,
      *         "invoice_number": "INV-ABC-202511-0001",
-     *         "customer": {...},
+     *         "customer": {
+     *           "id": 1,
+     *           "name": "Jane Smith",
+     *           "email": "jane.smith@example.com",
+     *           "phone_number": "+1987654321"
+     *         },
+     *         "eye_examination": {
+     *           "id": 5,
+     *           "exam_date": "2025-11-10"
+     *         },
+     *         "frame_photo": "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg",
+     *         "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
      *         "total_price": 2500.00,
+     *         "expected_completion_date": "2025-12-01",
      *         "status": "pending",
-     *         "expected_completion_date": "2025-12-01"
+     *         "invoice_pdf_url": "http://example.com/storage/invoices/1/INV-ABC-202511-0001/invoice-INV-ABC-202511-0001.pdf",
+     *         "notes": "Customer prefers thinner frames",
+     *         "created_at": "2025-11-14 17:00:00",
+     *         "updated_at": "2025-11-14 17:00:00"
      *       }
      *     ],
-     *     "pagination": {...}
+     *     "pagination": {
+     *       "current_page": 1,
+     *       "last_page": 1,
+     *       "per_page": 15,
+     *       "total": 1,
+     *       "from": 1,
+     *       "to": 1
+     *     }
      *   }
      * }
      * 
@@ -144,10 +166,18 @@ class OrderController extends Controller
      *     "order": {
      *       "id": 1,
      *       "invoice_number": "INV-ABC-202511-0001",
-     *       "customer": {...},
-     *       "eye_examination": {...},
+     *       "customer": {
+     *         "id": 1,
+     *         "name": "Jane Smith",
+     *         "email": "jane.smith@example.com",
+     *         "phone_number": "+1987654321"
+     *       },
+     *       "eye_examination": {
+     *         "id": 5,
+     *         "exam_date": "2025-11-10"
+     *       },
      *       "frame_photo": "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg",
-     *       "glass_details": "Progressive lenses...",
+     *       "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
      *       "total_price": 2500.00,
      *       "expected_completion_date": "2025-12-01",
      *       "status": "pending",
@@ -207,7 +237,7 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create order: ' . $e->getMessage(),
+                'message' => 'Failed to create order.',
             ], 500);
         }
     }
@@ -225,13 +255,25 @@ class OrderController extends Controller
      *     "order": {
      *       "id": 1,
      *       "invoice_number": "INV-ABC-202511-0001",
-     *       "customer": {...},
-     *       "eye_examination": {...},
-     *       "frame_photo": "http://example.com/storage/...",
-     *       "glass_details": "...",
+     *       "customer": {
+     *         "id": 1,
+     *         "name": "Jane Smith",
+     *         "email": "jane.smith@example.com",
+     *         "phone_number": "+1987654321"
+     *       },
+     *       "eye_examination": {
+     *         "id": 5,
+     *         "exam_date": "2025-11-10"
+     *       },
+     *       "frame_photo": "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg",
+     *       "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
      *       "total_price": 2500.00,
+     *       "expected_completion_date": "2025-12-01",
      *       "status": "pending",
-     *       "invoice_pdf_url": "http://example.com/storage/..."
+     *       "invoice_pdf_url": "http://example.com/storage/invoices/1/INV-ABC-202511-0001/invoice-INV-ABC-202511-0001.pdf",
+     *       "notes": "Customer prefers thinner frames",
+     *       "created_at": "2025-11-14 17:00:00",
+     *       "updated_at": "2025-11-14 17:00:00"
      *     }
      *   }
      * }

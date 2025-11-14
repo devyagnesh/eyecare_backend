@@ -70,7 +70,6 @@ class SettingController extends Controller
      * @example error_response
      * {
      *   "success": false,
-     *   "error_code": "UNAUTHORIZED",
      *   "message": "Unauthenticated."
      * }
      * 
@@ -164,7 +163,6 @@ class SettingController extends Controller
      * @example error_response
      * {
      *   "success": false,
-     *   "error_code": "SETTING_CREATE_ERROR",
      *   "message": "A setting with this key already exists."
      * }
      * 
@@ -188,7 +186,6 @@ class SettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error_code' => 'SETTING_CREATE_ERROR',
                 'message' => $e->getMessage(),
             ], 400);
         }
@@ -228,8 +225,7 @@ class SettingController extends Controller
      * @example error_response
      * {
      *   "success": false,
-     *   "error_code": "UNAUTHORIZED",
-     *   "message": "This setting is not publicly accessible"
+     *   "message": "This setting is not publicly accessible."
      * }
      * 
      * @status 200 Success
@@ -242,8 +238,7 @@ class SettingController extends Controller
         if (!$request->user() && !$setting->is_public) {
             return response()->json([
                 'success' => false,
-                'error_code' => 'UNAUTHORIZED',
-                'message' => 'This setting is not publicly accessible',
+                'message' => 'This setting is not publicly accessible.',
             ], 403);
         }
 
@@ -293,7 +288,6 @@ class SettingController extends Controller
      * @example error_response
      * {
      *   "success": false,
-     *   "error_code": "SETTING_UPDATE_ERROR",
      *   "message": "A setting with this key already exists."
      * }
      * 
@@ -318,7 +312,6 @@ class SettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error_code' => 'SETTING_UPDATE_ERROR',
                 'message' => $e->getMessage(),
             ], 400);
         }
@@ -345,7 +338,6 @@ class SettingController extends Controller
      * @example error_response
      * {
      *   "success": false,
-     *   "error_code": "SETTING_DELETE_ERROR",
      *   "message": "Failed to delete setting."
      * }
      * 
@@ -366,7 +358,6 @@ class SettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error_code' => 'SETTING_DELETE_ERROR',
                 'message' => $e->getMessage(),
             ], 400);
         }
@@ -406,7 +397,6 @@ class SettingController extends Controller
      * @example error_response
      * {
      *   "success": false,
-     *   "error_code": "NOT_FOUND",
      *   "message": "No settings found for this group."
      * }
      * 

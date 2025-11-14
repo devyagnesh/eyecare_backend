@@ -302,6 +302,18 @@ class OrderService
      */
     public function formatOrder(Order $order): array
     {
+        // Helper to ensure full URL
+        $getFullUrl = function ($path) {
+            if (!$path) {
+                return null;
+            }
+            $url = Storage::url($path);
+            // If URL is already absolute, return as-is; otherwise make it absolute
+            return (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) 
+                ? $url 
+                : url($url);
+        };
+
         return [
             'id' => $order->id,
             'invoice_number' => $order->invoice_number,
@@ -315,12 +327,12 @@ class OrderService
                 'id' => $order->eyeExamination->id,
                 'exam_date' => $order->eyeExamination->exam_date->format('Y-m-d'),
             ] : null,
-            'frame_photo' => $order->frame_photo ? Storage::url($order->frame_photo) : null,
+            'frame_photo' => $getFullUrl($order->frame_photo),
             'glass_details' => $order->glass_details,
             'total_price' => (float) $order->total_price,
             'expected_completion_date' => $order->expected_completion_date->format('Y-m-d'),
             'status' => $order->status,
-            'invoice_pdf_url' => $order->invoice_pdf_path ? Storage::url($order->invoice_pdf_path) : null,
+            'invoice_pdf_url' => $getFullUrl($order->invoice_pdf_path),
             'notes' => $order->notes,
             'created_at' => $order->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $order->updated_at->format('Y-m-d H:i:s'),
