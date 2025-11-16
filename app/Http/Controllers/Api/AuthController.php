@@ -108,6 +108,9 @@ class AuthController extends Controller
 
         $user->load('role.permissions');
 
+        // Check for spam after registration (async check after device is created)
+        // We'll check after device is created to have IP address available
+
         // Send email verification notification
         try {
             $user->sendEmailVerificationNotification();
@@ -127,6 +130,18 @@ class AuthController extends Controller
 
         // Create or update device record
         $device = $this->createOrUpdateDevice($user, $request);
+
+        // Check for spam after device is created (to have IP address available)
+        try {
+            $spamDetectionService = app(\App\Services\SpamDetectionService::class);
+            $spamDetectionService->checkAndMarkAsSpam($user);
+        } catch (\Exception $e) {
+            // Log error but don't fail registration
+            \Log::error('Spam detection failed', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         // Create API token
         $token = $user->createToken($validated['device_name'] ?? 'api-token', ['*'])->plainTextToken;

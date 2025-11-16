@@ -18,7 +18,46 @@
 </div>
 @endsection
 
+@push('styles')
+@if(file_exists(public_path('assets/libs/apexcharts/apexcharts.min.js')))
+<!-- ApexCharts CSS is included in main theme -->
+@endif
+@endpush
+
 @section('content')
+<!-- Start:: Filters -->
+<div class="row mb-4">
+    <div class="col-xl-12">
+        <div class="card custom-card">
+            <div class="card-body">
+                <form method="GET" action="{{ route('admin.analytics.index') }}" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $filters['start_date'] }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $filters['end_date'] }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="limit" class="form-label">Store Limit</label>
+                        <input type="number" class="form-control" id="limit" name="limit" value="{{ $filters['limit'] }}" min="5" max="50">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="ri-filter-line me-1"></i> Apply Filters
+                        </button>
+                        <a href="{{ route('admin.analytics.index') }}" class="btn btn-secondary">
+                            <i class="ri-refresh-line me-1"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End:: Filters -->
+
 <!-- Start:: row-1 - Overview Cards -->
 <div class="row">
     <!-- Signups Card -->
@@ -134,7 +173,72 @@
 </div>
 <!-- End:: row-1 -->
 
-<!-- Start:: row-2 - Store Performance Table -->
+<!-- Start:: row-2 - Charts -->
+<div class="row">
+    <div class="col-xl-6">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Signups Trend</div>
+            </div>
+            <div class="card-body">
+                <div id="signups-chart" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Stores Created Trend</div>
+            </div>
+            <div class="card-body">
+                <div id="stores-chart" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End:: row-2 -->
+
+<!-- Start:: row-3 - Spam Detection Info & Chart -->
+<div class="row">
+    <div class="col-xl-6">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Spam Accounts Trend</div>
+            </div>
+            <div class="card-body">
+                <div id="spam-chart" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Spam Detection Criteria</div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading mb-3">Automatic Spam Detection Rules:</h6>
+                    <ul class="mb-0 ps-3">
+                        <li>Email not verified after <strong>7 days</strong> (+2 points)</li>
+                        <li>No store created after <strong>14 days</strong> (+3 points)</li>
+                        <li>Suspicious name patterns (test, demo, fake, etc.) (+2 points)</li>
+                        <li>Suspicious email domains (tempmail, guerrillamail, etc.) (+3 points)</li>
+                        <li>Name too short (less than 3 characters) (+2 points)</li>
+                        <li>No login activity for <strong>30 days</strong> (+1 point)</li>
+                        <li>No device registered after <strong>3 days</strong> (+1 point)</li>
+                        <li>Multiple accounts from same IP (more than 3 in 24 hours) (+4 points)</li>
+                    </ul>
+                    <hr class="my-3">
+                    <p class="mb-0"><strong>Threshold:</strong> Users with spam score ≥ 5 are automatically marked as spam.</p>
+                    <p class="mb-0 mt-2"><small class="text-muted">Note: Admins can manually mark/unmark users as spam from the user edit page.</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End:: row-3 -->
+
+<!-- Start:: row-4 - Store Performance Table -->
 <div class="row">
     <div class="col-xl-12">
         <div class="card custom-card">
@@ -183,7 +287,7 @@
                                     <span class="badge bg-primary-transparent">{{ $store['orders_count'] }}</span>
                                 </td>
                                 <td>
-                                    <span class="fw-semibold">${{ number_format($store['total_revenue'], 2) }}</span>
+                                    <span class="fw-semibold">₹{{ number_format($store['total_revenue'], 2) }}</span>
                                 </td>
                             </tr>
                             @empty
@@ -198,9 +302,9 @@
         </div>
     </div>
 </div>
-<!-- End:: row-2 -->
+<!-- End:: row-4 -->
 
-<!-- Start:: row-3 - Spam Accounts Table -->
+<!-- Start:: row-5 - Spam Accounts Table -->
 <div class="row">
     <div class="col-xl-12">
         <div class="card custom-card">
@@ -265,6 +369,180 @@
         </div>
     </div>
 </div>
-<!-- End:: row-3 -->
+<!-- End:: row-5 -->
 @endsection
+
+@push('scripts')
+@if(file_exists(public_path('assets/libs/apexcharts/apexcharts.min.js')))
+<script src="{{ asset('assets/libs/apexcharts/apexcharts.min.js') }}"></script>
+@endif
+
+<script>
+(function() {
+    "use strict";
+    
+    // Chart data from backend
+    const chartData = @json($analytics['chart_data'] ?? []);
+    
+    // Signups Chart
+    if (chartData.signups && typeof ApexCharts !== 'undefined') {
+        var signupsOptions = {
+            series: [{
+                name: 'Signups',
+                data: chartData.signups.data || []
+            }],
+            chart: {
+                height: 300,
+                type: 'line',
+                zoom: {
+                    enabled: false
+                },
+                toolbar: {
+                    show: false
+                }
+            },
+            colors: ['#735dff'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2,
+            },
+            grid: {
+                borderColor: '#f2f5f7',
+            },
+            xaxis: {
+                categories: chartData.signups.labels || [],
+                labels: {
+                    style: {
+                        colors: "#8c9097",
+                        fontSize: '11px',
+                        fontWeight: 600,
+                    },
+                }
+            },
+            yaxis: {
+                min: 0,
+                labels: {
+                    style: {
+                        colors: "#8c9097",
+                        fontSize: '11px',
+                        fontWeight: 600,
+                    },
+                }
+            }
+        };
+        var signupsChart = new ApexCharts(document.querySelector("#signups-chart"), signupsOptions);
+        signupsChart.render();
+    }
+    
+    // Stores Chart
+    if (chartData.stores && typeof ApexCharts !== 'undefined') {
+        var storesOptions = {
+            series: [{
+                name: 'Stores',
+                data: chartData.stores.data || []
+            }],
+            chart: {
+                height: 300,
+                type: 'line',
+                zoom: {
+                    enabled: false
+                },
+                toolbar: {
+                    show: false
+                }
+            },
+            colors: ['#28a745'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2,
+            },
+            grid: {
+                borderColor: '#f2f5f7',
+            },
+            xaxis: {
+                categories: chartData.stores.labels || [],
+                labels: {
+                    style: {
+                        colors: "#8c9097",
+                        fontSize: '11px',
+                        fontWeight: 600,
+                    },
+                }
+            },
+            yaxis: {
+                min: 0,
+                labels: {
+                    style: {
+                        colors: "#8c9097",
+                        fontSize: '11px',
+                        fontWeight: 600,
+                    },
+                }
+            }
+        };
+        var storesChart = new ApexCharts(document.querySelector("#stores-chart"), storesOptions);
+        storesChart.render();
+    }
+    
+    // Spam Chart
+    if (chartData.spam && typeof ApexCharts !== 'undefined') {
+        var spamOptions = {
+            series: [{
+                name: 'Spam Accounts',
+                data: chartData.spam.data || []
+            }],
+            chart: {
+                height: 300,
+                type: 'line',
+                zoom: {
+                    enabled: false
+                },
+                toolbar: {
+                    show: false
+                }
+            },
+            colors: ['#dc3545'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2,
+            },
+            grid: {
+                borderColor: '#f2f5f7',
+            },
+            xaxis: {
+                categories: chartData.spam.labels || [],
+                labels: {
+                    style: {
+                        colors: "#8c9097",
+                        fontSize: '11px',
+                        fontWeight: 600,
+                    },
+                }
+            },
+            yaxis: {
+                min: 0,
+                labels: {
+                    style: {
+                        colors: "#8c9097",
+                        fontSize: '11px',
+                        fontWeight: 600,
+                    },
+                }
+            }
+        };
+        var spamChart = new ApexCharts(document.querySelector("#spam-chart"), spamOptions);
+        spamChart.render();
+    }
+})();
+</script>
+@endpush
 

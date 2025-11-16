@@ -425,11 +425,11 @@
         <div class="pricing-section">
             <div class="pricing-row">
                 <div class="pricing-label">Subtotal:</div>
-                <div class="pricing-value">{{ number_format($order->total_price, 2) }}</div>
+                <div class="pricing-value">₹{{ number_format($order->total_price, 2) }}</div>
             </div>
             <div class="pricing-row total-row">
                 <div class="pricing-label total-label">Total Amount:</div>
-                <div class="pricing-value total-value">{{ number_format($order->total_price, 2) }}</div>
+                <div class="pricing-value total-value">₹{{ number_format($order->total_price, 2) }}</div>
             </div>
         </div>
 
