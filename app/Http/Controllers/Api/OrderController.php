@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreOrderRequest;
+use App\Http\Requests\Api\UpdateOrderStatusRequest;
 use App\Models\Store;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class OrderController extends Controller
      * Get all orders for the authenticated user's store.
      * 
      * Query Parameters:
+     * - search (string): Search by customer name, email, phone number, or invoice number
      * - paginated (boolean): Enable/disable pagination (default: true)
      * - per_page (integer): Number of items per page when paginated=true (default: 15, max: 100)
      * - customer_id (integer): Filter by customer ID
@@ -91,6 +93,7 @@ class OrderController extends Controller
         }
 
         $filters = [
+            'search' => $request->get('search'),
             'customer_id' => $request->get('customer_id'),
             'status' => $request->get('status'),
             'date_from' => $request->get('date_from'),
@@ -150,7 +153,7 @@ class OrderController extends Controller
      * {
      *   "customer_id": 1,
      *   "eye_examination_id": 5,
-     *   "frame_photo": [file upload - JPEG, PNG, WebP, max 5MB],
+     *   "frame_photos": [array of file uploads - JPEG, PNG, WebP, max 5MB each, max 10 files],
      *   "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
      *   "total_price": 2500.00,
      *   "expected_completion_date": "2025-12-01",
@@ -176,7 +179,9 @@ class OrderController extends Controller
      *         "id": 5,
      *         "exam_date": "2025-11-10"
      *       },
-     *       "frame_photo": "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg",
+     *       "frame_photos": [
+     *         "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg"
+     *       ],
      *       "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
      *       "total_price": 2500.00,
      *       "expected_completion_date": "2025-12-01",
@@ -220,9 +225,9 @@ class OrderController extends Controller
         try {
             $data = $request->validated();
             
-            // Add frame photo file if uploaded
-            if ($request->hasFile('frame_photo')) {
-                $data['frame_photo'] = $request->file('frame_photo');
+            // Add frame photos files if uploaded
+            if ($request->hasFile('frame_photos')) {
+                $data['frame_photos'] = $request->file('frame_photos');
             }
 
             $order = $this->orderService->createOrder($store, $data);
@@ -265,7 +270,9 @@ class OrderController extends Controller
      *         "id": 5,
      *         "exam_date": "2025-11-10"
      *       },
-     *       "frame_photo": "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg",
+     *       "frame_photos": [
+     *         "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg"
+     *       ],
      *       "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
      *       "total_price": 2500.00,
      *       "expected_completion_date": "2025-12-01",
@@ -363,5 +370,161 @@ class OrderController extends Controller
             $order->invoice_pdf_path,
             'invoice-' . $order->invoice_number . '.pdf'
         );
+    }
+
+    /**
+     * Update order status.
+     * 
+     * @example payload
+     * PUT /api/orders/1/status
+     * {
+     *   "status": "processing"
+     * }
+     * 
+     * @example success_response
+     * {
+     *   "success": true,
+     *   "message": "Order status updated successfully.",
+     *   "data": {
+     *     "order": {
+     *       "id": 1,
+     *       "invoice_number": "INV-ABC-202511-0001",
+     *       "status": "processing",
+     *       ...
+     *     }
+     *   }
+     * }
+     * 
+     * @status 200 Success
+     * @status 404 Order not found
+     * @status 422 Validation error
+     */
+    public function updateStatus(UpdateOrderStatusRequest $request, $id)
+    {
+        $user = $request->user();
+        
+        $store = Store::where('user_id', $user->id)->first();
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found. Please create a store first.',
+            ], 404);
+        }
+
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
+        }
+
+        $order = \App\Models\Order::where('id', $id)
+            ->where('store_id', $store->id)
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
+        try {
+            $order = $this->orderService->updateOrderStatus($order, $request->validated()['status']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order status updated successfully.',
+                'data' => [
+                    'order' => $this->orderService->formatOrder($order),
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete an order.
+     * 
+     * @example payload
+     * DELETE /api/orders/1
+     * 
+     * @example success_response
+     * {
+     *   "success": true,
+     *   "message": "Order deleted successfully."
+     * }
+     * 
+     * @status 200 Success
+     * @status 404 Order not found
+     * @status 403 Forbidden (blocked user, inactive store, or order doesn't belong to store)
+     */
+    public function destroy(Request $request, $id)
+    {
+        $user = $request->user();
+        
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
+        $store = Store::where('user_id', $user->id)->first();
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found. Please create a store first.',
+            ], 404);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
+        }
+
+        $order = \App\Models\Order::where('id', $id)
+            ->where('store_id', $store->id)
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
+        try {
+            $this->orderService->deleteOrder($order, $store);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order deleted successfully.',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
     }
 }

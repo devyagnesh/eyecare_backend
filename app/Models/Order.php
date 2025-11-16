@@ -20,7 +20,7 @@ class Order extends Model
         'store_id',
         'eye_examination_id',
         'invoice_number',
-        'frame_photo',
+        'frame_photos',
         'glass_details',
         'total_price',
         'expected_completion_date',
@@ -37,6 +37,7 @@ class Order extends Model
     protected $casts = [
         'total_price' => 'decimal:2',
         'expected_completion_date' => 'date',
+        'frame_photos' => 'array',
     ];
 
     /**

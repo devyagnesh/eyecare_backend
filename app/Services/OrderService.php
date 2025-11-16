@@ -72,10 +72,14 @@ class OrderService
             // Generate invoice number
             $invoiceNumber = $this->generateInvoiceNumber($store);
 
-            // Handle frame photo upload
-            $framePhotoPath = null;
-            if (!empty($data['frame_photo'])) {
-                $framePhotoPath = $this->storeFramePhoto($data['frame_photo'], $store->id, $invoiceNumber);
+            // Handle multiple frame photo uploads
+            $framePhotoPaths = [];
+            if (!empty($data['frame_photos']) && is_array($data['frame_photos'])) {
+                foreach ($data['frame_photos'] as $framePhoto) {
+                    if ($framePhoto && ($framePhoto instanceof \Illuminate\Http\UploadedFile || is_file($framePhoto))) {
+                        $framePhotoPaths[] = $this->storeFramePhoto($framePhoto, $store->id, $invoiceNumber);
+                    }
+                }
             }
 
             // Create order
@@ -84,7 +88,7 @@ class OrderService
                 'store_id' => $store->id,
                 'eye_examination_id' => $eyeExamination?->id,
                 'invoice_number' => $invoiceNumber,
-                'frame_photo' => $framePhotoPath,
+                'frame_photos' => !empty($framePhotoPaths) ? $framePhotoPaths : null,
                 'glass_details' => $data['glass_details'] ?? null,
                 'total_price' => $data['total_price'],
                 'expected_completion_date' => $data['expected_completion_date'],
@@ -132,7 +136,8 @@ class OrderService
      */
     private function storeFramePhoto($file, int $storeId, string $invoiceNumber): string
     {
-        $filename = 'orders/' . $storeId . '/' . $invoiceNumber . '/frame-' . time() . '.' . $file->getClientOriginalExtension();
+        $timestamp = time() . '_' . uniqid();
+        $filename = 'orders/' . $storeId . '/' . $invoiceNumber . '/frame-' . $timestamp . '.' . $file->getClientOriginalExtension();
         
         $path = Storage::disk('public')->putFileAs(
             dirname($filename),
@@ -141,6 +146,76 @@ class OrderService
         );
 
         return $path;
+    }
+
+    /**
+     * Update order status.
+     *
+     * @param Order $order
+     * @param string $status
+     * @return Order
+     * @throws \Exception
+     */
+    public function updateOrderStatus(Order $order, string $status): Order
+    {
+        try {
+            $order->update(['status' => $status]);
+            
+            Log::info('Order status updated', [
+                'order_id' => $order->id,
+                'invoice_number' => $order->invoice_number,
+                'old_status' => $order->getOriginal('status'),
+                'new_status' => $status,
+            ]);
+
+            return $order->fresh(['customer', 'store.user', 'eyeExamination']);
+        } catch (\Exception $e) {
+            Log::error('Failed to update order status', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+                'status' => $status,
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Delete an order (soft delete).
+     *
+     * @param Order $order
+     * @param Store $store
+     * @return bool
+     * @throws \Exception
+     */
+    public function deleteOrder(Order $order, Store $store): bool
+    {
+        // Ensure order belongs to the store
+        if ((int)$order->store_id !== (int)$store->id) {
+            throw new \Exception('Order does not belong to your store.', 403);
+        }
+
+        try {
+            $orderId = $order->id;
+            $invoiceNumber = $order->invoice_number;
+            $storeId = $order->store_id;
+
+            // Soft delete the order
+            $order->delete();
+
+            Log::info('Order deleted successfully', [
+                'order_id' => $orderId,
+                'invoice_number' => $invoiceNumber,
+                'store_id' => $storeId,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to delete order', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -256,6 +331,19 @@ class OrderService
         $query = Order::where('store_id', $store->id)
             ->with(['customer:id,name,email,phone_number', 'eyeExamination:id,exam_date']);
 
+        // Search functionality - search by customer name, email, phone_number, or invoice_number
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                      $customerQuery->where('name', 'like', "%{$search}%")
+                                   ->orWhere('email', 'like', "%{$search}%")
+                                   ->orWhere('phone_number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         // Filter by customer
         if (!empty($filters['customer_id'])) {
             $query->where('customer_id', $filters['customer_id']);
@@ -327,7 +415,9 @@ class OrderService
                 'id' => $order->eyeExamination->id,
                 'exam_date' => $order->eyeExamination->exam_date->format('Y-m-d'),
             ] : null,
-            'frame_photo' => $getFullUrl($order->frame_photo),
+            'frame_photos' => $order->frame_photos ? array_map(function ($path) use ($getFullUrl) {
+                return $getFullUrl($path);
+            }, $order->frame_photos) : [],
             'glass_details' => $order->glass_details,
             'total_price' => (float) $order->total_price,
             'expected_completion_date' => $order->expected_completion_date->format('Y-m-d'),

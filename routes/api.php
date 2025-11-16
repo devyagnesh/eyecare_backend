@@ -86,6 +86,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('orders.index');
         Route::post('/', [OrderController::class, 'store'])->name('orders.create');
         Route::get('/{id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::put('/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::delete('/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
         Route::get('/{id}/download-invoice', [OrderController::class, 'downloadInvoice'])->name('orders.download-invoice');
     });
     
