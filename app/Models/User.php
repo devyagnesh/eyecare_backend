@@ -37,6 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role_id',
+        'is_spam',
     ];
 
     /**
@@ -59,6 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_spam' => 'boolean',
         ];
     }
 
@@ -112,5 +114,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function store(): HasOne
     {
         return $this->hasOne(Store::class);
+    }
+
+    /**
+     * Scope a query to only include spam users.
+     */
+    public function scopeSpam($query)
+    {
+        return $query->where('is_spam', true);
+    }
+
+    /**
+     * Scope a query to only include non-spam users.
+     */
+    public function scopeNotSpam($query)
+    {
+        return $query->where('is_spam', false);
     }
 }

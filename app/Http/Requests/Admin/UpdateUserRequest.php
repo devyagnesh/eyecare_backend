@@ -31,6 +31,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', 'string', 'max:255', new ValidEmail(), Rule::unique('users')->ignore($userId)],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'role_id' => 'required|exists:roles,id',
+            'is_spam' => 'nullable|boolean',
         ];
     }
 

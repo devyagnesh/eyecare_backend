@@ -85,6 +85,13 @@ class UserService
             unset($data['password']);
         }
 
+        // Handle checkbox - if not present, set to false
+        if (!isset($data['is_spam'])) {
+            $data['is_spam'] = false;
+        } else {
+            $data['is_spam'] = (bool) $data['is_spam'];
+        }
+
         return $this->repository->update($user, $data);
     }
 

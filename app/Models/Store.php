@@ -37,4 +37,20 @@ class Store extends Model
     {
         return $this->hasMany(Customer::class);
     }
+
+    /**
+     * Get the eye examinations for the store.
+     */
+    public function eyeExaminations(): HasMany
+    {
+        return $this->hasMany(EyeExamination::class);
+    }
+
+    /**
+     * Get the orders for the store.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

@@ -53,6 +53,18 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <div class="col-xl-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_spam" name="is_spam" value="1" {{ old('is_spam', $user->is_spam) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_spam">
+                                    Mark as Spam Account
+                                </label>
+                            </div>
+                            <small class="text-muted">Enable this to mark this user account as spam.</small>
+                            @error('is_spam')
+                                <div class="text-danger small">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                     <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary">Update User</button>

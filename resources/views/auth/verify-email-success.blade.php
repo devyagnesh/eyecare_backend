@@ -33,9 +33,6 @@
                             </div>
                             <p class="h4 fw-semibold mb-2">Email Verified Successfully!</p>
                             <p class="text-muted mb-4">Your email has been verified. You can now sign in to your account.</p>
-                            <div class="d-grid">
-                                <a href="{{ route('login') }}" class="btn btn-primary">Go to Sign In</a>
-                            </div>
                         </div>
                     </div>
                 </div>

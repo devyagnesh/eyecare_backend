@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ApiDocumentationController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TestEmailController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Api\EyeExaminationController;
@@ -83,6 +84,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('settings', SettingController::class);
         Route::post('settings/{id}/restore', [SettingController::class, 'restore'])->name('settings.restore');
         Route::delete('settings/{id}/force-delete', [SettingController::class, 'forceDelete'])->name('settings.force-delete');
+        
+        // Analytics
+        Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
         
         // API Documentation
         Route::get('api-documentation', [ApiDocumentationController::class, 'index'])->name('api-documentation.index');
