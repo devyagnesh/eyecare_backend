@@ -1,151 +1,444 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-width="fullwidth" data-menu-styles="light" data-toggled="close">
+@extends('layouts.dashboard')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>API Documentation - Eyecare Admin Panel</title>
-    <meta name="Description" content="Complete API Documentation for Eyecare Admin Panel">
-    
-    <!-- Favicon -->
-    <link rel="icon" href="{{ asset('assets/images/brand-logos/favicon.ico') }}" type="image/x-icon">
-    
-    <!-- Bootstrap Css -->
-    <link id="style" href="{{ asset('assets/libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    
-    <!-- Style Css -->
-    <link href="{{ asset('assets/css/styles.css') }}" rel="stylesheet">
-    
-    <!-- Icons Css -->
-    <link href="{{ asset('assets/css/icons.css') }}" rel="stylesheet">
-    
-    <!-- Node Waves Css -->
-    <link href="{{ asset('assets/libs/node-waves/waves.min.css') }}" rel="stylesheet">
-    
-    <!-- Simplebar Css -->
-    <link href="{{ asset('assets/libs/simplebar/simplebar.min.css') }}" rel="stylesheet">
-    
-    <!-- Prism CSS for code highlighting -->
-    <style>
-        .api-endpoint-card {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            background: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+@section('title', 'API Documentation')
+
+@push('styles')
+<style>
+        /* API Documentation Enhanced Styles */
+        .api-doc-wrapper {
+            background: #f8f9fa;
+            padding: 1.5rem 0;
         }
+        
+        .api-section-nav {
+            position: sticky;
+            top: 100px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            border-radius: 12px;
+        }
+        
+        .api-section-nav .nav-link {
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            padding: 0.875rem 1.25rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #64748b;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        
+        .api-section-nav .nav-link:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            transform: translateX(6px);
+            border-color: #e2e8f0;
+        }
+        
+        .api-section-nav .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35);
+            border-color: transparent;
+        }
+        
+        .api-endpoint-card {
+            border: none;
+            border-radius: 12px;
+            margin-bottom: 2.5rem;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        
+        .api-endpoint-card:hover {
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+        }
+        
         .api-endpoint-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1.5rem;
+            padding: 1.75rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .api-endpoint-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.1); }
+        }
+        
+        .method-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-right: 1rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .method-get { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .method-post { 
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+        .method-put { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        .method-delete { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .endpoint-url {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+            background: rgba(255,255,255,0.18);
+            backdrop-filter: blur(12px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 0.875rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255,255,255,0.25);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .api-endpoint-card .card-body {
+            padding: 2.5rem;
+        }
+        
+        .nav-tabs-custom {
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 2rem;
+            padding: 0;
+        }
+        
+        .nav-tabs-custom .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 1.125rem 1.75rem;
+            color: #64748b;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 0.75rem;
             border-radius: 8px 8px 0 0;
         }
-        .method-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            margin-right: 0.5rem;
+        
+        .nav-tabs-custom .nav-link:hover {
+            color: #667eea;
+            background: #f8f9ff;
+            border-bottom-color: #cbd5e1;
         }
-        .method-get { background: #10b981; color: white; }
-        .method-post { background: #3b82f6; color: white; }
-        .method-put { background: #f59e0b; color: white; }
-        .method-delete { background: #ef4444; color: white; }
+        
+        .nav-tabs-custom .nav-link.active {
+            color: #667eea;
+            background: #f8f9ff;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+        
         .code-block {
             background: #1e293b;
             color: #e2e8f0;
-            padding: 1.5rem;
-            border-radius: 6px;
+            padding: 2rem;
+            border-radius: 10px;
             overflow-x: auto;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
             font-size: 0.875rem;
-            line-height: 1.6;
+            line-height: 1.85;
+            position: relative;
+            border: 1px solid #334155;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
         }
+        
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #e2e8f0;
+        }
+        
         .code-block code {
             color: #e2e8f0;
             background: transparent;
             padding: 0;
+            font-size: inherit;
         }
+        
         .param-table {
             width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin: 1.5rem 0;
         }
+        
+        .param-table thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
         .param-table th {
-            background: #f8f9fa;
-            padding: 0.75rem;
+            padding: 1.25rem 1.5rem;
             text-align: left;
             font-weight: 600;
+            color: #0f172a;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
             border-bottom: 2px solid #dee2e6;
         }
+        
         .param-table td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #e9ecef;
+            padding: 1.125rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #475569;
+            vertical-align: middle;
         }
+        
+        .param-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .param-table tbody tr:hover {
+            background: #f8f9ff;
+            transform: scale(1.01);
+        }
+        
+        .param-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
         .required-badge {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
-            padding: 0.125rem 0.5rem;
-            border-radius: 3px;
+            padding: 0.375rem 0.875rem;
+            border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 600;
-        }
-        .optional-badge {
-            background: #6b7280;
-            color: white;
-            padding: 0.125rem 0.5rem;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .section-nav {
-            position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-        }
-        .endpoint-url {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
             display: inline-block;
-            margin-top: 0.5rem;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+        }
+        
+        .optional-badge {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            padding: 0.375rem 0.875rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .section-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+        
+        .endpoint-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .api-info-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+        
+        .api-info-box.warning {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left-color: #f59e0b;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+        }
+        
+        .api-info-box.success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left-color: #10b981;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+        }
+        
+        .api-info-box.danger {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-left-color: #ef4444;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+        }
+        
+        .scroll-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            font-size: 1.25rem;
+        }
+        
+        .scroll-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-to-top:hover {
+            transform: translateY(-6px) scale(1.1);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+        }
+        
+        @media (max-width: 991.98px) {
+            .api-section-nav {
+                position: relative;
+                top: 0;
+                max-height: none;
+                margin-bottom: 2rem;
+            }
+        }
+        
+        /* Custom scrollbar for sidebar */
+        .api-section-nav::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .api-section-nav::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .api-section-nav::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        .api-section-nav::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Card header improvements */
+        .api-endpoint-card .card-header {
+            padding: 0;
+        }
+        
+        /* Tab content spacing */
+        .tab-content {
+            padding-top: 1rem;
+        }
+        
+        .tab-pane h6 {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
         }
     </style>
-</head>
+@endpush
 
-<body>
-    <div class="page">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="mb-2">
-                            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">
-                                <i class="ri-arrow-left-line me-1"></i> Back to Admin Panel
-                            </a>
-                        </div>
-                        <h1 class="page-title">API Documentation</h1>
-                        <p class="text-muted mb-0">Complete reference for Eyecare Admin Panel API endpoints</p>
+@section('page-header')
+<div class="my-4 page-header-breadcrumb d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1 class="page-title fw-medium fs-18 mb-2">API Documentation</h1>
+        <div>
+            <nav>
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">API Documentation</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <div class="btn-list">
+        <a href="{{ route('dashboard') }}" class="btn btn-primary-light btn-wave">
+            <i class="ri-arrow-left-line align-middle me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+@endsection
+
+@section('content')
+<div class="api-doc-wrapper">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-xl-3 col-lg-4">
+            <div class="card custom-card api-section-nav">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="ri-book-open-line me-2"></i> API Sections
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Page Content -->
-        <div class="page-content">
-            <div class="container-fluid">
-                <div class="row">
-                    <!-- Sidebar Navigation -->
-                    <div class="col-xl-3 col-lg-4">
-                        <div class="card section-nav">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">API Sections</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <ul class="nav nav-pills flex-column" id="api-sections-nav" role="tablist">
+                <div class="card-body p-0">
+                    <ul class="nav nav-pills flex-column p-3" id="api-sections-nav" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link active" data-bs-toggle="pill" href="#section-authentication" role="tab">
                                             <i class="ri-shield-user-line me-2"></i> Authentication
@@ -192,10 +485,12 @@
                             
                             <!-- Authentication Section -->
                             <div class="tab-pane fade show active" id="section-authentication" role="tabpanel">
-                                <div class="card">
+                                <div class="card custom-card">
                                     <div class="card-header">
-                                        <h3 class="card-title">Authentication Endpoints</h3>
-                                        <p class="text-muted mb-0">User authentication, registration, password management, and email verification</p>
+                                        <div class="card-title">
+                                            <h3 class="section-title mb-1">Authentication Endpoints</h3>
+                                            <p class="section-subtitle">User authentication, registration, password management, and email verification</p>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         
@@ -1440,10 +1735,12 @@ $.ajax({
 
                             <!-- Stores Section -->
                             <div class="tab-pane fade" id="section-stores" role="tabpanel">
-                                <div class="card">
+                                <div class="card custom-card">
                                     <div class="card-header">
-                                        <h3 class="card-title">Store Endpoints</h3>
-                                        <p class="text-muted mb-0">Manage store information and settings</p>
+                                        <div class="card-title">
+                                            <h3 class="section-title mb-1">Store Endpoints</h3>
+                                            <p class="section-subtitle">Manage store information and settings</p>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         
@@ -1869,10 +2166,12 @@ $.ajax({
 
                             <!-- Customers Section -->
                             <div class="tab-pane fade" id="section-customers" role="tabpanel">
-                                <div class="card">
+                                <div class="card custom-card">
                                     <div class="card-header">
-                                        <h3 class="card-title">Customer Endpoints</h3>
-                                        <p class="text-muted mb-0">Manage customer records</p>
+                                        <div class="card-title">
+                                            <h3 class="section-title mb-1">Customer Endpoints</h3>
+                                            <p class="section-subtitle">Manage customer records</p>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         
@@ -2205,10 +2504,12 @@ $.ajax({
 
                             <!-- Eye Examinations Section -->
                             <div class="tab-pane fade" id="section-examinations" role="tabpanel">
-                                <div class="card">
+                                <div class="card custom-card">
                                     <div class="card-header">
-                                        <h3 class="card-title">Eye Examination Endpoints</h3>
-                                        <p class="text-muted mb-0">Manage eye examination records and prescriptions</p>
+                                        <div class="card-title">
+                                            <h3 class="section-title mb-1">Eye Examination Endpoints</h3>
+                                            <p class="section-subtitle">Manage eye examination records and prescriptions</p>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         
@@ -2604,10 +2905,12 @@ $.ajax({
 
                             <!-- Orders Section -->
                             <div class="tab-pane fade" id="section-orders" role="tabpanel">
-                                <div class="card">
+                                <div class="card custom-card">
                                     <div class="card-header">
-                                        <h3 class="card-title">Order Endpoints</h3>
-                                        <p class="text-muted mb-0">Manage orders and invoices</p>
+                                        <div class="card-title">
+                                            <h3 class="section-title mb-1">Order Endpoints</h3>
+                                            <p class="section-subtitle">Manage orders and invoices</p>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         
@@ -2878,10 +3181,12 @@ $.ajax({
 
                             <!-- Settings Section -->
                             <div class="tab-pane fade" id="section-settings" role="tabpanel">
-                                <div class="card">
+                                <div class="card custom-card">
                                     <div class="card-header">
-                                        <h3 class="card-title">Settings Endpoints</h3>
-                                        <p class="text-muted mb-0">Manage application settings (Admin only)</p>
+                                        <div class="card-title">
+                                            <h3 class="section-title mb-1">Settings Endpoints</h3>
+                                            <p class="section-subtitle">Manage application settings (Admin only)</p>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         
@@ -3174,10 +3479,12 @@ $.ajax({
 
                             <!-- Terms Section -->
                             <div class="tab-pane fade" id="section-terms" role="tabpanel">
-                                <div class="card">
+                                <div class="card custom-card">
                                     <div class="card-header">
-                                        <h3 class="card-title">Terms & Conditions Endpoints</h3>
-                                        <p class="text-muted mb-0">Manage terms and conditions acceptance</p>
+                                        <div class="card-title">
+                                            <h3 class="section-title mb-1">Terms & Conditions Endpoints</h3>
+                                            <p class="section-subtitle">Manage terms and conditions acceptance</p>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         
@@ -3353,21 +3660,64 @@ $.ajax({
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    
-    <!-- jQuery -->
-    <script src="{{ asset('assets/libs/jquery/jquery.min.js') }}"></script>
-    
-    <!-- Simplebar JS -->
-    <script src="{{ asset('assets/libs/simplebar/simplebar.min.js') }}"></script>
-    
-    <!-- Node Waves JS -->
-    <script src="{{ asset('assets/libs/node-waves/waves.min.js') }}"></script>
-    
-    <!-- Main JS -->
-    <script src="{{ asset('assets/js/main.js') }}"></script>
+    <!-- Scroll to Top Button -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <i class="ri-arrow-up-line"></i>
+    </div>
+@endsection
 
-</body>
-</html>
+@push('scripts')
+<script>
+    // Scroll to top functionality
+    (function() {
+        const scrollBtn = document.getElementById('scrollToTop');
+        if (!scrollBtn) return;
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('show');
+            } else {
+                scrollBtn.classList.remove('show');
+            }
+        });
+        
+        scrollBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    })();
+    
+    // Copy code functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const codeBlocks = document.querySelectorAll('.code-block');
+        codeBlocks.forEach(function(block) {
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-code-btn';
+            copyBtn.innerHTML = '<i class="ri-file-copy-line me-1"></i> Copy';
+            copyBtn.setAttribute('title', 'Copy code');
+            
+            block.style.position = 'relative';
+            block.appendChild(copyBtn);
+            
+            copyBtn.addEventListener('click', function() {
+                const code = block.querySelector('code') || block.querySelector('pre');
+                const text = code ? code.textContent : block.textContent;
+                
+                navigator.clipboard.writeText(text).then(function() {
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="ri-check-line me-1"></i> Copied!';
+                    copyBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+                    
+                    setTimeout(function() {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+    });
+</script>
+@endpush
 
