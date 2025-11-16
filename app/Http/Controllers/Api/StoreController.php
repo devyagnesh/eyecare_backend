@@ -26,13 +26,22 @@ class StoreController extends Controller
     {
         $user = $request->user();
         
-        $store = $this->storeService->getStore($user);
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
+        $store = $this->storeService->getStoreByUser($user);
 
         return response()->json([
             'success' => true,
             'data' => [
                 'store_exists' => $store !== null,
                 'store_id' => $store ? $store->id : null,
+                'store_active' => $store ? $store->is_active : null,
             ],
         ], 200);
     }
@@ -44,13 +53,29 @@ class StoreController extends Controller
     {
         $user = $request->user();
         
-        $store = $this->storeService->getStore($user);
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
+        $store = $this->storeService->getStoreByUser($user);
 
         if (!$store) {
             return response()->json([
                 'success' => false,
                 'message' => 'Store not found. Please create a store first.',
             ], 404);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
         }
 
         return response()->json([
@@ -67,6 +92,14 @@ class StoreController extends Controller
     public function store(StoreStoreRequest $request)
     {
         $user = $request->user();
+
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
 
         try {
             $store = $this->storeService->createStore($user, $request->validated());
@@ -93,7 +126,15 @@ class StoreController extends Controller
     {
         $user = $request->user();
 
-        $store = $this->storeService->getStore($user);
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+
+        $store = $this->storeService->getStoreByUser($user);
 
         if (!$store) {
             return response()->json([
@@ -110,7 +151,7 @@ class StoreController extends Controller
                 $validated['logo'] = $request->file('logo');
             }
             
-            $store = $this->storeService->updateStore($store, $validated);
+            $store = $this->storeService->updateStoreByObject($store, $validated);
 
             return response()->json([
                 'success' => true,

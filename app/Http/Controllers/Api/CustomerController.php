@@ -38,6 +38,14 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
         $store = Store::where('user_id', $user->id)->first();
 
         if (!$store) {
@@ -45,6 +53,14 @@ class CustomerController extends Controller
                 'success' => false,
                 'message' => 'Store not found. Please create a store first.',
             ], 404);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
         }
 
         $filters = [
@@ -103,6 +119,14 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
         $store = Store::where('user_id', $user->id)->first();
 
         if (!$store) {
@@ -110,6 +134,14 @@ class CustomerController extends Controller
                 'success' => false,
                 'message' => 'Store not found. Please create a store first.',
             ], 404);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
         }
 
         try {
@@ -137,6 +169,14 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
         $store = Store::where('user_id', $user->id)->first();
 
         if (!$store) {
@@ -144,6 +184,14 @@ class CustomerController extends Controller
                 'success' => false,
                 'message' => 'Store not found. Please create a store first.',
             ], 404);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
         }
 
         $customer = Customer::find($id);
@@ -177,6 +225,14 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
         $store = Store::where('user_id', $user->id)->first();
 
         if (!$store) {
@@ -184,6 +240,14 @@ class CustomerController extends Controller
                 'success' => false,
                 'message' => 'Store not found. Please create a store first.',
             ], 404);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
         }
 
         $customer = Customer::find($id);
@@ -239,6 +303,14 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+        
         $store = Store::where('user_id', $user->id)->first();
 
         if (!$store) {
@@ -246,6 +318,14 @@ class CustomerController extends Controller
                 'success' => false,
                 'message' => 'Store not found. Please create a store first.',
             ], 404);
+        }
+
+        // Check if store is active
+        if (!$store->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store has been deactivated. Please contact support.',
+            ], 403);
         }
 
         $customer = Customer::find($id);

@@ -122,6 +122,11 @@
             <div class="container-fluid">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
+                        <div class="mb-2">
+                            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="ri-arrow-left-line me-1"></i> Back to Admin Panel
+                            </a>
+                        </div>
                         <h1 class="page-title">API Documentation</h1>
                         <p class="text-muted mb-0">Complete reference for Eyecare Admin Panel API endpoints</p>
                     </div>
@@ -372,6 +377,12 @@
     "message": "Email address is required."
 }
 
+// Blocked User (422)
+{
+    "success": false,
+    "message": "Your account has been blocked. Please contact support."
+}
+
 // Server Error (500)
 {
     "success": false,
@@ -390,6 +401,13 @@
                                                                 <li>Tokens do not expire by default but can be revoked via logout</li>
                                                                 <li>Multiple devices can be active simultaneously for the same user</li>
                                                                 <li>Rate limiting applies: 60 requests per minute per IP address</li>
+                                                                <li><strong>Blocked Users:</strong> If a user account is blocked by an admin, login will fail with a 422 error. Users must contact support to resolve account blocking issues.</li>
+                                                            </ul>
+                                                            <h6 class="mt-4">Common Error Cases</h6>
+                                                            <ul>
+                                                                <li><strong>Invalid Credentials:</strong> Email or password is incorrect</li>
+                                                                <li><strong>Blocked Account:</strong> User account has been blocked by administrator</li>
+                                                                <li><strong>Validation Errors:</strong> Missing required fields or invalid data format</li>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -1517,11 +1535,30 @@ $.ajax({
                                                     </div>
                                                     <div class="tab-pane fade" id="store-create-error">
                                                         <div class="mt-3">
-                                                            <h6>Error Response (422 Validation Error)</h6>
+                                                            <h6>Error Responses</h6>
                                                             <div class="code-block">
-<pre><code>{
+<pre><code>// Blocked User (403 Forbidden)
+{
     "success": false,
-    "message": "A store with this email already exists."
+    "message": "Your account has been blocked. Please contact support."
+}
+
+// Store Already Exists (409 Conflict)
+{
+    "success": false,
+    "message": "User already has a store."
+}
+
+// Validation Error (422 Unprocessable Entity)
+{
+    "success": false,
+    "message": "The email field is required."
+}
+
+// Unauthorized (401 Unauthorized)
+{
+    "success": false,
+    "message": "Unauthenticated."
 }</code></pre>
                                                             </div>
                                                         </div>
@@ -1543,11 +1580,13 @@ $.ajax({
                                                 <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
                                                     <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#store-get-overview">Overview</a></li>
                                                     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-get-success">Success</a></li>
+                                                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-get-error">Error</a></li>
+                                                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-get-notes">Notes</a></li>
                                                 </ul>
                                                 <div class="tab-content">
                                                     <div class="tab-pane fade show active" id="store-get-overview">
                                                         <div class="mt-3">
-                                                            <p>Retrieve the authenticated user's store information.</p>
+                                                            <p>Retrieve the authenticated user's store information. Returns 403 if user is blocked or store is inactive.</p>
                                                         </div>
                                                     </div>
                                                     <div class="tab-pane fade" id="store-get-success">
@@ -1559,15 +1598,60 @@ $.ajax({
     "data": {
         "store": {
             "id": 5,
+            "user_id": 3,
             "name": "Vision Care Optometry",
             "email": "info@visioncare.com",
             "phone_number": "+1-555-123-4567",
             "address": "123 Main Street, New York, NY 10001",
-            "logo_url": "http://example.com/storage/stores/5/logo.png"
+            "logo": "http://example.com/storage/stores/logos/abc123.png",
+            "is_active": true,
+            "created_at": "2024-01-15T10:30:00Z",
+            "updated_at": "2024-01-20T14:45:00Z"
         }
     }
 }</code></pre>
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="store-get-error">
+                                                        <div class="mt-3">
+                                                            <h6>Error Responses</h6>
+                                                            <div class="code-block">
+<pre><code>// Blocked User (403 Forbidden)
+{
+    "success": false,
+    "message": "Your account has been blocked. Please contact support."
+}
+
+// Store Not Found (404 Not Found)
+{
+    "success": false,
+    "message": "Store not found. Please create a store first."
+}
+
+// Inactive Store (403 Forbidden)
+{
+    "success": false,
+    "message": "Your store has been deactivated. Please contact support."
+}
+
+// Unauthorized (401 Unauthorized)
+{
+    "success": false,
+    "message": "Unauthenticated."
+}</code></pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="store-get-notes">
+                                                        <div class="mt-3">
+                                                            <h6>Important Notes</h6>
+                                                            <ul>
+                                                                <li>Requires authentication via Bearer token</li>
+                                                                <li><strong>Blocked Users:</strong> If the user account is blocked, the API returns 403 Forbidden</li>
+                                                                <li><strong>Inactive Stores:</strong> If the store is deactivated by admin, the API returns 403 Forbidden</li>
+                                                                <li>Each user can only have one store</li>
+                                                            </ul>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1587,11 +1671,13 @@ $.ajax({
                                                 <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
                                                     <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#store-check-overview">Overview</a></li>
                                                     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-check-success">Success</a></li>
+                                                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-check-error">Error</a></li>
+                                                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-check-notes">Notes</a></li>
                                                 </ul>
                                                 <div class="tab-content">
                                                     <div class="tab-pane fade show active" id="store-check-overview">
                                                         <div class="mt-3">
-                                                            <p>Check if the authenticated user has a store.</p>
+                                                            <p>Check if the authenticated user has a store. Returns store existence status and active status.</p>
                                                         </div>
                                                     </div>
                                                     <div class="tab-pane fade" id="store-check-success">
@@ -1602,10 +1688,40 @@ $.ajax({
     "success": true,
     "data": {
         "store_exists": true,
-        "store_id": 5
+        "store_id": 5,
+        "store_active": true
     }
 }</code></pre>
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="store-check-error">
+                                                        <div class="mt-3">
+                                                            <h6>Error Responses</h6>
+                                                            <div class="code-block">
+<pre><code>// Blocked User (403 Forbidden)
+{
+    "success": false,
+    "message": "Your account has been blocked. Please contact support."
+}
+
+// Unauthorized (401 Unauthorized)
+{
+    "success": false,
+    "message": "Unauthenticated."
+}</code></pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="store-check-notes">
+                                                        <div class="mt-3">
+                                                            <h6>Important Notes</h6>
+                                                            <ul>
+                                                                <li>Requires authentication via Bearer token</li>
+                                                                <li><strong>Blocked Users:</strong> If the user account is blocked, the API returns 403 Forbidden</li>
+                                                                <li>Returns <code>store_active</code> status to indicate if store is active or inactive</li>
+                                                                <li>Useful for checking store status before attempting store operations</li>
+                                                            </ul>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1626,6 +1742,8 @@ $.ajax({
                                                     <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#store-update-overview">Overview</a></li>
                                                     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-update-request">Request</a></li>
                                                     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-update-success">Success</a></li>
+                                                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-update-error">Error</a></li>
+                                                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#store-update-notes">Notes</a></li>
                                                 </ul>
                                                 <div class="tab-content">
                                                     <div class="tab-pane fade show active" id="store-update-overview">
@@ -1684,15 +1802,61 @@ $.ajax({
     "data": {
         "store": {
             "id": 5,
+            "user_id": 3,
             "name": "Updated Vision Care",
             "email": "updated@visioncare.com",
             "phone_number": "+1-555-999-8888",
             "address": "456 New Street, New York, NY 10002",
-            "logo_url": "http://example.com/storage/stores/5/logo.png"
+            "logo": "http://example.com/storage/stores/logos/abc123.png",
+            "is_active": true,
+            "created_at": "2024-01-15T10:30:00Z",
+            "updated_at": "2024-01-20T14:45:00Z"
         }
     }
 }</code></pre>
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="store-update-error">
+                                                        <div class="mt-3">
+                                                            <h6>Error Responses</h6>
+                                                            <div class="code-block">
+<pre><code>// Blocked User (403 Forbidden)
+{
+    "success": false,
+    "message": "Your account has been blocked. Please contact support."
+}
+
+// Store Not Found (404 Not Found)
+{
+    "success": false,
+    "message": "Store not found. Please create a store first."
+}
+
+// Validation Error (422 Unprocessable Entity)
+{
+    "success": false,
+    "message": "The email field is required."
+}
+
+// Unauthorized (401 Unauthorized)
+{
+    "success": false,
+    "message": "Unauthenticated."
+}</code></pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="store-update-notes">
+                                                        <div class="mt-3">
+                                                            <h6>Important Notes</h6>
+                                                            <ul>
+                                                                <li>Requires authentication via Bearer token</li>
+                                                                <li><strong>Blocked Users:</strong> If the user account is blocked, the API returns 403 Forbidden</li>
+                                                                <li>All fields are required except <code>logo</code></li>
+                                                                <li>Logo upload is optional - if not provided, existing logo is retained</li>
+                                                                <li>Email and phone number must be unique across all stores</li>
+                                                            </ul>
                                                         </div>
                                                     </div>
                                                 </div>

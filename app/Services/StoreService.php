@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Store;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -70,23 +71,64 @@ class StoreService
     }
 
     /**
+     * Get store by User object.
+     *
+     * @param User $user
+     * @return Store|null
+     */
+    public function getStoreByUser(User $user): ?Store
+    {
+        return Store::with(['user'])->where('user_id', $user->id)->first();
+    }
+
+    /**
+     * Format store data for API response.
+     *
+     * @param Store $store
+     * @return array
+     */
+    public function formatStore(Store $store): array
+    {
+        return [
+            'id' => $store->id,
+            'user_id' => $store->user_id,
+            'name' => $store->name,
+            'logo' => $store->logo ? asset('storage/' . $store->logo) : null,
+            'email' => $store->email,
+            'phone_number' => $store->phone_number,
+            'address' => $store->address,
+            'is_active' => $store->is_active,
+            'created_at' => $store->created_at->toIso8601String(),
+            'updated_at' => $store->updated_at->toIso8601String(),
+        ];
+    }
+
+    /**
      * Create a new store.
      *
+     * @param User $user
      * @param array $data
      * @return Store
      * @throws \Exception
      */
-    public function createStore(array $data): Store
+    public function createStore(User $user, array $data): Store
     {
+        // Check if user already has a store
+        $existingStore = $this->getStoreByUser($user);
+        if ($existingStore) {
+            throw new \Exception('User already has a store.', 409);
+        }
+
         DB::beginTransaction();
         try {
+            $data['user_id'] = $user->id;
             $store = Store::create($data);
             DB::commit();
-            Log::info('Store created successfully', ['store_id' => $store->id]);
+            Log::info('Store created successfully', ['store_id' => $store->id, 'user_id' => $user->id]);
             return $store;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to create store', ['error' => $e->getMessage()]);
+            Log::error('Failed to create store', ['error' => $e->getMessage(), 'user_id' => $user->id]);
             throw $e;
         }
     }
@@ -123,6 +165,50 @@ class StoreService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to update store', ['store_id' => $id, 'error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Update a store by Store object.
+     *
+     * @param Store $store
+     * @param array $data
+     * @return Store
+     * @throws \Exception
+     */
+    public function updateStoreByObject(Store $store, array $data): Store
+    {
+        DB::beginTransaction();
+        try {
+            // Handle logo file upload
+            if (isset($data['logo']) && is_file($data['logo'])) {
+                // Delete old logo if exists
+                if ($store->logo && \Storage::disk('public')->exists($store->logo)) {
+                    \Storage::disk('public')->delete($store->logo);
+                }
+                
+                // Store new logo
+                $logoPath = $data['logo']->store('stores/logos', 'public');
+                $data['logo'] = $logoPath;
+            } else {
+                unset($data['logo']);
+            }
+
+            // Handle checkbox - if not present, keep existing value
+            if (!isset($data['is_active'])) {
+                unset($data['is_active']);
+            } else {
+                $data['is_active'] = (bool) $data['is_active'];
+            }
+
+            $store->update($data);
+            DB::commit();
+            Log::info('Store updated successfully', ['store_id' => $store->id]);
+            return $store->fresh(['user']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update store', ['store_id' => $store->id, 'error' => $e->getMessage()]);
             throw $e;
         }
     }

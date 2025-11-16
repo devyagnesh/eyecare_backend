@@ -47,6 +47,13 @@ class AuthController extends Controller
             ]);
         }
 
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been blocked. Please contact support.'],
+            ]);
+        }
+
         // Create or update device record
         $device = $this->createOrUpdateDevice($user, $request);
 
