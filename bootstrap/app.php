@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
         
+        // Prevent search engine indexing for all web routes
+        $middleware->web(append: [
+            \App\Http\Middleware\PreventIndexing::class,
+        ]);
+        
         // Configure rate limiters
         $middleware->throttleApi();
     })
