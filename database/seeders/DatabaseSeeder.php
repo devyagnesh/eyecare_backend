@@ -33,5 +33,8 @@ class DatabaseSeeder extends Seeder
             'password' => 'password', // Will be automatically hashed by the model
             'role_id' => $adminRole->id,
         ]);
+
+        // Seed Terms and Conditions
+        $this->call(TermsAndConditionSeeder::class);
     }
 }

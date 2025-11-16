@@ -39,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role_id',
         'is_spam',
+        'is_blocked',
     ];
 
     /**
@@ -62,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_spam' => 'boolean',
+            'is_blocked' => 'boolean',
         ];
     }
 
@@ -131,6 +133,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeNotSpam($query)
     {
         return $query->where('is_spam', false);
+    }
+
+    /**
+     * Scope a query to only include blocked users.
+     */
+    public function scopeBlocked($query)
+    {
+        return $query->where('is_blocked', true);
+    }
+
+    /**
+     * Scope a query to only include non-blocked users.
+     */
+    public function scopeNotBlocked($query)
+    {
+        return $query->where('is_blocked', false);
     }
 
     /**

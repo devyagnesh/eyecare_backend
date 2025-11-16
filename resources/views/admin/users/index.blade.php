@@ -100,25 +100,42 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($user->email_verified_at)
-                                        <span class="badge bg-success-transparent">Verified</span>
-                                    @else
-                                        <span class="badge bg-warning-transparent">Unverified</span>
-                                    @endif
+                                    <div class="d-flex flex-column gap-1">
+                                        @if($user->email_verified_at)
+                                            <span class="badge bg-success-transparent">Verified</span>
+                                        @else
+                                            <span class="badge bg-warning-transparent">Unverified</span>
+                                        @endif
+                                        @if($user->is_blocked)
+                                            <span class="badge bg-danger-transparent">Blocked</span>
+                                        @endif
+                                        @if($user->is_spam)
+                                            <span class="badge bg-secondary-transparent">Spam</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>{{ $user->created_at->format('M d, Y') }}</td>
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info-light">
+                                        <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info-light" title="View">
                                             <i class="ri-eye-line"></i>
                                         </a>
-                                        <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-primary-light">
+                                        <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-primary-light" title="Edit">
                                             <i class="ri-pencil-line"></i>
                                         </a>
+                                        @if($user->id !== auth()->id())
+                                            <form action="{{ route('admin.users.toggle-block-status', $user) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('POST')
+                                                <button type="submit" class="btn btn-sm {{ $user->is_blocked ? 'btn-success-light' : 'btn-warning-light' }} ajax-action" data-table-id="#users-table" title="{{ $user->is_blocked ? 'Unblock' : 'Block' }}">
+                                                    <i class="ri-{{ $user->is_blocked ? 'user-unfollow' : 'user-forbid' }}-line"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                         <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger-light ajax-delete" data-table-id="#users-table" data-confirm="Are you sure you want to delete this user?">
+                                            <button type="submit" class="btn btn-sm btn-danger-light ajax-delete" data-table-id="#users-table" data-confirm="Are you sure you want to delete this user?" title="Delete">
                                                 <i class="ri-delete-bin-line"></i>
                                             </button>
                                         </form>

@@ -53,7 +53,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-xl-12">
+                        <div class="col-xl-6">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="is_spam" name="is_spam" value="1" {{ old('is_spam', $user->is_spam) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="is_spam">
@@ -62,6 +62,18 @@
                             </div>
                             <small class="text-muted">Enable this to mark this user account as spam.</small>
                             @error('is_spam')
+                                <div class="text-danger small">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-xl-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_blocked" name="is_blocked" value="1" {{ old('is_blocked', $user->is_blocked) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_blocked">
+                                    Block User Account
+                                </label>
+                            </div>
+                            <small class="text-muted">Enable this to block this user account from accessing the system.</small>
+                            @error('is_blocked')
                                 <div class="text-danger small">{{ $message }}</div>
                             @enderror
                         </div>

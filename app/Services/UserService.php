@@ -92,7 +92,33 @@ class UserService
             $data['is_spam'] = (bool) $data['is_spam'];
         }
 
+        // Handle is_blocked checkbox - if not present, set to false
+        if (!isset($data['is_blocked'])) {
+            $data['is_blocked'] = false;
+        } else {
+            $data['is_blocked'] = (bool) $data['is_blocked'];
+        }
+
         return $this->repository->update($user, $data);
+    }
+
+    /**
+     * Toggle user blocked status.
+     *
+     * @param int $id
+     * @return \App\Models\User
+     * @throws \Exception
+     */
+    public function toggleUserBlockStatus(int $id): \App\Models\User
+    {
+        $user = $this->repository->findById($id);
+        
+        if (!$user) {
+            throw new \Exception("User not found.");
+        }
+
+        $user->update(['is_blocked' => !$user->is_blocked]);
+        return $user->fresh();
     }
 
     /**

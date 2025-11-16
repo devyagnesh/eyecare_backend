@@ -175,4 +175,26 @@ class UserController extends Controller
             return $this->handleErrorResponse($request, $e->getMessage(), 'admin.users.index');
         }
     }
+
+    /**
+     * Toggle user blocked status.
+     *
+     * @param Request $request
+     * @param User $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function toggleBlockStatus(Request $request, User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return $this->handleErrorResponse($request, 'You cannot block your own account.', 'admin.users.index', 403);
+        }
+
+        try {
+            $this->userService->toggleUserBlockStatus($user->id);
+            $status = $user->fresh()->is_blocked ? 'blocked' : 'unblocked';
+            return $this->handleResponse($request, "User {$status} successfully.", 'admin.users.index');
+        } catch (\Exception $e) {
+            return $this->handleErrorResponse($request, $e->getMessage(), 'admin.users.index');
+        }
+    }
 }

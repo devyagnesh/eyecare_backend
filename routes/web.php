@@ -5,11 +5,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ApiDocumentationController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TestEmailController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
+use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Api\EyeExaminationController;
@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// API Documentation (public access)
+Route::get('/api-documentation', function () {
+    return view('api-documentation');
+})->name('api.documentation');
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
@@ -80,6 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class);
         Route::post('users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
         Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
+        Route::post('users/{user}/toggle-block-status', [UserController::class, 'toggleBlockStatus'])->name('users.toggle-block-status');
         
         // Settings management
         Route::resource('settings', SettingController::class);
@@ -94,8 +100,8 @@ Route::middleware('auth')->group(function () {
         Route::post('terms/{id}/restore', [TermsAndConditionController::class, 'restore'])->name('terms.restore');
         Route::delete('terms/{id}/force-delete', [TermsAndConditionController::class, 'forceDelete'])->name('terms.force-delete');
         
-        // API Documentation
-        Route::get('api-documentation', [ApiDocumentationController::class, 'index'])->name('api-documentation.index');
-        Route::get('api-documentation/download', [ApiDocumentationController::class, 'downloadPostmanCollection'])->name('api-documentation.download');
+        // Stores management
+        Route::resource('stores', StoreController::class)->except(['create', 'store']);
+        Route::post('stores/{store}/toggle-status', [StoreController::class, 'toggleStatus'])->name('stores.toggle-status');
     });
 });
