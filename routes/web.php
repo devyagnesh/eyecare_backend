@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ApiDocumentationController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TestEmailController;
 use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Api\EyeExaminationController;
@@ -87,6 +88,11 @@ Route::middleware('auth')->group(function () {
         
         // Analytics
         Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+        
+        // Terms and Conditions management
+        Route::resource('terms', TermsAndConditionController::class);
+        Route::post('terms/{id}/restore', [TermsAndConditionController::class, 'restore'])->name('terms.restore');
+        Route::delete('terms/{id}/force-delete', [TermsAndConditionController::class, 'forceDelete'])->name('terms.force-delete');
         
         // API Documentation
         Route::get('api-documentation', [ApiDocumentationController::class, 'index'])->name('api-documentation.index');

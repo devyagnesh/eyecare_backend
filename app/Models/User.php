@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -130,5 +131,43 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeNotSpam($query)
     {
         return $query->where('is_spam', false);
+    }
+
+    /**
+     * Get the terms and conditions accepted by the user.
+     */
+    public function acceptedTerms(): BelongsToMany
+    {
+        return $this->belongsToMany(TermsAndCondition::class, 'user_terms_acceptance')
+            ->withPivot('ip_address', 'user_agent', 'accepted_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if user has accepted the latest terms.
+     *
+     * @return bool
+     */
+    public function hasAcceptedLatestTerms(): bool
+    {
+        $latestTerms = TermsAndCondition::getLatest();
+        
+        if (!$latestTerms) {
+            return false;
+        }
+
+        return $this->acceptedTerms()
+            ->where('terms_and_conditions.id', $latestTerms->id)
+            ->exists();
+    }
+
+    /**
+     * Get the latest accepted terms by the user.
+     */
+    public function getLatestAcceptedTerms()
+    {
+        return $this->acceptedTerms()
+            ->orderBy('user_terms_acceptance.accepted_at', 'desc')
+            ->first();
     }
 }

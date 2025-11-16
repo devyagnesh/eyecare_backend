@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\EyeExaminationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\TermsAndConditionController;
 use App\Http\Controllers\Admin\TestEmailController;
 
 /*
@@ -28,6 +29,11 @@ Route::prefix('auth')->group(function () {
     Route::get('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify-api');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.forgot-api');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset-api');
+});
+
+// Public terms and conditions routes
+Route::prefix('terms')->group(function () {
+    Route::get('/latest', [TermsAndConditionController::class, 'getLatest'])->name('terms.latest');
 });
 
 // Test email routes (for debugging)
@@ -91,6 +97,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{setting}', [SettingController::class, 'show'])->name('settings.show');
         Route::put('/{setting}', [SettingController::class, 'update'])->name('settings.update');
         Route::delete('/{setting}', [SettingController::class, 'destroy'])->name('settings.destroy');
+    });
+    
+    // Terms and conditions routes
+    Route::prefix('terms')->group(function () {
+        Route::get('/check', [TermsAndConditionController::class, 'checkAcceptance'])->name('terms.check');
+        Route::post('/accept', [TermsAndConditionController::class, 'accept'])->name('terms.accept');
     });
     
     // Example: Get authenticated user
