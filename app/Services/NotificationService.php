@@ -71,13 +71,34 @@ class NotificationService
         ]);
 
         try {
-            $devices = UserDevice::whereNotNull('notification_token')
-                ->where('is_active', true)
-                ->where('notification_platform', 'fcm')
+            // Query devices with non-empty notification tokens
+            // notification_platform can be null or 'fcm' - we'll handle both
+            $devices = UserDevice::where('is_active', true)
+                ->where(function ($query) {
+                    $query->whereNotNull('notification_token')
+                        ->where('notification_token', '!=', '');
+                })
+                ->where(function ($query) {
+                    $query->where('notification_platform', 'fcm')
+                        ->orWhereNull('notification_platform');
+                })
                 ->get();
 
             // If no devices with tokens exist, mark as completed with 0 sent
             if ($devices->isEmpty()) {
+                // Debug: Log total devices and devices with tokens for troubleshooting
+                $totalDevices = UserDevice::count();
+                $devicesWithTokens = UserDevice::whereNotNull('notification_token')
+                    ->where('notification_token', '!=', '')
+                    ->count();
+                $activeDevices = UserDevice::where('is_active', true)->count();
+                
+                Log::warning('No active devices with notification tokens found', [
+                    'total_devices' => $totalDevices,
+                    'devices_with_tokens' => $devicesWithTokens,
+                    'active_devices' => $activeDevices,
+                ]);
+
                 $notification->update([
                     'status' => 'completed',
                     'sent_count' => 0,
@@ -95,7 +116,9 @@ class NotificationService
 
             foreach ($devices as $device) {
                 try {
-                    $this->sendToDevice($device->notification_token, $title, $body, $data, $device->notification_platform);
+                    // Default to 'fcm' if platform is null
+                    $platform = $device->notification_platform ?? 'fcm';
+                    $this->sendToDevice($device->notification_token, $title, $body, $data, $platform);
                     $sentCount++;
                 } catch (\Exception $e) {
                     $failedCount++;
@@ -151,10 +174,18 @@ class NotificationService
         ]);
 
         try {
+            // Query devices with non-empty notification tokens
+            // notification_platform can be null or 'fcm' - we'll handle both
             $devices = $user->devices()
-                ->whereNotNull('notification_token')
                 ->where('is_active', true)
-                ->where('notification_platform', 'fcm')
+                ->where(function ($query) {
+                    $query->whereNotNull('notification_token')
+                        ->where('notification_token', '!=', '');
+                })
+                ->where(function ($query) {
+                    $query->where('notification_platform', 'fcm')
+                        ->orWhereNull('notification_platform');
+                })
                 ->get();
 
             // If user has no devices with tokens, mark as completed with 0 sent
@@ -176,7 +207,9 @@ class NotificationService
 
             foreach ($devices as $device) {
                 try {
-                    $this->sendToDevice($device->notification_token, $title, $body, $data, $device->notification_platform);
+                    // Default to 'fcm' if platform is null
+                    $platform = $device->notification_platform ?? 'fcm';
+                    $this->sendToDevice($device->notification_token, $title, $body, $data, $platform);
                     $sentCount++;
                 } catch (\Exception $e) {
                     $failedCount++;
@@ -232,14 +265,22 @@ class NotificationService
         ]);
 
         try {
+            // Query devices with non-empty notification tokens
+            // notification_platform can be null or 'fcm' - we'll handle both
             $devices = UserDevice::whereHas('user', function ($query) use ($storeId) {
                 $query->whereHas('store', function ($q) use ($storeId) {
                     $q->where('stores.id', $storeId);
                 });
             })
-            ->whereNotNull('notification_token')
             ->where('is_active', true)
-            ->where('notification_platform', 'fcm')
+            ->where(function ($query) {
+                $query->whereNotNull('notification_token')
+                    ->where('notification_token', '!=', '');
+            })
+            ->where(function ($query) {
+                $query->where('notification_platform', 'fcm')
+                    ->orWhereNull('notification_platform');
+            })
             ->get();
 
             // If store has no devices with tokens, mark as completed with 0 sent
@@ -261,7 +302,9 @@ class NotificationService
 
             foreach ($devices as $device) {
                 try {
-                    $this->sendToDevice($device->notification_token, $title, $body, $data, $device->notification_platform);
+                    // Default to 'fcm' if platform is null
+                    $platform = $device->notification_platform ?? 'fcm';
+                    $this->sendToDevice($device->notification_token, $title, $body, $data, $platform);
                     $sentCount++;
                 } catch (\Exception $e) {
                     $failedCount++;
