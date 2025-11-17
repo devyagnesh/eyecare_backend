@@ -30,7 +30,7 @@
 
             const backgroundColor = options.backgroundColor || colorMap[type] || colorMap['info'];
             const duration = options.duration || (type === 'error' ? 5000 : 3000);
-            const position = options.position || 'top-right';
+            const position = options.position || 'bottom-right';
             const gravity = position.includes('bottom') ? 'bottom' : 'top';
             const positionLeft = position.includes('left');
 
