@@ -12,7 +12,6 @@ use App\Models\UserDevice;
 use App\Models\Role;
 use App\Services\EmailVerificationService;
 use App\Services\PasswordResetService;
-use App\Services\GeolocationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -507,38 +506,17 @@ class AuthController extends Controller
             'last_active_at' => now(),
         ];
 
-        // Priority: Use provided latitude/longitude > IP geolocation
+        // Use location data only if provided in the payload (from mobile app)
+        // For maximum accuracy, we rely solely on GPS coordinates from the device
         if ($request->has('latitude') && $request->has('longitude')) {
-            // Use provided location data
             $deviceData['latitude'] = $request->latitude;
             $deviceData['longitude'] = $request->longitude;
             $deviceData['city'] = $request->city;
             $deviceData['region'] = $request->region;
             $deviceData['country'] = $request->country;
             $deviceData['country_code'] = $request->country_code;
-        } else {
-            // Fallback to IP geolocation (only if location not set)
-            $existingDevice = UserDevice::where('user_id', $user->id)
-                ->where('device_id', $deviceData['device_id'])
-                ->first();
-            
-            if (!$existingDevice || !$existingDevice->latitude || $existingDevice->ip_address !== $ipAddress) {
-                $geolocationService = app(GeolocationService::class);
-                $location = $geolocationService->getLocationFromIp($ipAddress);
-                
-                if ($location) {
-                    $deviceData = array_merge($deviceData, $location);
-                }
-            } elseif ($existingDevice && $existingDevice->latitude) {
-                // Keep existing location if available
-                $deviceData['latitude'] = $existingDevice->latitude;
-                $deviceData['longitude'] = $existingDevice->longitude;
-                $deviceData['city'] = $existingDevice->city;
-                $deviceData['region'] = $existingDevice->region;
-                $deviceData['country'] = $existingDevice->country;
-                $deviceData['country_code'] = $existingDevice->country_code;
-            }
         }
+        // If not provided, location fields will remain null (no IP geolocation fallback)
 
         // Try to find existing device by device_id or create new one
         $device = UserDevice::updateOrCreate(

@@ -39,9 +39,9 @@ class VerifyEmailNotification extends Notification
      */
     protected function verificationUrl($notifiable): string
     {
-        // Generate absolute signed URL - Laravel handles this properly
+        // Generate absolute signed URL for API verification endpoint
         return URL::temporarySignedRoute(
-            'verification.verify',
+            'verification.verify-api',
             now()->addMinutes(60),
             [
                 'id' => $notifiable->getKey(),

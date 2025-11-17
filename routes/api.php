@@ -26,7 +26,9 @@ use App\Http\Controllers\Admin\TestEmailController;
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
-    Route::get('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify-api');
+    Route::get('/verify-email', [AuthController::class, 'verifyEmail'])
+        ->middleware('signed')
+        ->name('verification.verify-api');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.forgot-api');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset-api');
 });
