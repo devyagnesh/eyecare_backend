@@ -22,22 +22,20 @@ class OrderController extends Controller
     /**
      * Get all orders for the authenticated user's store.
      * 
-     * Query Parameters:
-     * - search (string): Search by customer name, email, phone number, or invoice number
-     * - paginated (boolean): Enable/disable pagination (default: true)
-     * - per_page (integer): Number of items per page when paginated=true (default: 15, max: 100)
-     * - customer_id (integer): Filter by customer ID
-     * - status (string): Filter by status (pending, processing, completed, cancelled)
-     * - date_from (date): Filter orders from this date (YYYY-MM-DD)
-     * - date_to (date): Filter orders up to this date (YYYY-MM-DD)
-     * - sort_by (string): Sort field (created_at, expected_completion_date, total_price, status) - default: created_at
-     * - sort_order (string): Sort order (asc, desc) - default: desc
+     * Retrieves a paginated list of orders with filtering and sorting options.
+     * Search by customer name, email, phone number, or invoice number.
      * 
-     * @example payload
-     * GET /api/orders?customer_id=1&status=pending&paginated=true&per_page=15
+     * @queryParam search string Search by customer name, email, phone number, or invoice number. Example: john
+     * @queryParam paginated boolean Enable/disable pagination. Default: true. Example: true
+     * @queryParam per_page integer Number of items per page when paginated=true. Default: 15, max: 100. Example: 15
+     * @queryParam customer_id integer Filter by customer ID. Example: 1
+     * @queryParam status string Filter by status (pending, processing, completed, cancelled). Example: pending
+     * @queryParam date_from date Filter orders from this date (YYYY-MM-DD). Example: 2025-01-01
+     * @queryParam date_to date Filter orders up to this date (YYYY-MM-DD). Example: 2025-12-31
+     * @queryParam sort_by string Sort field (created_at, expected_completion_date, total_price, status). Default: created_at. Example: created_at
+     * @queryParam sort_order string Sort order (asc, desc). Default: desc. Example: desc
      * 
-     * @example success_response
-     * {
+     * @response 200 {
      *   "success": true,
      *   "data": {
      *     "orders": [
@@ -54,7 +52,9 @@ class OrderController extends Controller
      *           "id": 5,
      *           "exam_date": "2025-11-10"
      *         },
-     *         "frame_photo": "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg",
+     *         "frame_photos": [
+     *           "http://example.com/storage/orders/1/INV-ABC-202511-0001/frame-1234567890.jpg"
+     *         ],
      *         "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
      *         "total_price": 2500.00,
      *         "expected_completion_date": "2025-12-01",
@@ -76,8 +76,10 @@ class OrderController extends Controller
      *   }
      * }
      * 
-     * @status 200 Success
-     * @status 404 Store not found
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Store not found. Please create a store first."
+     * }
      */
     public function index(Request $request)
     {
@@ -144,25 +146,9 @@ class OrderController extends Controller
      * Create a new order with frame photo upload and generate invoice.
      * 
      * This endpoint accepts multipart/form-data for file uploads.
-     * Content-Type: multipart/form-data
+     * Invoice PDF is automatically generated upon order creation.
      * 
-     * @example payload
-     * POST /api/orders
-     * Content-Type: multipart/form-data
-     * 
-     * {
-     *   "customer_id": 1,
-     *   "eye_examination_id": 5,
-     *   "frame_photos": [array of file uploads - JPEG, PNG, WebP, max 5MB each, max 10 files],
-     *   "glass_details": "Progressive lenses, anti-glare coating, blue light filter",
-     *   "total_price": 2500.00,
-     *   "expected_completion_date": "2025-12-01",
-     *   "status": "pending",
-     *   "notes": "Customer prefers thinner frames"
-     * }
-     * 
-     * @example success_response
-     * {
+     * @response 201 {
      *   "success": true,
      *   "message": "Order created successfully and invoice generated.",
      *   "data": {
@@ -194,8 +180,7 @@ class OrderController extends Controller
      *   }
      * }
      * 
-     * @example error_response
-     * {
+     * @response 400 {
      *   "success": false,
      *   "message": "The provided data is invalid.",
      *   "errors": {
@@ -204,10 +189,15 @@ class OrderController extends Controller
      *   }
      * }
      * 
-     * @status 200 Order created successfully
-     * @status 400 Validation error
-     * @status 404 Store or customer not found
-     * @status 500 Server error
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Store not found. Please create a store first."
+     * }
+     * 
+     * @response 500 {
+     *   "success": false,
+     *   "message": "Failed to create order."
+     * }
      */
     public function store(StoreOrderRequest $request)
     {
@@ -250,11 +240,12 @@ class OrderController extends Controller
     /**
      * Get a specific order by ID.
      * 
-     * @example payload
-     * GET /api/orders/1
+     * Retrieves detailed information about a specific order including customer,
+     * eye examination, frame photos, and invoice details.
      * 
-     * @example success_response
-     * {
+     * @urlParam id integer required The ID of the order. Example: 1
+     * 
+     * @response 200 {
      *   "success": true,
      *   "data": {
      *     "order": {
@@ -285,8 +276,10 @@ class OrderController extends Controller
      *   }
      * }
      * 
-     * @status 200 Success
-     * @status 404 Order or store not found
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Order not found."
+     * }
      */
     public function show(Request $request, $id)
     {
@@ -326,14 +319,14 @@ class OrderController extends Controller
      * 
      * Returns the PDF file directly for download.
      * 
-     * @example payload
-     * GET /api/orders/1/download-invoice
+     * @urlParam id integer required The ID of the order. Example: 1
      * 
-     * @example success_response
-     * [PDF file download]
+     * @response 200 The PDF file is returned as a download.
      * 
-     * @status 200 PDF file download
-     * @status 404 Order or invoice PDF not found
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Invoice PDF not found."
+     * }
      */
     public function downloadInvoice(Request $request, $id)
     {
@@ -375,14 +368,11 @@ class OrderController extends Controller
     /**
      * Update order status.
      * 
-     * @example payload
-     * PUT /api/orders/1/status
-     * {
-     *   "status": "processing"
-     * }
+     * Updates the status of an order. Valid statuses: pending, processing, completed, cancelled.
      * 
-     * @example success_response
-     * {
+     * @urlParam id integer required The ID of the order. Example: 1
+     * 
+     * @response 200 {
      *   "success": true,
      *   "message": "Order status updated successfully.",
      *   "data": {
@@ -390,14 +380,40 @@ class OrderController extends Controller
      *       "id": 1,
      *       "invoice_number": "INV-ABC-202511-0001",
      *       "status": "processing",
-     *       ...
+     *       "customer": {
+     *         "id": 1,
+     *         "name": "Jane Smith",
+     *         "email": "jane.smith@example.com"
+     *       },
+     *       "total_price": 2500.00,
+     *       "created_at": "2025-11-14 17:00:00",
+     *       "updated_at": "2025-11-14 17:00:00"
      *     }
      *   }
      * }
      * 
-     * @status 200 Success
-     * @status 404 Order not found
-     * @status 422 Validation error
+     * @response 403 {
+     *   "success": false,
+     *   "message": "Your account has been blocked. Please contact support."
+     * }
+     * 
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Order not found."
+     * }
+     * 
+     * @response 422 {
+     *   "success": false,
+     *   "message": "The provided data is invalid.",
+     *   "errors": {
+     *     "status": ["The selected status is invalid."]
+     *   }
+     * }
+     * 
+     * @response 500 {
+     *   "success": false,
+     *   "message": "Failed to update order status."
+     * }
      */
     public function updateStatus(UpdateOrderStatusRequest $request, $id)
     {
@@ -460,18 +476,24 @@ class OrderController extends Controller
     /**
      * Delete an order.
      * 
-     * @example payload
-     * DELETE /api/orders/1
+     * Soft deletes an order. The order can be restored if needed.
      * 
-     * @example success_response
-     * {
+     * @urlParam id integer required The ID of the order. Example: 1
+     * 
+     * @response 200 {
      *   "success": true,
      *   "message": "Order deleted successfully."
      * }
      * 
-     * @status 200 Success
-     * @status 404 Order not found
-     * @status 403 Forbidden (blocked user, inactive store, or order doesn't belong to store)
+     * @response 403 {
+     *   "success": false,
+     *   "message": "Your account has been blocked. Please contact support."
+     * }
+     * 
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Order not found."
+     * }
      */
     public function destroy(Request $request, $id)
     {

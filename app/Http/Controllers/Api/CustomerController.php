@@ -22,17 +22,52 @@ class CustomerController extends Controller
     /**
      * Get all customers for the authenticated user's store.
      * 
-     * Query Parameters:
-     * - paginated (boolean): Enable/disable pagination (default: true)
-     * - per_page (integer): Number of items per page (default: 15, max: 100)
-     * - search (string): Search by name, email, or phone_number
-     * - name (string): Filter by exact name match
-     * - email (string): Filter by exact email match
-     * - phone_number (string): Filter by exact phone_number match
-     * - created_from (date): Filter customers created from this date (YYYY-MM-DD)
-     * - created_to (date): Filter customers created up to this date (YYYY-MM-DD)
-     * - sort_by (string): Sort field (name, email, phone_number, created_at, updated_at) - default: created_at
-     * - sort_order (string): Sort order (asc, desc) - default: desc
+     * Retrieves a paginated list of customers with filtering and sorting options.
+     * 
+     * @queryParam paginated boolean Enable/disable pagination. Default: true. Example: true
+     * @queryParam per_page integer Number of items per page. Default: 15, max: 100. Example: 15
+     * @queryParam search string Search by name, email, or phone_number. Example: john
+     * @queryParam name string Filter by exact name match. Example: John Doe
+     * @queryParam email string Filter by exact email match. Example: john@example.com
+     * @queryParam phone_number string Filter by exact phone_number match. Example: +1234567890
+     * @queryParam created_from date Filter customers created from this date (YYYY-MM-DD). Example: 2025-01-01
+     * @queryParam created_to date Filter customers created up to this date (YYYY-MM-DD). Example: 2025-12-31
+     * @queryParam sort_by string Sort field (name, email, phone_number, created_at, updated_at). Default: created_at. Example: created_at
+     * @queryParam sort_order string Sort order (asc, desc). Default: desc. Example: desc
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "customers": [
+     *       {
+     *         "id": 1,
+     *         "name": "John Doe",
+     *         "email": "john@example.com",
+     *         "phone_number": "+1234567890",
+     *         "created_at": "2025-01-01 00:00:00",
+     *         "updated_at": "2025-01-01 00:00:00"
+     *       }
+     *     ],
+     *     "pagination": {
+     *       "current_page": 1,
+     *       "last_page": 1,
+     *       "per_page": 15,
+     *       "total": 1,
+     *       "from": 1,
+     *       "to": 1
+     *     }
+     *   }
+     * }
+     * 
+     * @response 403 {
+     *   "success": false,
+     *   "message": "Your account has been blocked. Please contact support."
+     * }
+     * 
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Store not found. Please create a store first."
+     * }
      */
     public function index(Request $request)
     {

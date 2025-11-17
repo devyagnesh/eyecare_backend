@@ -22,6 +22,53 @@ class AuthController extends Controller
 {
     /**
      * Login user and create/update device record.
+     * 
+     * Authenticates a user and returns an API token along with user information.
+     * Also creates or updates device information for push notifications.
+     * 
+     * @bodyParam email string required User email address. Example: user@example.com
+     * @bodyParam password string required User password. Example: password123
+     * @bodyParam device_id string Device identifier. Example: device-12345
+     * @bodyParam device_type string Device type (mobile, tablet, desktop). Example: mobile
+     * @bodyParam device_name string Device name. Example: iPhone 13
+     * @bodyParam os_name string Operating system name. Example: iOS
+     * @bodyParam os_version string Operating system version. Example: 15.0
+     * @bodyParam browser_name string Browser name. Example: Safari
+     * @bodyParam browser_version string Browser version. Example: 15.0
+     * @bodyParam notification_token string Push notification token. Example: fcm-token-123
+     * @bodyParam notification_platform string Notification platform (fcm, apns, web-push). Example: fcm
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "user": {
+     *       "id": 1,
+     *       "name": "John Doe",
+     *       "email": "user@example.com",
+     *       "email_verified_at": "2025-01-01T00:00:00Z",
+     *       "role": {
+     *         "id": 1,
+     *         "name": "User",
+     *         "slug": "user"
+     *       },
+     *       "permissions": ["view-dashboard", "create-orders"]
+     *     },
+     *     "token": "1|abcdefghijklmnopqrstuvwxyz1234567890",
+     *     "device": {
+     *       "id": 1,
+     *       "device_id": "device-12345",
+     *       "device_type": "mobile"
+     *     }
+     *   },
+     *   "message": "Login successful"
+     * }
+     * 
+     * @response 422 {
+     *   "message": "The provided credentials are incorrect.",
+     *   "errors": {
+     *     "email": ["The provided credentials are incorrect."]
+     *   }
+     * }
      */
     public function login(Request $request)
     {

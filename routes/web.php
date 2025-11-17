@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\TestEmailController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Api\EyeExaminationController;
@@ -19,10 +20,8 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// API Documentation (public access)
-Route::get('/api-documentation', function () {
-    return view('api-documentation');
-})->name('api.documentation');
+// API Documentation (using Scramble)
+// Access at /docs/api
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
@@ -103,5 +102,9 @@ Route::middleware('auth')->group(function () {
         // Stores management
         Route::resource('stores', StoreController::class)->except(['create', 'store']);
         Route::post('stores/{store}/toggle-status', [StoreController::class, 'toggleStatus'])->name('stores.toggle-status');
+        
+        // Orders management
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     });
 });
