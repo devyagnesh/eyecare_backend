@@ -1,5 +1,5 @@
 /**
- * Global Toast Notification System
+ * Global Toast Notification System using Toastify
  * Handles all success, error, warning, and info messages
  * Works with both Laravel flash messages and AJAX responses
  */
@@ -19,43 +19,37 @@
          * @param {object} options - Additional options
          */
         show: function(message, type = 'success', options = {}) {
-            // Default options
-            const defaultOptions = {
-                position: 'bottom-end', // Changed to bottom-right
-                timer: type === 'error' ? 5000 : 3000,
-                showConfirmButton: false,
-                timerProgressBar: true,
-                allowOutsideClick: true,
-                allowEscapeKey: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer);
-                    toast.addEventListener('mouseleave', Swal.resumeTimer);
-                }
+            // Default colors for each type
+            const colorMap = {
+                'success': '#28a745',
+                'error': '#dc3545',
+                'warning': '#ffc107',
+                'info': '#17a2b8',
+                'danger': '#dc3545'
             };
 
-            // Merge with custom options
-            const finalOptions = Object.assign({}, defaultOptions, options);
+            const backgroundColor = options.backgroundColor || colorMap[type] || colorMap['info'];
+            const duration = options.duration || (type === 'error' ? 5000 : 3000);
+            const position = options.position || 'top-right';
+            const gravity = position.includes('bottom') ? 'bottom' : 'top';
+            const positionLeft = position.includes('left');
 
-            // Map type to SweetAlert2 icon
-            const iconMap = {
-                'success': 'success',
-                'error': 'error',
-                'warning': 'warning',
-                'info': 'info',
-                'danger': 'error'
-            };
-
-            const icon = iconMap[type] || 'info';
-
-            // Use SweetAlert2 if available
-            if (typeof Swal !== 'undefined') {
-                const Toast = Swal.mixin(finalOptions);
-
-                Toast.fire({
-                    icon: icon,
-                    title: message,
-                    html: options.html || null
+            // Use Toastify if available
+            if (typeof Toastify !== 'undefined') {
+                const toast = Toastify({
+                    text: message,
+                    duration: duration,
+                    gravity: gravity,
+                    positionLeft: positionLeft,
+                    backgroundColor: backgroundColor,
+                    close: true,
+                    stopOnFocus: true,
+                    className: 'toastify toastify-' + type,
+                    onClick: options.onClick || function() {},
+                    callback: options.callback || function() {}
                 });
+
+                toast.showToast();
             } else {
                 // Fallback to browser alert
                 alert(message);
@@ -102,35 +96,6 @@
             this.show(message, 'info', options);
         },
 
-        /**
-         * Show validation errors
-         * 
-         * @param {object|array} errors - Validation errors
-         */
-        validationErrors: function(errors) {
-            let errorMessage = 'Please fix the following errors:';
-            
-            if (Array.isArray(errors)) {
-                errorMessage += '<ul class="text-start mt-2 mb-0">';
-                errors.forEach(error => {
-                    errorMessage += '<li>' + error + '</li>';
-                });
-                errorMessage += '</ul>';
-            } else if (typeof errors === 'object') {
-                errorMessage += '<ul class="text-start mt-2 mb-0">';
-                Object.keys(errors).forEach(key => {
-                    const fieldErrors = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
-                    fieldErrors.forEach(error => {
-                        errorMessage += '<li><strong>' + key + ':</strong> ' + error + '</li>';
-                    });
-                });
-                errorMessage += '</ul>';
-            } else {
-                errorMessage = errors;
-            }
-
-            this.error(errorMessage, { html: errorMessage });
-        }
     };
 
     /**
@@ -182,14 +147,23 @@
             if (xhr.status === 0 || xhr.status >= 400) {
                 let errorMessage = 'An error occurred. Please try again.';
                 
+                // Check for consistent API error format: {success: false, message: "..."}
                 if (xhr.responseJSON) {
                     if (xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
                     } else if (xhr.responseJSON.error) {
                         errorMessage = xhr.responseJSON.error;
                     } else if (xhr.responseJSON.errors) {
-                        ToastNotification.validationErrors(xhr.responseJSON.errors);
-                        return;
+                        // Handle validation errors - show first error message
+                        const errors = xhr.responseJSON.errors;
+                        if (typeof errors === 'object') {
+                            const firstError = Object.values(errors)[0];
+                            if (Array.isArray(firstError) && firstError.length > 0) {
+                                errorMessage = firstError[0];
+                            } else if (typeof firstError === 'string') {
+                                errorMessage = firstError;
+                            }
+                        }
                     }
                 } else if (xhr.status === 0) {
                     errorMessage = 'Network error. Please check your connection.';
@@ -200,10 +174,6 @@
                 } else if (xhr.status === 404) {
                     errorMessage = 'Resource not found.';
                 } else if (xhr.status === 422) {
-                    if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        ToastNotification.validationErrors(xhr.responseJSON.errors);
-                        return;
-                    }
                     errorMessage = 'Validation error. Please check your input.';
                 } else if (xhr.status === 500) {
                     errorMessage = 'Server error. Please try again later.';

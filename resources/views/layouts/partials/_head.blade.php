@@ -68,5 +68,51 @@
 <link rel="stylesheet" href="{{ asset('assets/libs/@tarekraafat/autocomplete.js/css/autoComplete.css') }}">
 @endif
 
+<!-- Toastify CSS -->
+@if(file_exists(public_path('assets/libs/toastify-js/src/toastify.css')))
+<link rel="stylesheet" href="{{ asset('assets/libs/toastify-js/src/toastify.css') }}">
+@endif
+
+<style>
+/* Custom Toastify Styling */
+.toastify {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 14px 20px;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.toastify-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.toastify-error {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.toastify-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+    color: #212529;
+}
+
+.toastify-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.toast-close {
+    opacity: 0.7;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+</style>
+
 @stack('styles')
 

@@ -244,19 +244,23 @@
                 let errorMessage = config.errorMessage || 'An error occurred. Please try again.';
                 let errorType = 'error';
 
-                // Parse error response
+                // Parse error response - check for consistent API format: {success: false, message: "..."}
                 if (xhr.responseJSON) {
+                    // Use message from consistent API error format
                     if (xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
                     } else if (xhr.responseJSON.error) {
                         errorMessage = xhr.responseJSON.error;
                     } else if (xhr.responseJSON.errors) {
-                        // Validation errors
-                        if (typeof window.ToastNotification !== 'undefined') {
-                            window.ToastNotification.validationErrors(xhr.responseJSON.errors);
-                        } else {
-                            const errors = Object.values(xhr.responseJSON.errors).flat();
-                            errorMessage = errors.join('<br>');
+                        // Handle validation errors - show first error message
+                        const errors = xhr.responseJSON.errors;
+                        if (typeof errors === 'object') {
+                            const firstError = Object.values(errors)[0];
+                            if (Array.isArray(firstError) && firstError.length > 0) {
+                                errorMessage = firstError[0];
+                            } else if (typeof firstError === 'string') {
+                                errorMessage = firstError;
+                            }
                         }
                         errorType = 'validation';
                     }

@@ -45,4 +45,29 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 422);
             }
         });
+
+        // Handle all other exceptions for API routes
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+                
+                // Don't override validation exceptions
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    return null;
+                }
+
+                // Get error message
+                $message = $e->getMessage();
+                
+                // For production, hide sensitive error details
+                if (app()->environment('production') && $statusCode === 500) {
+                    $message = 'An internal server error occurred. Please try again later.';
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], $statusCode);
+            }
+        });
     })->create();

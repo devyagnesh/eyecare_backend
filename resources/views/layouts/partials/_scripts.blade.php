@@ -65,7 +65,15 @@
 <script src="{{ asset('assets/js/custom-switcher.min.js') }}"></script>
 @endif
 
-<!-- SweetAlert2 (for beautiful notifications and confirmations) -->
+<!-- Toastify (for beautiful toast notifications) -->
+@if(file_exists(public_path('assets/libs/toastify-js/src/toastify.css')))
+    <link rel="stylesheet" href="{{ asset('assets/libs/toastify-js/src/toastify.css') }}">
+@endif
+@if(file_exists(public_path('assets/libs/toastify-js/src/toastify.js')))
+    <script src="{{ asset('assets/libs/toastify-js/src/toastify.js') }}"></script>
+@endif
+
+<!-- SweetAlert2 (for confirmations and alerts only) -->
 @if(file_exists(public_path('assets/libs/sweetalert2/sweetalert2.min.css')))
     <link rel="stylesheet" href="{{ asset('assets/libs/sweetalert2/sweetalert2.min.css') }}">
 @endif
