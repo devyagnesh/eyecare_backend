@@ -85,6 +85,7 @@
                                 <th>Type</th>
                                 <th>Target</th>
                                 <th>Sent</th>
+                                <th>Sent Count</th>
                                 <th>Failed</th>
                                 <th>Status</th>
                                 <th>Sent At</th>
@@ -124,7 +125,18 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="badge bg-success-transparent">{{ $notification->sent_count }}</span>
+                                    @if($notification->sent_count > 0)
+                                        <span class="badge bg-success-transparent">
+                                            <i class="ri-check-line me-1"></i> Yes
+                                        </span>
+                                    @else
+                                        <span class="badge bg-danger-transparent">
+                                            <i class="ri-close-line me-1"></i> No
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-transparent">{{ $notification->sent_count }}</span>
                                 </td>
                                 <td>
                                     @if($notification->failed_count > 0)
@@ -168,7 +180,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="10" class="text-center py-4">
+                                <td colspan="11" class="text-center py-4">
                                     <div class="text-muted">No notifications found.</div>
                                 </td>
                             </tr>

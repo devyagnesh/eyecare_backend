@@ -124,12 +124,13 @@ class NotificationController extends Controller
                     break;
 
                 default:
-                    return $this->errorResponse('Invalid notification type.');
+                    return $this->handleErrorResponse($request, 'Invalid notification type.');
             }
 
-            return $this->successResponse(
+            return $this->handleResponse(
+                $request,
                 'Notification sent successfully!',
-                route('admin.notifications.index')
+                'admin.notifications.index'
             );
         } catch (\Exception $e) {
             \Log::error('Failed to send notification', [
@@ -137,7 +138,8 @@ class NotificationController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return $this->errorResponse(
+            return $this->handleErrorResponse(
+                $request,
                 'Failed to send notification: ' . $e->getMessage()
             );
         }
