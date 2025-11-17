@@ -102,7 +102,7 @@
 
                 <!-- Start::slide -->
                 <li class="slide">
-                    <a href="{{ route('api.documentation') }}" class="side-menu__item {{ request()->routeIs('api.documentation') ? 'active' : '' }}">
+                    <a href="{{ route('scramble.docs.ui') }}" class="side-menu__item {{ request()->routeIs('scramble.docs.*') || request()->is('docs/api*') ? 'active' : '' }}" target="_blank">
                         <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM128,176a8,8,0,0,1-16,0V128a8,8,0,0,1,16,0Zm0-80a12,12,0,1,1-12-12A12,12,0,0,1,128,96Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="88" y1="104" x2="168" y2="104" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="88" y1="136" x2="168" y2="136" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="88" y1="168" x2="120" y2="168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
                         <span class="side-menu__label">API Documentation</span>
                     </a>
