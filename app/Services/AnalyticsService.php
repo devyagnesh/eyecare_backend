@@ -7,6 +7,7 @@ use App\Models\Store;
 use App\Models\Customer;
 use App\Models\EyeExamination;
 use App\Models\Order;
+use App\Models\UserDevice;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -83,6 +84,7 @@ class AnalyticsService
             'spam' => $this->getSpamAnalytics($filters),
             'performance' => $this->getStorePerformance($filters),
             'chart_data' => $this->getChartData($filters),
+            'location_data' => $this->getLocationAnalytics($filters),
         ];
     }
 
@@ -328,6 +330,64 @@ class AnalyticsService
             'percentage' => $spamPercentage,
             'this_month' => $spamThisMonth,
             'recent' => $recentSpam,
+        ];
+    }
+
+    /**
+     * Get location analytics for map visualization.
+     *
+     * @param array $filters
+     * @return array
+     */
+    public function getLocationAnalytics(array $filters = []): array
+    {
+        $query = UserDevice::active()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->with('user:id,name,email');
+
+        if (isset($filters['start_date'])) {
+            $query->where('created_at', '>=', $filters['start_date']);
+        }
+        if (isset($filters['end_date'])) {
+            $query->where('created_at', '<=', $filters['end_date']);
+        }
+
+        // Get unique locations (group by city/country to avoid clustering)
+        $locations = $query->select('latitude', 'longitude', 'city', 'region', 'country', 'country_code', DB::raw('COUNT(*) as device_count'))
+            ->groupBy('latitude', 'longitude', 'city', 'region', 'country', 'country_code')
+            ->get();
+
+        // Get country statistics
+        $countryStats = UserDevice::active()
+            ->whereNotNull('country_code')
+            ->select('country', 'country_code', DB::raw('COUNT(DISTINCT user_id) as user_count'), DB::raw('COUNT(*) as device_count'))
+            ->groupBy('country', 'country_code')
+            ->orderBy('user_count', 'desc')
+            ->get();
+
+        return [
+            'locations' => $locations->map(function ($location) {
+                return [
+                    'lat' => (float) $location->latitude,
+                    'lng' => (float) $location->longitude,
+                    'city' => $location->city,
+                    'region' => $location->region,
+                    'country' => $location->country,
+                    'country_code' => $location->country_code,
+                    'device_count' => $location->device_count,
+                ];
+            })->toArray(),
+            'country_stats' => $countryStats->map(function ($stat) {
+                return [
+                    'country' => $stat->country,
+                    'country_code' => $stat->country_code,
+                    'user_count' => $stat->user_count,
+                    'device_count' => $stat->device_count,
+                ];
+            })->toArray(),
+            'total_locations' => $locations->count(),
+            'total_countries' => $countryStats->count(),
         ];
     }
 }

@@ -22,6 +22,16 @@
 @if(file_exists(public_path('assets/libs/apexcharts/apexcharts.min.js')))
 <!-- ApexCharts CSS is included in main theme -->
 @endif
+@if(file_exists(public_path('assets/libs/leaflet/leaflet.css')))
+<link rel="stylesheet" href="{{ asset('assets/libs/leaflet/leaflet.css') }}">
+@endif
+<style>
+    #user-location-map {
+        height: 500px;
+        width: 100%;
+        border-radius: 8px;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -370,11 +380,102 @@
     </div>
 </div>
 <!-- End:: row-5 -->
+
+<!-- Start:: row-6 - User Location Map -->
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">User Locations Map</div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">
+                            <strong>Total Locations:</strong> {{ $analytics['location_data']['total_locations'] ?? 0 }} | 
+                            <strong>Countries:</strong> {{ $analytics['location_data']['total_countries'] ?? 0 }}
+                        </p>
+                    </div>
+                </div>
+                <div id="user-location-map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End:: row-6 -->
+
+<!-- Start:: row-7 - Country Statistics -->
+@if(isset($analytics['location_data']['country_stats']) && count($analytics['location_data']['country_stats']) > 0)
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card custom-card">
+            <div class="card-header">
+                <div class="card-title">Users by Country</div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>Users</th>
+                                <th>Devices</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $totalUsers = array_sum(array_column($analytics['location_data']['country_stats'], 'user_count'));
+                            @endphp
+                            @foreach($analytics['location_data']['country_stats'] as $stat)
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-medium">{{ $stat['country'] ?? 'Unknown' }}</span>
+                                        @if(isset($stat['country_code']))
+                                            <span class="badge bg-info-transparent ms-2">{{ strtoupper($stat['country_code']) }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-transparent">{{ number_format($stat['user_count']) }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success-transparent">{{ number_format($stat['device_count']) }}</span>
+                                </td>
+                                <td>
+                                    @if($totalUsers > 0)
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ ($stat['user_count'] / $totalUsers) * 100 }}%" 
+                                                 aria-valuenow="{{ ($stat['user_count'] / $totalUsers) * 100 }}" 
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                                {{ number_format(($stat['user_count'] / $totalUsers) * 100, 1) }}%
+                                            </div>
+                                        </div>
+                                    @else
+                                        <span class="text-muted">0%</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+<!-- End:: row-7 -->
 @endsection
 
 @push('scripts')
 @if(file_exists(public_path('assets/libs/apexcharts/apexcharts.min.js')))
 <script src="{{ asset('assets/libs/apexcharts/apexcharts.min.js') }}"></script>
+@endif
+@if(file_exists(public_path('assets/libs/leaflet/leaflet.js')))
+<script src="{{ asset('assets/libs/leaflet/leaflet.js') }}"></script>
 @endif
 
 <script>
@@ -541,6 +642,64 @@
         };
         var spamChart = new ApexCharts(document.querySelector("#spam-chart"), spamOptions);
         spamChart.render();
+    }
+    
+    // Initialize Leaflet Map
+    if (typeof L !== 'undefined' && document.getElementById('user-location-map')) {
+        const locationData = @json($analytics['location_data']['locations'] ?? []);
+        
+        // Initialize map centered on world
+        const map = L.map('user-location-map').setView([20, 0], 2);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Add markers for each location
+        if (locationData && locationData.length > 0) {
+            locationData.forEach(function(location) {
+                const popupContent = `
+                    <div style="min-width: 150px;">
+                        <strong>${location.city || 'Unknown City'}</strong><br>
+                        ${location.region ? location.region + '<br>' : ''}
+                        ${location.country || 'Unknown Country'}<br>
+                        <small class="text-muted">${location.device_count} device(s)</small>
+                    </div>
+                `;
+                
+                const marker = L.marker([location.lat, location.lng])
+                    .addTo(map)
+                    .bindPopup(popupContent);
+                
+                // Add circle marker for device count visualization
+                if (location.device_count > 1) {
+                    const radius = Math.min(location.device_count * 2, 20);
+                    L.circleMarker([location.lat, location.lng], {
+                        radius: radius,
+                        fillColor: '#735dff',
+                        color: '#735dff',
+                        weight: 1,
+                        opacity: 0.5,
+                        fillOpacity: 0.2
+                    }).addTo(map);
+                }
+            });
+            
+            // Fit map bounds to show all markers
+            if (locationData.length > 0) {
+                const bounds = locationData.map(loc => [loc.lat, loc.lng]);
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        } else {
+            // Show message if no locations
+            map.setView([20, 0], 2);
+            L.popup()
+                .setLatLng([20, 0])
+                .setContent('<div class="text-center"><p class="mb-0">No location data available</p><small class="text-muted">Location data will appear as users log in</small></div>')
+                .openOn(map);
+        }
     }
 })();
 </script>

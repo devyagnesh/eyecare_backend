@@ -12,6 +12,7 @@ use App\Models\UserDevice;
 use App\Models\Role;
 use App\Services\EmailVerificationService;
 use App\Services\PasswordResetService;
+use App\Services\GeolocationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -426,6 +427,7 @@ class AuthController extends Controller
      */
     private function createOrUpdateDevice(User $user, Request $request): UserDevice
     {
+        $ipAddress = $request->ip();
         $deviceData = [
             'user_id' => $user->id,
             'device_id' => $request->device_id ?? $this->generateDeviceId($request),
@@ -435,13 +437,27 @@ class AuthController extends Controller
             'os_version' => $request->os_version,
             'browser_name' => $request->browser_name ?? $this->detectBrowser($request),
             'browser_version' => $request->browser_version,
-            'ip_address' => $request->ip(),
+            'ip_address' => $ipAddress,
             'user_agent' => $request->userAgent(),
             'notification_token' => $request->notification_token,
             'notification_platform' => $request->notification_platform,
             'is_active' => true,
             'last_active_at' => now(),
         ];
+
+        // Get location from IP address (only if IP changed or location not set)
+        $existingDevice = UserDevice::where('user_id', $user->id)
+            ->where('device_id', $deviceData['device_id'])
+            ->first();
+        
+        if (!$existingDevice || !$existingDevice->latitude || $existingDevice->ip_address !== $ipAddress) {
+            $geolocationService = app(GeolocationService::class);
+            $location = $geolocationService->getLocationFromIp($ipAddress);
+            
+            if ($location) {
+                $deviceData = array_merge($deviceData, $location);
+            }
+        }
 
         // Try to find existing device by device_id or create new one
         $device = UserDevice::updateOrCreate(

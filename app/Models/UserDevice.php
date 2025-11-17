@@ -20,6 +20,12 @@ class UserDevice extends Model
         'browser_name',
         'browser_version',
         'ip_address',
+        'latitude',
+        'longitude',
+        'city',
+        'region',
+        'country',
+        'country_code',
         'user_agent',
         'notification_token',
         'notification_platform',
@@ -30,6 +36,8 @@ class UserDevice extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'last_active_at' => 'datetime',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
     ];
 
     /**
