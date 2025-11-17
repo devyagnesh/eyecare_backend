@@ -147,7 +147,57 @@ class AuthController extends Controller
     }
 
     /**
-     * Register a new user (if signup is needed in future).
+     * Register a new user.
+     * 
+     * Creates a new user account and returns an API token along with user information.
+     * Also creates or updates device information for push notifications.
+     * 
+     * @bodyParam name string required User's full name. Example: John Doe
+     * @bodyParam email string required User email address. Example: user@example.com
+     * @bodyParam password string required User password. Example: password123
+     * @bodyParam password_confirmation string required Password confirmation (must match password). Example: password123
+     * @bodyParam role_id integer Optional role ID. If not provided, default "user" role will be assigned. Example: 2
+     * @bodyParam device_name string Device name. Example: iPhone 13
+     * @bodyParam latitude numeric Latitude coordinate (-90 to 90). Example: 23.0225
+     * @bodyParam longitude numeric Longitude coordinate (-180 to 180). Example: 72.5714
+     * @bodyParam city string City name. Example: Ahmedabad
+     * @bodyParam region string Region/State name. Example: Gujarat
+     * @bodyParam country string Country name. Example: India
+     * @bodyParam country_code string 2-letter country code. Example: IN
+     * 
+     * @response 201 {
+     *   "success": true,
+     *   "data": {
+     *     "user": {
+     *       "id": 1,
+     *       "name": "John Doe",
+     *       "email": "user@example.com",
+     *       "email_verified_at": null,
+     *       "role": {
+     *         "id": 1,
+     *         "name": "User",
+     *         "slug": "user"
+     *       },
+     *       "permissions": ["view-dashboard", "create-orders"]
+     *     },
+     *     "token": "1|abcdefghijklmnopqrstuvwxyz1234567890",
+     *     "device": {
+     *       "id": 1,
+     *       "device_id": "device-12345",
+     *       "device_type": "mobile"
+     *     }
+     *   },
+     *   "message": "Registration successful. Please check your email to verify your account."
+     * }
+     * 
+     * @response 422 {
+     *   "success": false,
+     *   "message": "The provided data is invalid.",
+     *   "errors": {
+     *     "email": ["The email has already been taken."],
+     *     "password": ["The password confirmation does not match."]
+     *   }
+     * }
      */
     public function register(RegisterRequest $request)
     {
