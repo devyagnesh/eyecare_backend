@@ -51,6 +51,36 @@ class RegisterRequest extends FormRequest
                 'string',
                 'max:255',
             ],
+            'latitude' => [
+                'nullable',
+                'numeric',
+                'between:-90,90',
+            ],
+            'longitude' => [
+                'nullable',
+                'numeric',
+                'between:-180,180',
+            ],
+            'city' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'region' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'country' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'country_code' => [
+                'nullable',
+                'string',
+                'max:2',
+            ],
         ];
     }
 

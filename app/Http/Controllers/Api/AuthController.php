@@ -38,6 +38,12 @@ class AuthController extends Controller
      * @bodyParam browser_version string Browser version. Example: 15.0
      * @bodyParam notification_token string Push notification token. Example: fcm-token-123
      * @bodyParam notification_platform string Notification platform (fcm, apns, web-push). Example: fcm
+     * @bodyParam latitude numeric Latitude coordinate (-90 to 90). Example: 23.0225
+     * @bodyParam longitude numeric Longitude coordinate (-180 to 180). Example: 72.5714
+     * @bodyParam city string City name. Example: Ahmedabad
+     * @bodyParam region string Region/State name. Example: Gujarat
+     * @bodyParam country string Country name. Example: India
+     * @bodyParam country_code string 2-letter country code. Example: IN
      * 
      * @response 200 {
      *   "success": true,
@@ -85,6 +91,12 @@ class AuthController extends Controller
             'browser_version' => 'nullable|string|max:255',
             'notification_token' => 'nullable|string',
             'notification_platform' => 'nullable|string|in:fcm,apns,web-push',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'city' => 'nullable|string|max:100',
+            'region' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+            'country_code' => 'nullable|string|max:2',
         ]);
 
         $user = User::with('role.permissions')->where('email', $request->email)->first();
@@ -445,17 +457,36 @@ class AuthController extends Controller
             'last_active_at' => now(),
         ];
 
-        // Get location from IP address (only if IP changed or location not set)
-        $existingDevice = UserDevice::where('user_id', $user->id)
-            ->where('device_id', $deviceData['device_id'])
-            ->first();
-        
-        if (!$existingDevice || !$existingDevice->latitude || $existingDevice->ip_address !== $ipAddress) {
-            $geolocationService = app(GeolocationService::class);
-            $location = $geolocationService->getLocationFromIp($ipAddress);
+        // Priority: Use provided latitude/longitude > IP geolocation
+        if ($request->has('latitude') && $request->has('longitude')) {
+            // Use provided location data
+            $deviceData['latitude'] = $request->latitude;
+            $deviceData['longitude'] = $request->longitude;
+            $deviceData['city'] = $request->city;
+            $deviceData['region'] = $request->region;
+            $deviceData['country'] = $request->country;
+            $deviceData['country_code'] = $request->country_code;
+        } else {
+            // Fallback to IP geolocation (only if location not set)
+            $existingDevice = UserDevice::where('user_id', $user->id)
+                ->where('device_id', $deviceData['device_id'])
+                ->first();
             
-            if ($location) {
-                $deviceData = array_merge($deviceData, $location);
+            if (!$existingDevice || !$existingDevice->latitude || $existingDevice->ip_address !== $ipAddress) {
+                $geolocationService = app(GeolocationService::class);
+                $location = $geolocationService->getLocationFromIp($ipAddress);
+                
+                if ($location) {
+                    $deviceData = array_merge($deviceData, $location);
+                }
+            } elseif ($existingDevice && $existingDevice->latitude) {
+                // Keep existing location if available
+                $deviceData['latitude'] = $existingDevice->latitude;
+                $deviceData['longitude'] = $existingDevice->longitude;
+                $deviceData['city'] = $existingDevice->city;
+                $deviceData['region'] = $existingDevice->region;
+                $deviceData['country'] = $existingDevice->country;
+                $deviceData['country_code'] = $existingDevice->country_code;
             }
         }
 

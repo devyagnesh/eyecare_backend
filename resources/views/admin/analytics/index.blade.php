@@ -42,12 +42,12 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('admin.analytics.index') }}" class="row g-3">
                     <div class="col-md-3">
-                        <label for="start_date" class="form-label">Start Date</label>
-                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $filters['start_date'] }}">
+                        <label for="start_date" class="form-label">Start Date (Optional)</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $filters['start_date'] ?? '' }}" placeholder="Leave empty for all data">
                     </div>
                     <div class="col-md-3">
-                        <label for="end_date" class="form-label">End Date</label>
-                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $filters['end_date'] }}">
+                        <label for="end_date" class="form-label">End Date (Optional)</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $filters['end_date'] ?? '' }}" placeholder="Leave empty for all data">
                     </div>
                     <div class="col-md-2">
                         <label for="limit" class="form-label">Store Limit</label>

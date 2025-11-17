@@ -33,8 +33,8 @@ class AnalyticsController extends Controller
     public function index(Request $request)
     {
         $filters = [
-            'start_date' => $request->get('start_date', now()->subMonths(6)->format('Y-m-d')),
-            'end_date' => $request->get('end_date', now()->format('Y-m-d')),
+            'start_date' => $request->get('start_date'), // No default - show all data
+            'end_date' => $request->get('end_date'), // No default - show all data
             'limit' => (int) $request->get('limit', 10),
         ];
 

@@ -96,23 +96,23 @@ class AnalyticsService
      */
     public function getChartData(array $filters = []): array
     {
-        $startDate = $filters['start_date'] ?? now()->subMonths(6)->startOfMonth();
-        $endDate = $filters['end_date'] ?? now()->endOfMonth();
+        // Build query for signups - apply date filter only if provided
+        $signupsQuery = User::select(
+            DB::raw('YEAR(created_at) as year'),
+            DB::raw('MONTH(created_at) as month'),
+            DB::raw('COUNT(*) as count')
+        );
         
-        if (is_string($startDate)) {
-            $startDate = \Carbon\Carbon::parse($startDate);
+        if (!empty($filters['start_date'])) {
+            $startDate = is_string($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date']) : $filters['start_date'];
+            $signupsQuery->where('created_at', '>=', $startDate);
         }
-        if (is_string($endDate)) {
-            $endDate = \Carbon\Carbon::parse($endDate);
+        if (!empty($filters['end_date'])) {
+            $endDate = is_string($filters['end_date']) ? \Carbon\Carbon::parse($filters['end_date']) : $filters['end_date'];
+            $signupsQuery->where('created_at', '<=', $endDate);
         }
-
-        // Get signups by month
-        $signupsData = User::select(
-            DB::raw('YEAR(created_at) as year'),
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('COUNT(*) as count')
-        )
-            ->whereBetween('created_at', [$startDate, $endDate])
+        
+        $signupsData = $signupsQuery
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
@@ -124,13 +124,23 @@ class AnalyticsService
                 ];
             });
 
-        // Get stores by month
-        $storesData = Store::select(
+        // Build query for stores - apply date filter only if provided
+        $storesQuery = Store::select(
             DB::raw('YEAR(created_at) as year'),
             DB::raw('MONTH(created_at) as month'),
             DB::raw('COUNT(*) as count')
-        )
-            ->whereBetween('created_at', [$startDate, $endDate])
+        );
+        
+        if (!empty($filters['start_date'])) {
+            $startDate = is_string($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date']) : $filters['start_date'];
+            $storesQuery->where('created_at', '>=', $startDate);
+        }
+        if (!empty($filters['end_date'])) {
+            $endDate = is_string($filters['end_date']) ? \Carbon\Carbon::parse($filters['end_date']) : $filters['end_date'];
+            $storesQuery->where('created_at', '<=', $endDate);
+        }
+        
+        $storesData = $storesQuery
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
@@ -142,14 +152,24 @@ class AnalyticsService
                 ];
             });
 
-        // Get spam accounts by month
-        $spamData = User::spam()
+        // Build query for spam accounts - apply date filter only if provided
+        $spamQuery = User::spam()
             ->select(
                 DB::raw('YEAR(created_at) as year'),
                 DB::raw('MONTH(created_at) as month'),
                 DB::raw('COUNT(*) as count')
-            )
-            ->whereBetween('created_at', [$startDate, $endDate])
+            );
+        
+        if (!empty($filters['start_date'])) {
+            $startDate = is_string($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date']) : $filters['start_date'];
+            $spamQuery->where('created_at', '>=', $startDate);
+        }
+        if (!empty($filters['end_date'])) {
+            $endDate = is_string($filters['end_date']) ? \Carbon\Carbon::parse($filters['end_date']) : $filters['end_date'];
+            $spamQuery->where('created_at', '<=', $endDate);
+        }
+        
+        $spamData = $spamQuery
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
@@ -212,14 +232,13 @@ class AnalyticsService
             $growth = 100;
         }
 
-        // Get signups by month for the last 12 months
+        // Get signups by month (respects date filters if provided)
         $signupsByMonth = (clone $query)
             ->select(
                 DB::raw('YEAR(created_at) as year'),
                 DB::raw('MONTH(created_at) as month'),
                 DB::raw('COUNT(*) as count')
             )
-            ->where('created_at', '>=', now()->subMonths(12))
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
@@ -269,14 +288,13 @@ class AnalyticsService
             $growth = 100;
         }
 
-        // Get stores by month for the last 12 months
+        // Get stores by month (respects date filters if provided)
         $storesByMonth = (clone $query)
             ->select(
                 DB::raw('YEAR(created_at) as year'),
                 DB::raw('MONTH(created_at) as month'),
                 DB::raw('COUNT(*) as count')
             )
-            ->where('created_at', '>=', now()->subMonths(12))
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
@@ -358,9 +376,18 @@ class AnalyticsService
             ->groupBy('latitude', 'longitude', 'city', 'region', 'country', 'country_code')
             ->get();
 
-        // Get country statistics
-        $countryStats = UserDevice::active()
-            ->whereNotNull('country_code')
+        // Get country statistics (respects date filters if provided)
+        $countryStatsQuery = UserDevice::active()
+            ->whereNotNull('country_code');
+        
+        if (isset($filters['start_date'])) {
+            $countryStatsQuery->where('created_at', '>=', $filters['start_date']);
+        }
+        if (isset($filters['end_date'])) {
+            $countryStatsQuery->where('created_at', '<=', $filters['end_date']);
+        }
+        
+        $countryStats = $countryStatsQuery
             ->select('country', 'country_code', DB::raw('COUNT(DISTINCT user_id) as user_count'), DB::raw('COUNT(*) as device_count'))
             ->groupBy('country', 'country_code')
             ->orderBy('user_count', 'desc')
