@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Api\EyeExaminationController;
@@ -106,5 +107,8 @@ Route::middleware('auth')->group(function () {
         // Orders management
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        
+        // Notifications management
+        Route::resource('notifications', NotificationController::class)->except(['edit', 'update', 'destroy']);
     });
 });

@@ -85,6 +85,15 @@
                 </li>
                 <!-- End::slide -->
 
+                <!-- Start::slide -->
+                <li class="slide">
+                    <a href="{{ route('admin.notifications.index') }}" class="side-menu__item {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M224,60H32a4,4,0,0,0-4,4V192a4,4,0,0,0,4,4H224a4,4,0,0,0,4-4V64A4,4,0,0,0,224,60Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="128" cy="128" r="32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                        <span class="side-menu__label">Notifications</span>
+                    </a>
+                </li>
+                <!-- End::slide -->
+
                 <li class="slide__category"><span class="category-name">Content Management</span></li>
 
                 <!-- Start::slide -->

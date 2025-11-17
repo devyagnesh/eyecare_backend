@@ -1,0 +1,321 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Notification;
+use App\Models\User;
+use App\Models\UserDevice;
+use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
+use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\ApnsConfig;
+
+/**
+ * Notification Service
+ * 
+ * Handles business logic for sending push notifications via Firebase Cloud Messaging.
+ * 
+ * @package App\Services
+ */
+class NotificationService
+{
+    private $messaging;
+
+    /**
+     * Create a new service instance.
+     */
+    public function __construct()
+    {
+        // Get credentials path from config (which reads from .env)
+        $credentialsPath = config('services.firebase.credentials_path');
+        
+        // If path is relative, make it absolute from storage/app
+        if (!str_starts_with($credentialsPath, '/') && !str_starts_with($credentialsPath, storage_path())) {
+            $credentialsPath = storage_path('app/' . ltrim($credentialsPath, '/'));
+        }
+        
+        // If path is already absolute, use it as is
+        if (!file_exists($credentialsPath)) {
+            throw new \Exception(
+                'Firebase credentials file not found at: ' . $credentialsPath . '. ' .
+                'Please set FIREBASE_CREDENTIALS_PATH in .env file. ' .
+                'Example: FIREBASE_CREDENTIALS_PATH=firebase/firebase-credentials.json ' .
+                'or use absolute path: FIREBASE_CREDENTIALS_PATH=/path/to/credentials.json'
+            );
+        }
+
+        $factory = (new Factory)->withServiceAccount($credentialsPath);
+        $this->messaging = $factory->createMessaging();
+    }
+
+    /**
+     * Send notification to all users.
+     *
+     * @param string $title
+     * @param string $body
+     * @param array $data
+     * @param int $createdBy
+     * @return Notification
+     */
+    public function sendToAll(string $title, string $body, array $data = [], int $createdBy = null): Notification
+    {
+        $notification = Notification::create([
+            'title' => $title,
+            'body' => $body,
+            'data' => $data,
+            'type' => 'all',
+            'status' => 'sending',
+            'created_by' => $createdBy,
+        ]);
+
+        try {
+            $devices = UserDevice::whereNotNull('notification_token')
+                ->where('is_active', true)
+                ->where('notification_platform', 'fcm')
+                ->get();
+
+            $sentCount = 0;
+            $failedCount = 0;
+            $errors = [];
+
+            foreach ($devices as $device) {
+                try {
+                    $this->sendToDevice($device->notification_token, $title, $body, $data, $device->notification_platform);
+                    $sentCount++;
+                } catch (\Exception $e) {
+                    $failedCount++;
+                    $errors[] = "Device {$device->id}: " . $e->getMessage();
+                    Log::error('Failed to send notification to device', [
+                        'device_id' => $device->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            $notification->update([
+                'status' => $failedCount === 0 ? 'completed' : ($sentCount > 0 ? 'completed' : 'failed'),
+                'sent_count' => $sentCount,
+                'failed_count' => $failedCount,
+                'error_message' => !empty($errors) ? implode('; ', array_slice($errors, 0, 10)) : null,
+                'sent_at' => now(),
+            ]);
+
+            return $notification;
+        } catch (\Exception $e) {
+            $notification->update([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Send notification to a specific user.
+     *
+     * @param int $userId
+     * @param string $title
+     * @param string $body
+     * @param array $data
+     * @param int $createdBy
+     * @return Notification
+     */
+    public function sendToUser(int $userId, string $title, string $body, array $data = [], int $createdBy = null): Notification
+    {
+        $user = User::findOrFail($userId);
+
+        $notification = Notification::create([
+            'title' => $title,
+            'body' => $body,
+            'data' => $data,
+            'type' => 'user',
+            'user_id' => $userId,
+            'status' => 'sending',
+            'created_by' => $createdBy,
+        ]);
+
+        try {
+            $devices = $user->devices()
+                ->whereNotNull('notification_token')
+                ->where('is_active', true)
+                ->where('notification_platform', 'fcm')
+                ->get();
+
+            $sentCount = 0;
+            $failedCount = 0;
+            $errors = [];
+
+            foreach ($devices as $device) {
+                try {
+                    $this->sendToDevice($device->notification_token, $title, $body, $data, $device->notification_platform);
+                    $sentCount++;
+                } catch (\Exception $e) {
+                    $failedCount++;
+                    $errors[] = "Device {$device->id}: " . $e->getMessage();
+                    Log::error('Failed to send notification to device', [
+                        'device_id' => $device->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            $notification->update([
+                'status' => $failedCount === 0 ? 'completed' : ($sentCount > 0 ? 'completed' : 'failed'),
+                'sent_count' => $sentCount,
+                'failed_count' => $failedCount,
+                'error_message' => !empty($errors) ? implode('; ', array_slice($errors, 0, 10)) : null,
+                'sent_at' => now(),
+            ]);
+
+            return $notification;
+        } catch (\Exception $e) {
+            $notification->update([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Send notification to users of a specific store.
+     *
+     * @param int $storeId
+     * @param string $title
+     * @param string $body
+     * @param array $data
+     * @param int $createdBy
+     * @return Notification
+     */
+    public function sendToStore(int $storeId, string $title, string $body, array $data = [], int $createdBy = null): Notification
+    {
+        $store = \App\Models\Store::findOrFail($storeId);
+
+        $notification = Notification::create([
+            'title' => $title,
+            'body' => $body,
+            'data' => $data,
+            'type' => 'store',
+            'store_id' => $storeId,
+            'status' => 'sending',
+            'created_by' => $createdBy,
+        ]);
+
+        try {
+            $devices = UserDevice::whereHas('user', function ($query) use ($storeId) {
+                $query->whereHas('store', function ($q) use ($storeId) {
+                    $q->where('stores.id', $storeId);
+                });
+            })
+            ->whereNotNull('notification_token')
+            ->where('is_active', true)
+            ->where('notification_platform', 'fcm')
+            ->get();
+
+            $sentCount = 0;
+            $failedCount = 0;
+            $errors = [];
+
+            foreach ($devices as $device) {
+                try {
+                    $this->sendToDevice($device->notification_token, $title, $body, $data, $device->notification_platform);
+                    $sentCount++;
+                } catch (\Exception $e) {
+                    $failedCount++;
+                    $errors[] = "Device {$device->id}: " . $e->getMessage();
+                    Log::error('Failed to send notification to device', [
+                        'device_id' => $device->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            $notification->update([
+                'status' => $failedCount === 0 ? 'completed' : ($sentCount > 0 ? 'completed' : 'failed'),
+                'sent_count' => $sentCount,
+                'failed_count' => $failedCount,
+                'error_message' => !empty($errors) ? implode('; ', array_slice($errors, 0, 10)) : null,
+                'sent_at' => now(),
+            ]);
+
+            return $notification;
+        } catch (\Exception $e) {
+            $notification->update([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Send notification to a specific device token.
+     *
+     * @param string $token
+     * @param string $title
+     * @param string $body
+     * @param array $data
+     * @param string $platform
+     * @return void
+     */
+    private function sendToDevice(string $token, string $title, string $body, array $data = [], string $platform = 'fcm'): void
+    {
+        $notification = FirebaseNotification::create($title, $body);
+
+        $message = CloudMessage::withTarget('token', $token)
+            ->withNotification($notification)
+            ->withData($data);
+
+        // Platform-specific configurations
+        if ($platform === 'fcm') {
+            $androidConfig = AndroidConfig::fromArray([
+                'priority' => 'high',
+            ]);
+            $message = $message->withAndroidConfig($androidConfig);
+        }
+
+        $this->messaging->send($message);
+    }
+
+    /**
+     * Get all notifications with filters.
+     *
+     * @param array $filters
+     * @param bool $paginated
+     * @param int $perPage
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getNotifications(array $filters = [], bool $paginated = true, int $perPage = 15)
+    {
+        $query = Notification::with(['user', 'store', 'creator'])
+            ->orderBy($filters['sort_by'] ?? 'created_at', $filters['sort_order'] ?? 'desc');
+
+        if (isset($filters['type']) && $filters['type']) {
+            $query->where('type', $filters['type']);
+        }
+
+        if (isset($filters['status']) && $filters['status']) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['search']) && $filters['search']) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('body', 'like', "%{$search}%");
+            });
+        }
+
+        if ($paginated) {
+            return $query->paginate($perPage)->withQueryString();
+        }
+
+        return $query->get();
+    }
+}
+
