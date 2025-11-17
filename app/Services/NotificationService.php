@@ -76,6 +76,19 @@ class NotificationService
                 ->where('notification_platform', 'fcm')
                 ->get();
 
+            // If no devices with tokens exist, mark as completed with 0 sent
+            if ($devices->isEmpty()) {
+                $notification->update([
+                    'status' => 'completed',
+                    'sent_count' => 0,
+                    'failed_count' => 0,
+                    'error_message' => 'No active devices with notification tokens found.',
+                    'sent_at' => now(),
+                ]);
+
+                return $notification;
+            }
+
             $sentCount = 0;
             $failedCount = 0;
             $errors = [];
@@ -143,6 +156,19 @@ class NotificationService
                 ->where('is_active', true)
                 ->where('notification_platform', 'fcm')
                 ->get();
+
+            // If user has no devices with tokens, mark as completed with 0 sent
+            if ($devices->isEmpty()) {
+                $notification->update([
+                    'status' => 'completed',
+                    'sent_count' => 0,
+                    'failed_count' => 0,
+                    'error_message' => 'User has no active devices with notification tokens.',
+                    'sent_at' => now(),
+                ]);
+
+                return $notification;
+            }
 
             $sentCount = 0;
             $failedCount = 0;
@@ -215,6 +241,19 @@ class NotificationService
             ->where('is_active', true)
             ->where('notification_platform', 'fcm')
             ->get();
+
+            // If store has no devices with tokens, mark as completed with 0 sent
+            if ($devices->isEmpty()) {
+                $notification->update([
+                    'status' => 'completed',
+                    'sent_count' => 0,
+                    'failed_count' => 0,
+                    'error_message' => 'Store has no active devices with notification tokens.',
+                    'sent_at' => now(),
+                ]);
+
+                return $notification;
+            }
 
             $sentCount = 0;
             $failedCount = 0;

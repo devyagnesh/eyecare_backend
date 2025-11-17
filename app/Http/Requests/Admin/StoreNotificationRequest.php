@@ -21,14 +21,28 @@ class StoreNotificationRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $type = $this->input('type');
+        
+        $rules = [
             'title' => 'required|string|max:255',
             'body' => 'required|string|max:1000',
             'type' => 'required|in:all,user,store',
-            'user_id' => 'required_if:type,user|exists:users,id',
-            'store_id' => 'required_if:type,store|exists:stores,id',
+            'user_id' => 'nullable',
+            'store_id' => 'nullable',
             'data' => 'nullable|array',
         ];
+
+        // Only validate user_id when type is 'user'
+        if ($type === 'user') {
+            $rules['user_id'] = 'required|exists:users,id';
+        }
+
+        // Only validate store_id when type is 'store'
+        if ($type === 'store') {
+            $rules['store_id'] = 'required|exists:stores,id';
+        }
+
+        return $rules;
     }
 
     /**
