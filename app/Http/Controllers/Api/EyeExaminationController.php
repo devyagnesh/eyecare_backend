@@ -27,6 +27,7 @@ class EyeExaminationController extends Controller
      * - paginated (boolean): Enable/disable pagination (default: true)
      * - per_page (integer): Number of items per page when paginated=true (default: 15, max: 100)
      * - customer_id (integer): Filter by customer ID
+     * - search (string): Search by customer name, email, or phone number
      * - exam_date_from (date): Filter examinations from this date (YYYY-MM-DD)
      * - exam_date_to (date): Filter examinations up to this date (YYYY-MM-DD)
      * - sort_by (string): Sort field (exam_date, created_at) - default: exam_date
@@ -47,6 +48,7 @@ class EyeExaminationController extends Controller
 
         $filters = [
             'customer_id' => $request->get('customer_id'),
+            'search' => $request->get('search'),
             'exam_date_from' => $request->get('exam_date_from'),
             'exam_date_to' => $request->get('exam_date_to'),
             'sort_by' => $request->get('sort_by', 'exam_date'),

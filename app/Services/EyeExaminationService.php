@@ -31,6 +31,16 @@ class EyeExaminationService
             $query->where('customer_id', $filters['customer_id']);
         }
 
+        // Search by customer name, email, or phone number
+        if (!empty($filters['search'])) {
+            $searchTerm = $filters['search'];
+            $query->whereHas('customer', function ($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                    ->orWhere('email', 'like', "%{$searchTerm}%")
+                    ->orWhere('phone_number', 'like', "%{$searchTerm}%");
+            });
+        }
+
         // Filter by date range
         if (!empty($filters['exam_date_from'])) {
             $query->whereDate('exam_date', '>=', $filters['exam_date_from']);
