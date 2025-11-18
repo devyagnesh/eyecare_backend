@@ -12,6 +12,7 @@ use App\Models\UserDevice;
 use App\Models\Role;
 use App\Services\EmailVerificationService;
 use App\Services\PasswordResetService;
+use App\Services\TermsAndConditionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -163,6 +164,8 @@ class AuthController extends Controller
      * @bodyParam region string Region/State name. Example: Gujarat
      * @bodyParam country string Country name. Example: India
      * @bodyParam country_code string 2-letter country code. Example: IN
+     * @bodyParam accept_terms boolean required Must be true to accept terms and conditions. Example: true
+     * @bodyParam terms_and_condition_id integer required The ID of the terms and conditions being accepted. Example: 1
      * 
      * @response 201 {
      *   "success": true,
@@ -223,6 +226,24 @@ class AuthController extends Controller
         ]);
 
         $user->load('role.permissions');
+
+        // Record terms and conditions acceptance (required during registration)
+        try {
+            $termsService = app(TermsAndConditionService::class);
+            $termsService->recordAcceptance(
+                $user,
+                $validated['terms_and_condition_id'],
+                $request->ip(),
+                $request->userAgent()
+            );
+        } catch (\Exception $e) {
+            // Log error but don't fail registration (terms validation already passed)
+            \Log::error('Failed to record terms acceptance during registration', [
+                'user_id' => $user->id,
+                'terms_id' => $validated['terms_and_condition_id'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         // Check for spam after registration (async check after device is created)
         // We'll check after device is created to have IP address available

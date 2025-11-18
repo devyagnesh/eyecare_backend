@@ -81,6 +81,16 @@ class RegisterRequest extends FormRequest
                 'string',
                 'max:2',
             ],
+            'accept_terms' => [
+                'required',
+                'boolean',
+                'accepted',
+            ],
+            'terms_and_condition_id' => [
+                'required',
+                'integer',
+                'exists:terms_and_conditions,id',
+            ],
         ];
     }
 
@@ -105,6 +115,10 @@ class RegisterRequest extends FormRequest
             'role_id.exists' => 'The selected role is invalid.',
             'device_name.string' => 'Device name must be a string.',
             'device_name.max' => 'Device name must not exceed 255 characters.',
+            'accept_terms.required' => 'You must accept the terms and conditions to register.',
+            'accept_terms.accepted' => 'You must accept the terms and conditions to register.',
+            'terms_and_condition_id.required' => 'Terms and conditions ID is required.',
+            'terms_and_condition_id.exists' => 'The selected terms and conditions are invalid.',
         ];
     }
 }

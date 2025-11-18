@@ -22,6 +22,7 @@ use Kreait\Firebase\Messaging\ApnsConfig;
 class NotificationService
 {
     private $messaging;
+    private $projectId;
 
     /**
      * Create a new service instance.
@@ -46,8 +47,31 @@ class NotificationService
             );
         }
 
+        // Read and validate credentials file
+        $credentials = json_decode(file_get_contents($credentialsPath), true);
+        if (!$credentials || !isset($credentials['project_id'])) {
+            throw new \Exception('Invalid Firebase credentials file. Missing project_id.');
+        }
+        
+        $this->projectId = $credentials['project_id'];
+        
+        Log::info('Firebase initialized', [
+            'project_id' => $this->projectId,
+            'credentials_path' => $credentialsPath,
+        ]);
+
         $factory = (new Factory)->withServiceAccount($credentialsPath);
         $this->messaging = $factory->createMessaging();
+    }
+
+    /**
+     * Get the Firebase project ID.
+     *
+     * @return string
+     */
+    public function getProjectId(): string
+    {
+        return $this->projectId;
     }
 
     /**
@@ -344,24 +368,62 @@ class NotificationService
      * @param array $data
      * @param string $platform
      * @return void
+     * @throws \Exception
      */
     private function sendToDevice(string $token, string $title, string $body, array $data = [], string $platform = 'fcm'): void
     {
-        $notification = FirebaseNotification::create($title, $body);
+        try {
+            $notification = FirebaseNotification::create($title, $body);
 
-        $message = CloudMessage::withTarget('token', $token)
-            ->withNotification($notification)
-            ->withData($data);
+            $message = CloudMessage::withTarget('token', $token)
+                ->withNotification($notification)
+                ->withData($data);
 
-        // Platform-specific configurations
-        if ($platform === 'fcm') {
-            $androidConfig = AndroidConfig::fromArray([
-                'priority' => 'high',
+            // Platform-specific configurations
+            if ($platform === 'fcm') {
+                $androidConfig = AndroidConfig::fromArray([
+                    'priority' => 'high',
+                ]);
+                $message = $message->withAndroidConfig($androidConfig);
+            }
+
+            $this->messaging->send($message);
+        } catch (\Kreait\Firebase\Exception\Messaging\InvalidArgument $e) {
+            // Handle invalid token or SenderId mismatch
+            $errorMessage = $e->getMessage();
+            
+            if (stripos($errorMessage, 'SenderId') !== false || stripos($errorMessage, 'mismatch') !== false) {
+                $detailedError = 'SenderId mismatch: The FCM token was generated for a different Firebase project. ' .
+                    'Backend is using project ID: ' . $this->projectId . '. ' .
+                    'Ensure the mobile app uses the same Firebase project. ' .
+                    'Check that google-services.json (Android) or GoogleService-Info.plist (iOS) has the same project_id.';
+                
+                Log::error('FCM SenderId mismatch', [
+                    'project_id' => $this->projectId,
+                    'token_preview' => substr($token, 0, 20) . '...',
+                    'error' => $errorMessage,
+                ]);
+                
+                throw new \Exception($detailedError, 0, $e);
+            }
+            
+            throw $e;
+        } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
+            // Token is invalid or unregistered
+            $errorMessage = 'Invalid or unregistered FCM token. The device may have uninstalled the app or the token has expired.';
+            Log::warning('FCM token not found', [
+                'token_preview' => substr($token, 0, 20) . '...',
+                'error' => $e->getMessage(),
             ]);
-            $message = $message->withAndroidConfig($androidConfig);
+            throw new \Exception($errorMessage, 0, $e);
+        } catch (\Exception $e) {
+            Log::error('FCM send error', [
+                'token_preview' => substr($token, 0, 20) . '...',
+                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+            ]);
+            throw $e;
         }
-
-        $this->messaging->send($message);
     }
 
     /**
