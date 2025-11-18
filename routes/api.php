@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\EyeExaminationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\TermsAndConditionController;
+use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\Admin\TestEmailController;
 
 /*
@@ -61,6 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [StoreController::class, 'show'])->name('stores.show');
         Route::post('/', [StoreController::class, 'store'])->name('stores.create');
         Route::put('/', [StoreController::class, 'update'])->name('stores.update');
+    });
+    
+    // Statistics routes (require store)
+    Route::prefix('statistics')->group(function () {
+        Route::get('/', [StatisticsController::class, 'index'])->name('statistics.index');
     });
     
     // Customer routes (require store)
