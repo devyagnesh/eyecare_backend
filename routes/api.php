@@ -103,11 +103,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{setting}', [SettingController::class, 'destroy'])->name('settings.destroy');
     });
     
-    // Terms and conditions routes
-    Route::prefix('terms')->group(function () {
-        Route::get('/check', [TermsAndConditionController::class, 'checkAcceptance'])->name('terms.check');
-        Route::post('/accept', [TermsAndConditionController::class, 'accept'])->name('terms.accept');
-    });
+    // Terms and conditions routes (for viewing terms only - acceptance is required during registration)
+    // Note: Terms acceptance is mandatory during signup, so no separate accept endpoint is needed
     
     // Example: Get authenticated user
     Route::get('/user', function (Request $request) {

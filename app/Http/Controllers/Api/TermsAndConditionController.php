@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\AcceptTermsRequest;
 use App\Models\TermsAndCondition;
 use App\Services\TermsAndConditionService;
 use Illuminate\Http\Request;
@@ -66,86 +65,5 @@ class TermsAndConditionController extends Controller
         ], 200);
     }
 
-    /**
-     * Accept terms and conditions.
-     *
-     * @param AcceptTermsRequest $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function accept(AcceptTermsRequest $request)
-    {
-        $user = $request->user();
-        
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated.',
-            ], 401);
-        }
-
-        try {
-            $ipAddress = $request->ip();
-            $userAgent = $request->userAgent();
-
-            $this->termsService->recordAcceptance(
-                $user,
-                $request->validated()['terms_and_condition_id'],
-                $ipAddress,
-                $userAgent
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Terms and conditions accepted successfully.',
-                'data' => [
-                    'has_accepted' => true,
-                ],
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to accept terms and conditions.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Check if user has accepted latest terms.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function checkAcceptance(Request $request)
-    {
-        $user = $request->user();
-        
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated.',
-            ], 401);
-        }
-
-        $latestTerms = $this->termsService->getLatestTerms();
-        $hasAccepted = $user->hasAcceptedLatestTerms();
-        $latestAccepted = $user->getLatestAcceptedTerms();
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'has_accepted_latest' => $hasAccepted,
-                'latest_terms' => $latestTerms ? [
-                    'id' => $latestTerms->id,
-                    'version' => $latestTerms->version,
-                    'updated_at' => $latestTerms->updated_at->format('Y-m-d H:i:s'),
-                ] : null,
-                'last_accepted' => $latestAccepted ? [
-                    'terms_id' => $latestAccepted->terms_and_condition_id,
-                    'accepted_at' => $latestAccepted->accepted_at->format('Y-m-d H:i:s'),
-                ] : null,
-            ],
-        ], 200);
-    }
 }
 
