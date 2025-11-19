@@ -102,7 +102,14 @@ class StoreController extends Controller
         }
 
         try {
-            $store = $this->storeService->createStore($user, $request->validated());
+            $validated = $request->validated();
+            
+            // Handle logo file upload
+            if ($request->hasFile('logo')) {
+                $validated['logo'] = $request->file('logo');
+            }
+            
+            $store = $this->storeService->createStore($user, $validated);
 
             return response()->json([
                 'success' => true,

@@ -215,9 +215,26 @@ class OrderController extends Controller
         try {
             $data = $request->validated();
             
-            // Add frame photos files if uploaded
+            // Handle multiple frame photos files if uploaded
+            // When multiple files are uploaded with the same field name (frame_photos[]), Laravel returns an array
+            // When a single file is uploaded (frame_photos), Laravel returns a single UploadedFile
+            $framePhotos = [];
             if ($request->hasFile('frame_photos')) {
-                $data['frame_photos'] = $request->file('frame_photos');
+                $uploadedFiles = $request->file('frame_photos');
+                // Ensure it's an array (even if single file)
+                if (is_array($uploadedFiles)) {
+                    $framePhotos = $uploadedFiles;
+                } else {
+                    $framePhotos = [$uploadedFiles];
+                }
+            }
+            
+            // Only set frame_photos in data if files were actually uploaded
+            if (!empty($framePhotos)) {
+                $data['frame_photos'] = $framePhotos;
+            } else {
+                // Remove frame_photos from data if no files were uploaded
+                unset($data['frame_photos']);
             }
 
             $order = $this->orderService->createOrder($store, $data);

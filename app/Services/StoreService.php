@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Store Service
@@ -89,11 +90,23 @@ class StoreService
      */
     public function formatStore(Store $store): array
     {
+        // Helper to ensure full URL for logo
+        $getLogoUrl = function ($path) {
+            if (!$path) {
+                return null;
+            }
+            $url = Storage::url($path);
+            // If URL is already absolute, return as-is; otherwise make it absolute
+            return (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) 
+                ? $url 
+                : url($url);
+        };
+
         return [
             'id' => $store->id,
             'user_id' => $store->user_id,
             'name' => $store->name,
-            'logo' => $store->logo ? asset('storage/' . $store->logo) : null,
+            'logo' => $getLogoUrl($store->logo),
             'email' => $store->email,
             'phone_number' => $store->phone_number,
             'address' => $store->address,
@@ -121,11 +134,19 @@ class StoreService
 
         DB::beginTransaction();
         try {
+            // Handle logo file upload
+            if (isset($data['logo']) && ($data['logo'] instanceof \Illuminate\Http\UploadedFile || is_file($data['logo']))) {
+                $logoPath = $data['logo']->store('stores/logos', 'public');
+                $data['logo'] = $logoPath;
+            } else {
+                unset($data['logo']);
+            }
+
             $data['user_id'] = $user->id;
             $store = Store::create($data);
             DB::commit();
             Log::info('Store created successfully', ['store_id' => $store->id, 'user_id' => $user->id]);
-            return $store;
+            return $store->fresh(['user']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to create store', ['error' => $e->getMessage(), 'user_id' => $user->id]);

@@ -14,6 +14,8 @@ class EmailVerificationController extends Controller
 {
     /**
      * Mark the authenticated user's email address as verified.
+     * Always returns a redirect to the appropriate page, never JSON.
+     * Email verification links should always redirect to a page, not return JSON.
      */
     public function verify(Request $request)
     {

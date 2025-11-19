@@ -475,6 +475,9 @@
                 method,
                 formData,
                 function(response) {
+                    // Hide loader on success
+                    ajaxLoader.hide($submitBtn);
+                    
                     // Success handler
                     if (response.success) {
                         // Show success message
@@ -483,7 +486,11 @@
                         // Handle redirect
                         if (response.redirect) {
                             const forceRedirect = options.forceRedirect || response.forceRedirect || $form.data('force-redirect');
-                            if (forceRedirect) {
+                            const formAction = $form.attr('action') || '';
+                            const isCreatePage = formAction.includes('/store') || formAction.includes('/create');
+                            
+                            // Redirect if forceRedirect is true OR if it's a create page (like notification creation)
+                            if (forceRedirect || isCreatePage) {
                                 setTimeout(function() {
                                     window.location.href = response.redirect;
                                 }, 1000);
@@ -525,6 +532,9 @@
                     }
                 },
                 function(xhr, errorType, errorThrown) {
+                    // Hide loader on error
+                    ajaxLoader.hide($submitBtn);
+                    
                     // Error handler
                     if (errorType === 'validation' && xhr.responseJSON && xhr.responseJSON.errors) {
                         // Display validation errors inline

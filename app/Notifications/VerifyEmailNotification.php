@@ -39,9 +39,9 @@ class VerifyEmailNotification extends Notification
      */
     protected function verificationUrl($notifiable): string
     {
-        // Generate absolute signed URL for API verification endpoint
+        // Generate absolute signed URL for web verification endpoint (returns redirect to success page)
         return URL::temporarySignedRoute(
-            'verification.verify-api',
+            'verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $notifiable->getKey(),
