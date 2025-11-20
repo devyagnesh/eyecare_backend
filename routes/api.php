@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\TermsAndConditionController;
 use App\Http\Controllers\Api\StatisticsController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Admin\TestEmailController;
 
 /*
@@ -54,6 +55,11 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware('throttle:email-verification-check');
         Route::post('/update-notification-token', [AuthController::class, 'updateNotificationToken']);
         Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('verification.resend-api');
+    });
+    
+    // Notification routes
+    Route::prefix('notifications')->group(function () {
+        Route::get('/today', [NotificationController::class, 'getTodayNotifications'])->name('notifications.today');
     });
     
     // Store routes (require email verification)

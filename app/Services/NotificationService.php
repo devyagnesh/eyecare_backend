@@ -461,5 +461,47 @@ class NotificationService
 
         return $query->get();
     }
+
+    /**
+     * Get today's notifications for a specific user.
+     *
+     * Returns notifications that are relevant to the user:
+     * - Notifications sent to all users (type='all')
+     * - Notifications sent specifically to this user (type='user' and user_id matches)
+     * - Notifications sent to the user's store (type='store' and store_id matches user's store)
+     *
+     * @param int $userId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getTodayNotificationsForUser(int $userId): \Illuminate\Database\Eloquent\Collection
+    {
+        $user = User::with('store')->findOrFail($userId);
+        
+        $today = now()->startOfDay();
+        $tomorrow = now()->copy()->addDay()->startOfDay();
+
+        $query = Notification::where(function ($q) use ($userId, $user) {
+            // Notifications sent to all users
+            $q->where('type', 'all')
+                // Notifications sent specifically to this user
+                ->orWhere(function ($subQ) use ($userId) {
+                    $subQ->where('type', 'user')
+                        ->where('user_id', $userId);
+                });
+            
+            // Notifications sent to this user's store (if user has a store)
+            if ($user->store) {
+                $q->orWhere(function ($subQ) use ($user) {
+                    $subQ->where('type', 'store')
+                        ->where('store_id', $user->store->id);
+                });
+            }
+        })
+        ->where('created_at', '>=', $today)
+        ->where('created_at', '<', $tomorrow)
+        ->orderBy('created_at', 'desc');
+
+        return $query->get();
+    }
 }
 
