@@ -40,6 +40,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'role_id',
         'is_spam',
         'is_blocked',
+        'deletion_requested_at',
+        'scheduled_deletion_at',
     ];
 
     /**
@@ -64,6 +66,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_spam' => 'boolean',
             'is_blocked' => 'boolean',
+            'deletion_requested_at' => 'datetime',
+            'scheduled_deletion_at' => 'datetime',
         ];
     }
 

@@ -13,6 +13,7 @@ use App\Models\Role;
 use App\Services\EmailVerificationService;
 use App\Services\PasswordResetService;
 use App\Services\TermsAndConditionService;
+use App\Services\AccountDeletionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -620,5 +621,72 @@ class AuthController extends Controller
         }
         
         return 'Unknown';
+    }
+
+    /**
+     * Request account deletion.
+     * 
+     * Schedules the authenticated user's account for deletion after 30 days.
+     * An email notification will be sent to the user.
+     * 
+     * @bodyParam confirm string required Must be "DELETE" to confirm account deletion. Example: DELETE
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "message": "Account deletion has been requested. Your account will be deleted after 30 days.",
+     *   "data": {
+     *     "scheduled_deletion_at": "2025-12-20T10:30:00.000000Z"
+     *   }
+     * }
+     * 
+     * @response 400 {
+     *   "success": false,
+     *   "message": "Account deletion has already been requested."
+     * }
+     * 
+     * @response 400 {
+     *   "success": false,
+     *   "message": "Confirmation is required. Please send 'confirm' field with value 'DELETE'."
+     * }
+     * 
+     * @response 401 {
+     *   "message": "Unauthenticated."
+     * }
+     */
+    public function deleteAccount(Request $request, AccountDeletionService $accountDeletionService)
+    {
+        $request->validate([
+            'confirm' => 'required|string|in:DELETE',
+        ], [
+            'confirm.in' => "Confirmation is required. Please send 'confirm' field with value 'DELETE'.",
+        ]);
+
+        $user = $request->user();
+
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+
+        try {
+            $result = $accountDeletionService->requestAccountDeletion($user);
+
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'data' => [
+                    'scheduled_deletion_at' => $result['scheduled_deletion_at'],
+                ],
+                'timestamp' => now()->toIso8601String(),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
     }
 }
