@@ -663,20 +663,12 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        // Check if user is blocked
-        if ($user->is_blocked) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your account has been blocked. Please contact support.',
-            ], 403);
-        }
-
         try {
             $result = $accountDeletionService->requestAccountDeletion($user);
 
             return response()->json([
                 'success' => true,
-                'message' => $result['message'],
+                'message' => $result['message'] . ' Your account has been disabled and you will not be able to log in during this period.',
                 'data' => [
                     'scheduled_deletion_at' => $result['scheduled_deletion_at'],
                 ],

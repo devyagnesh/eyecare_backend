@@ -119,7 +119,7 @@
                 </p>
             </div>
 
-            <p>During this 30-day period, you can still access your account and cancel the deletion request if you change your mind. After the scheduled deletion date, all your data will be permanently removed and cannot be recovered.</p>
+            <p>During this 30-day period, your account has been disabled and you will not be able to log in. If you change your mind, you can contact support to cancel the deletion request. After the scheduled deletion date, all your data will be permanently removed and cannot be recovered.</p>
 
             <div class="warning-box">
                 <p><strong>Warning:</strong> This action is irreversible. Once your account is deleted, all your data including:</p>

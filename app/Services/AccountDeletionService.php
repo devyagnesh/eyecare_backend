@@ -39,10 +39,11 @@ class AccountDeletionService
         try {
             $scheduledDeletionAt = now()->addDays(30);
 
-            // Update user with deletion request
+            // Update user with deletion request and block the account
             $user->update([
                 'deletion_requested_at' => now(),
                 'scheduled_deletion_at' => $scheduledDeletionAt,
+                'is_blocked' => true, // Block user from logging in during deletion period
             ]);
 
             // Send notification email
@@ -95,9 +96,11 @@ class AccountDeletionService
         }
 
         try {
+            // Unblock user and cancel deletion request
             $user->update([
                 'deletion_requested_at' => null,
                 'scheduled_deletion_at' => null,
+                'is_blocked' => false, // Unblock user when deletion is cancelled
             ]);
 
             Log::info('Account deletion request cancelled', [
