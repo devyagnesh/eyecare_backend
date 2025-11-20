@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware('throttle:email-verification-check');
         Route::post('/update-notification-token', [AuthController::class, 'updateNotificationToken']);
         Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail'])->name('verification.resend-api');
+        Route::put('/profile', [AuthController::class, 'updateProfile'])->name('auth.update-profile');
         Route::delete('/account', [AuthController::class, 'deleteAccount'])->name('auth.delete-account');
     });
     

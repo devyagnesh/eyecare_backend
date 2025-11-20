@@ -7,6 +7,7 @@ use App\Http\Requests\Api\ForgotPasswordRequest;
 use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Requests\Api\ResendVerificationEmailRequest;
 use App\Http\Requests\Api\ResetPasswordRequest;
+use App\Http\Requests\Api\UpdateProfileRequest;
 use App\Models\User;
 use App\Models\UserDevice;
 use App\Models\Role;
@@ -678,6 +679,153 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
+        }
+    }
+
+    /**
+     * Update user profile.
+     * 
+     * Updates the authenticated user's name and/or email.
+     * If email is updated, the user must verify the new email address.
+     * 
+     * @bodyParam name string User's full name. Example: John Doe
+     * @bodyParam email string User email address. Example: user@example.com
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "user": {
+     *       "id": 1,
+     *       "name": "John Doe",
+     *       "email": "newemail@example.com",
+     *       "email_verified": false,
+     *       "email_verified_at": null,
+     *       "role": {
+     *         "id": 1,
+     *         "name": "User",
+     *         "slug": "user"
+     *       }
+     *     },
+     *     "email_verification_required": true,
+     *     "message": "Profile updated successfully. Please verify your new email address."
+     *   },
+     *   "message": "Profile updated successfully"
+     * }
+     * 
+     * @response 422 {
+     *   "success": false,
+     *   "message": "The email has already been taken.",
+     *   "errors": {
+     *     "email": ["The email has already been taken."]
+     *   }
+     * }
+     * 
+     * @response 401 {
+     *   "message": "Unauthenticated."
+     * }
+     * 
+     * @response 403 {
+     *   "success": false,
+     *   "message": "Your account has been blocked. Please contact support."
+     * }
+     */
+    public function updateProfile(UpdateProfileRequest $request, EmailVerificationService $emailVerificationService)
+    {
+        $user = $request->user();
+        
+        // Check if user is blocked
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+
+        try {
+            $validated = $request->validated();
+            $emailChanged = false;
+            $emailVerificationRequired = false;
+            $originalEmail = $user->email;
+
+            // Check if email is being changed
+            if (isset($validated['email']) && $validated['email'] !== $originalEmail) {
+                $emailChanged = true;
+            }
+
+            // Update user data
+            if (isset($validated['name'])) {
+                $user->name = $validated['name'];
+            }
+
+            if ($emailChanged) {
+                $user->email = $validated['email'];
+                // Unverify email when it changes
+                $user->email_verified_at = null;
+                $emailVerificationRequired = true;
+            }
+
+            $user->save();
+
+            // Send verification email if email was changed
+            if ($emailChanged) {
+                try {
+                    $user->sendEmailVerificationNotification();
+                    
+                    \Log::info('Profile updated and verification email sent', [
+                        'user_id' => $user->id,
+                        'old_email' => $originalEmail,
+                        'new_email' => $user->email,
+                    ]);
+                } catch (\Exception $e) {
+                    // Log email failure but don't fail the profile update
+                    \Log::error('Failed to send verification email after profile update', [
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Reload user with relationships
+            $user->load('role.permissions');
+
+            $responseData = [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified' => $user->hasVerifiedEmail(),
+                    'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toIso8601String() : null,
+                    'role' => $user->role ? [
+                        'id' => $user->role->id,
+                        'name' => $user->role->name,
+                        'slug' => $user->role->slug,
+                    ] : null,
+                    'permissions' => $user->permissions()->pluck('slug')->toArray(),
+                ],
+            ];
+
+            if ($emailVerificationRequired) {
+                $responseData['email_verification_required'] = true;
+                $responseData['message'] = 'Profile updated successfully. Please verify your new email address.';
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $responseData,
+                'message' => 'Profile updated successfully' . ($emailVerificationRequired ? '. Please verify your new email address.' : ''),
+                'timestamp' => now()->toIso8601String(),
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Failed to update profile', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile: ' . $e->getMessage(),
             ], $e->getCode() ?: 500);
         }
     }
